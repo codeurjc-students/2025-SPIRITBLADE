@@ -1,5 +1,7 @@
 # SPIRITBLADE
 
+<img width="1080" height="1080" alt="logoNoBckgroung" src="https://github.com/user-attachments/assets/1f73258c-5c4a-4d87-ade7-3aaa546827b9" />
+
 ## Summary
 
 **SPIRITBLADE** is a web application designed as a Final Degree Project (TFG) for the double degree in Computer Engineering and Software Engineering at ETSII (URJC). The aim is to provide League of Legends players with a platform similar to OP.GG or Porofessor, allowing them to analyze and visualize player and match statistics using data obtained from Riot Games' public API.
