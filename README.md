@@ -1,6 +1,6 @@
 # SPIRITBLADE
 
-<img width="1080" height="1080" alt="logoNoBckgroung" src="https://github.com/user-attachments/assets/1f73258c-5c4a-4d87-ade7-3aaa546827b9" />
+<img width="25%" height="25%" alt="logoNoBckgroung" src="https://github.com/user-attachments/assets/1f73258c-5c4a-4d87-ade7-3aaa546827b9" />
 
 ## Summary
 
