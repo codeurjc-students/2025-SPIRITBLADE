@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIRITBLADE - Admin Panel</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+
+<body style="padding-bottom: 0px;" !important>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <img src="../images/logoNoBckgroungNoLetters.png" alt="SPIRITBLADE Logo" class="logo-img">
+                <span class="logo-text">SPIRITBLADE</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="index.html">Logout</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="admin-container">
+        <section class="admin-header">
+            <h1>Admin Panel</h1>
+            <p>System Management & User Control</p>
+        </section>
+
+        <section class="admin-stats">
+            <div class="admin-stat-card">
+                <h3>Total Users</h3>
+                <p class="stat-number">1,247</p>
+            </div>
+            <div class="admin-stat-card">
+                <h3>Active Users (7d)</h3>
+                <p class="stat-number">432</p>
+            </div>
+            <div class="admin-stat-card">
+                <h3>Searches Today</h3>
+                <p class="stat-number">2,156</p>
+            </div>
+            <div class="admin-stat-card">
+                <h3>System Status</h3>
+                <p class="stat-number status-ok">Online</p>
+            </div>
+        </section>
+
+        <section class="user-management">
+            <h2>User Management</h2>
+            <div class="management-controls">
+                <input type="text" placeholder="Search users..." class="search-input">
+                <button class="filter-btn">Filter</button>
+            </div>
+            <div class="user-list">
+                <div class="user-row">
+                    <span class="user-name">user1@example.com</span>
+                    <span class="user-status">Active</span>
+                    <span class="user-date">2024-01-15</span>
+                    <div class="user-actions">
+                        <button class="action-btn disable">Disable</button>
+                        <button class="action-btn delete">Delete</button>
+                    </div>
+                </div>
+                <div class="user-row">
+                    <span class="user-name">user2@example.com</span>
+                    <span class="user-status">Inactive</span>
+                    <span class="user-date">2024-01-10</span>
+                    <div class="user-actions">
+                        <button class="action-btn enable">Enable</button>
+                        <button class="action-btn delete">Delete</button>
+                    </div>
+                </div>
+                <div class="user-row">
+                    <span class="user-name">user3@example.com</span>
+                    <span class="user-status">Active</span>
+                    <span class="user-date">2024-01-20</span>
+                    <div class="user-actions">
+                        <button class="action-btn disable">Disable</button>
+                        <button class="action-btn delete">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="system-management">
+            <h2>System Management</h2>
+            <div class="system-actions">
+                <button class="system-btn">Clear Cache</button>
+                <button class="system-btn">Reload Stats</button>
+                <button class="system-btn">Export Data</button>
+                <button class="system-btn danger">Reset Database</button>
+            </div>
+        </section>
+    </main>
+</body>
+<footer style="position: relative; bottom: 0; width: 100%; ">
+    <p>&copy; 2024 SPIRITBLADE - TFG Project</p>
+</footer>
+
+</html>

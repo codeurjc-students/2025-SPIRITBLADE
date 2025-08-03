@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIRITBLADE - Login</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body style= "padding-bottom: 0px;" !important>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <img src="../images/logoNoBckgroungNoLetters.png" alt="SPIRITBLADE Logo" class="logo-img">
+                <span class="logo-text">SPIRITBLADE</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-box">
+            <h1>Welcome to SPIRITBLADE</h1>
+            
+            <div class="auth-tabs">
+                <button class="tab active" id="loginTab" onclick="showLogin()">Login</button>
+                <button class="tab" id="registerTab" onclick="showRegister()">Register</button>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+
+            <form class="auth-form hidden" id="registerForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+                <button type="submit" class="auth-btn">Register</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function showLogin() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+        }
+
+        function showRegister() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            loginTab.classList.remove('active');
+            registerTab.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIRITBLADE - Dashboard</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+
+<body style="padding-bottom: 0px;" !important>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <img src="../images/logoNoBckgroungNoLetters.png" alt="SPIRITBLADE Logo" class="logo-img">
+                <span class="logo-text">SPIRITBLADE</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#" class="user-menu">Profile</a>
+                <a href="index.html">Logout</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="user-profile">
+            <div class="profile-header">
+                <div class="user-avatar">
+                    <div class="avatar-placeholder"></div>
+                    <button class="edit-avatar-btn">Edit</button>
+                </div>
+                <div class="user-info">
+                    <h1>Welcome, ExampleUser</h1>
+                    <p>Linked Account: ExampleSummoner</p>
+                    <button class="link-account-btn">Link LoL Account</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="favorites">
+            <h2>Favorite Summoners</h2>
+            <div class="favorites-list">
+                <div class="favorite-card">
+                    <span class="summoner-name">Pro Player 1</span>
+                    <span class="summoner-rank">Challenger</span>
+                    <button class="remove-btn">Remove</button>
+                </div>
+                <div class="favorite-card">
+                    <span class="summoner-name">Pro Player 2</span>
+                    <span class="summoner-rank">Grandmaster</span>
+                    <button class="remove-btn">Remove</button>
+                </div>
+                <button class="add-favorite-btn">+ Add Favorite</button>
+            </div>
+        </section>
+
+        <section class="personal-stats">
+            <h2>Your Performance</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Current Rank</h3>
+                    <p class="stat-number">Gold II</p>
+                </div>
+                <div class="stat-card">
+                    <h3>LP Gained (7 days)</h3>
+                    <p class="stat-number">+127</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Main Role</h3>
+                    <p class="stat-number">Mid Lane</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Favorite Champion</h3>
+                    <p class="stat-number">Yasuo</p>
+                </div>
+            </div>
+            <div class="chart-placeholder">
+                <p>[Performance Chart Placeholder]</p>
+            </div>
+        </section>
+    </main>
+</body>
+<footer style="position: relative; bottom: 0; width: 100%; ">
+    <p>&copy; 2024 SPIRITBLADE - TFG Project</p>
+</footer>
+
+</html>
