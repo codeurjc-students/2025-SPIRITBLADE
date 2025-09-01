@@ -148,7 +148,7 @@ Main relationships:
 
 ## Tracking & Collaboration
 
-- **Medium blog:** Progress and milestones will be published at (TODO) [Your Blog URL]
+- **Medium blog:** Progress and milestones will be published at [[Blog URL](https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3)]
 - **GitHub Project:** Task and progress tracking at [[GitHub Project URL](https://github.com/codeurjc-students/2025-SPIRITBLADE)]
 
 ---
