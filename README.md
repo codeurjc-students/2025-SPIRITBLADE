@@ -140,9 +140,9 @@ Main relationships:
 - **Summoner Profile:** Profile info, match history, champion stats
 - **User Dashboard:** Favorite summoners, personal stats, profile settings
 - **Admin Panel:** User management, moderation tools, app stats
+  
+(TO BE CONSIDERED LATER)
 - **Error/Not found:** Styled error screens for navigation
-
-*(TODO)*
 
 ---
 
