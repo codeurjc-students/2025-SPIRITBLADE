@@ -21,14 +21,14 @@
     <form 
       class="auth-form" 
       [class.hidden]="!isLoginMode"
+      [formGroup]="loginForm"
       (ngSubmit)="onLogin()">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="username">Username</label>
         <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          [(ngModel)]="loginData.email"
+          type="text" 
+          id="username" 
+          formControlName="username"
           required>
       </div>
       <div class="form-group">
@@ -36,25 +36,24 @@
         <input 
           type="password" 
           id="password" 
-          name="password" 
-          [(ngModel)]="loginData.password"
+          formControlName="password"
           required>
       </div>
-      <button type="submit" class="auth-btn">Login</button>
+      <button type="submit" class="auth-btn" [disabled]="loginForm.invalid">Login</button>
     </form>
 
     <!-- Register Form -->
     <form 
       class="auth-form" 
       [class.hidden]="isLoginMode"
+      [formGroup]="registerForm"
       (ngSubmit)="onRegister()">
       <div class="form-group">
         <label for="username">Username</label>
         <input 
           type="text" 
           id="username" 
-          name="username" 
-          [(ngModel)]="registerData.username"
+          formControlName="username"
           required>
       </div>
       <div class="form-group">
@@ -62,8 +61,7 @@
         <input 
           type="email" 
           id="regEmail" 
-          name="email" 
-          [(ngModel)]="registerData.email"
+          formControlName="email"
           required>
       </div>
       <div class="form-group">
@@ -71,8 +69,7 @@
         <input 
           type="password" 
           id="regPassword" 
-          name="password" 
-          [(ngModel)]="registerData.password"
+          formControlName="password"
           required>
       </div>
       <div class="form-group">
@@ -80,11 +77,10 @@
         <input 
           type="password" 
           id="confirmPassword" 
-          name="confirmPassword" 
-          [(ngModel)]="registerData.confirmPassword"
+          formControlName="confirmPassword"
           required>
       </div>
-      <button type="submit" class="auth-btn">Register</button>
+      <button type="submit" class="auth-btn" [disabled]="registerForm.invalid">Register</button>
     </form>
   </div>
 </main>

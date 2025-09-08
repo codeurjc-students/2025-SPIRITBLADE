@@ -1,24 +1,36 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
   isLoginMode = true;
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private authService = inject(AuthService);
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    username: ['', Validators.required],
     password: ['', Validators.required]
+  });
+
+  registerForm = this.fb.group({
+    username: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+    confirmPassword: ['', Validators.required]
   });
   
   loginData = {
-    email: '',
+    username: '',
     password: ''
   };
   
@@ -39,8 +51,15 @@ export class LoginComponent {
 
   onLogin() {
     if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
-        next: (response) => this.router.navigate(['/dashboard']),
+      const payload = {
+        username: this.loginForm.get('username')?.value ?? '',
+        password: this.loginForm.get('password')?.value ?? ''
+      };
+      this.authService.login(payload).subscribe({
+        next: (response) => {
+          this.authService.saveSession((response as any).token, (response as any).username);
+          this.router.navigate(['/dashboard']);
+        },
         error: (error) => console.error('Login failed', error)
       });
     }
@@ -48,8 +67,16 @@ export class LoginComponent {
 
   onRegister() {
     if (this.registerForm.valid) {
-      this.authService.register(this.registerForm.value).subscribe({
-        next: (response) => this.router.navigate(['/dashboard']),
+      const payload = {
+        username: this.registerForm.get('username')?.value ?? '',
+        email: this.registerForm.get('email')?.value ?? '',
+        password: this.registerForm.get('password')?.value ?? ''
+      };
+      this.authService.register(payload).subscribe({
+        next: (response) => {
+          this.authService.saveSession((response as any).token, (response as any).username);
+          this.router.navigate(['/dashboard']);
+        },
         error: (error) => console.error('Registration failed', error)
       });
     }
