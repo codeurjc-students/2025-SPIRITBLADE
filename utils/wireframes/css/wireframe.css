@@ -1,12 +1,12 @@
-/* SPIRITBLADE UI */
+/* SPIRITBLADE Enhanced UI - Dark Elegance Theme */
 :root {
   /* Color palette */
   --bg-dark: #0a0a0f;
   --bg-dark-alt: #121218;
-  --primary: #7c3aed;
+  --primary: #7c3aed; /* Vibrant purple */
   --primary-light: #a855f7;
   --primary-dark: #6025c0;
-  --accent: #f0f4ff;
+  --accent: #f0f4ff; /* White with slight blue tint for better contrast */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --surface: rgba(255, 255, 255, 0.04);
@@ -41,8 +41,8 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  padding-bottom: 120px;
-  padding-top: 80px;
+  padding-bottom: 120px; /* For fixed footer */
+  padding-top: 80px; /* For fixed header */
 }
 
 /* Typography enhancements */
@@ -138,7 +138,7 @@ p {
   transform-origin: left;
 }
 
-/* Home Container */
+/* Enhanced Home Container */
 .home-container {
   max-width: 1300px;
   margin: 0 auto;
@@ -435,7 +435,7 @@ p {
   -webkit-text-fill-color: transparent;
 }
 
-/* Footer */
+/* Fixed Footer */
 footer {
   position: fixed;
   left: 0;
@@ -552,7 +552,7 @@ footer {
   box-shadow: var(--shadow-md), var(--glow-purple);
 }
 
-/* Dashboard & Admin Panel */
+/* Dashboard & Admin Panel Improvements */
 .dashboard-container, .admin-container {
   max-width: 1300px;
   margin: 0 auto;
@@ -591,7 +591,7 @@ footer {
   color: var(--success) !important;
 }
 
-/* Responsive */
+/* Responsive Improvements */
 @media (max-width: 768px) {
   .navbar {
     padding: 1rem 1.5rem;
@@ -653,8 +653,6 @@ footer {
     text-align: center;
   }
 }
-
-/* Summoner Profile */
 
 .summoner-avatar {
   position: relative;

@@ -1,0 +1,31 @@
+<main class="home-container">
+  <section class="hero">
+    <h1>Analyze Your League Performance</h1>
+    <p>Search for any summoner and discover detailed match statistics</p>
+  </section>
+
+  <section class="search-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Enter summoner name..." 
+        class="search-input"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()">
+      <button class="search-btn" (click)="onSearch()">Search</button>
+    </div>
+  </section>
+
+  <section class="recent-searches">
+    <h3>Recent Searches</h3>
+    <div class="summoner-list">
+      <div 
+        class="summoner-card" 
+        *ngFor="let summoner of recentSearches"
+        (click)="searchSummoner(summoner.name)">
+        <span class="summoner-name">{{ summoner.name }}</span>
+        <span class="summoner-rank">{{ summoner.rank }}</span>
+      </div>
+    </div>
+  </section>
+</main>
