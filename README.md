@@ -137,12 +137,15 @@ Main relationships:
 *Below are preliminary wireframes for the main screens. Navigation and design will be refined with user feedback.*
 
 - **Home/Search:** Search bar for summoners, list of recent searches
+- ![Main](https://github.com/user-attachments/assets/f63da861-eb8b-41fe-9487-c8177f8054c9)
 - **Summoner Profile:** Profile info, match history, champion stats
+- ![summoner](https://github.com/user-attachments/assets/9a6220c3-e4ed-459a-a5f2-414312de0f7a)
 - **User Dashboard:** Favorite summoners, personal stats, profile settings
+- ![Captura1](https://github.com/user-attachments/assets/d63561f9-b167-4059-8c2e-c1dca6cbe1fe)
 - **Admin Panel:** User management, moderation tools, app stats
-  
-(TO BE CONSIDERED LATER)
-- **Error/Not found:** Styled error screens for navigation
+- ![Captura](https://github.com/user-attachments/assets/162964b0-f4f9-4521-837b-4e7b101fedd7)
+- **Login:** Styled login screens 
+- ![login](https://github.com/user-attachments/assets/381dfdd6-e915-4c34-ba98-b3cf9985855d)
 
 ---
 
