@@ -1,3 +1,5 @@
+package com.tfg.tfg.service;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +9,7 @@ public class RiotService {
     private String apiKey;
     
     public SummonerDto getSummonerByName(String name) {
-        // Implementar llamada real a Riot API
+        // Minimal stub implementation until Riot API is integrated
+        return new SummonerDto(name, name, 1);
     }
 }
