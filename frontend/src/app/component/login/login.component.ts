@@ -58,7 +58,7 @@ export class LoginComponent {
       this.authService.login(payload).subscribe({
         next: (response) => {
           this.authService.saveSession((response as any).token, (response as any).username);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/profile']);
         },
         error: (error) => console.error('Login failed', error)
       });

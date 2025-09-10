@@ -26,6 +26,7 @@ public class UserModel{
 
     private String name;
     private String image;
+    private String email;
 
     @Lob
     private Blob profilePic;
@@ -69,6 +70,14 @@ public class UserModel{
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getName() {

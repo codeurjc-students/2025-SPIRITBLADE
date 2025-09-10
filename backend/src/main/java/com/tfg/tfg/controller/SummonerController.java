@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tfg.tfg.model.dto.SummonerDTO;
 
 @RestController
-@RequestMapping("/api/summoners")
+@RequestMapping("/api/v1/summoners")
 public class SummonerController {
 
     @GetMapping("/name/{name}")

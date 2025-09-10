@@ -1,0 +1,50 @@
+/* Dashboard & Admin Panel Improvements */
+.dashboard-container {
+	max-width: 1300px;
+	margin: 0 auto;
+	padding: 3rem 2rem;
+}
+
+.dashboard-header {
+	background: var(--surface);
+	padding: 2.5rem;
+	border-radius: 1rem;
+	margin-bottom: 2.5rem;
+	border: 1px solid var(--surface-border);
+	box-shadow: var(--shadow-sm);
+	position: relative;
+}
+
+.overview-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1.25rem;
+	margin-bottom: 2.5rem;
+}
+
+.chart-card {
+	background: var(--surface);
+	padding: 1.75rem 1.5rem;
+	border-radius: 0.75rem;
+	border: 1px solid var(--surface-border);
+	box-shadow: var(--shadow-sm);
+}
+
+.recent-activity ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.recent-activity li {
+	padding: 0.75rem 0;
+	color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+	.chart-card canvas {
+		width: 100% !important;
+		height: auto !important;
+	}
+}
+

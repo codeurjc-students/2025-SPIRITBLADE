@@ -11,11 +11,11 @@ export class AuthService {
   private http = inject(HttpClient);
 
   login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload);
+    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload, { withCredentials: true });
   }
 
   register(payload: { username: string; email: string; password: string }): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_URL}/auth/register`, payload);
+    return this.http.post<LoginResponse>(`${API_URL}/auth/register`, payload, { withCredentials: true });
   }
 
   logout(): void {

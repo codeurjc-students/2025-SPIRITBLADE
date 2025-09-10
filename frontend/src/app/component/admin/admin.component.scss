@@ -1,0 +1,143 @@
+/* Admin Panel Specific Styles */
+.admin-container {
+	max-width: 1300px;
+	margin: 0 auto;
+	padding: 3rem 2rem;
+}
+
+.admin-header {
+	background: var(--surface);
+	padding: 2.5rem;
+	border-radius: 1rem;
+	margin-bottom: 2.5rem;
+	border: 1px solid var(--surface-border);
+	box-shadow: var(--shadow-sm);
+	position: relative;
+}
+
+.admin-stats, .stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1.25rem;
+	margin-bottom: 2.5rem;
+}
+
+.user-management, .system-management {
+	margin-top: 3rem;
+}
+
+.management-controls {
+	display: flex;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+	padding: 1rem 1.5rem;
+	background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+	border: none;
+	border-radius: 0.5rem;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition-normal);
+}
+
+.user-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.user-row {
+	display: grid;
+	grid-template-columns: 2fr 1fr 1fr 2fr;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	background: var(--surface);
+	border: 1px solid var(--surface-border);
+	border-radius: 0.5rem;
+	transition: all var(--transition-normal);
+}
+
+.user-row:hover {
+	background: rgba(124, 58, 237, 0.05);
+}
+
+.user-name {
+	font-weight: 500;
+}
+
+.user-status {
+	padding: 0.25rem 0.75rem;
+	border-radius: 1rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	text-align: center;
+}
+
+.user-date {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+}
+
+.user-actions {
+	display: flex;
+	gap: 0.5rem;
+	justify-content: flex-end;
+}
+
+.action-btn {
+	padding: 0.4rem 0.8rem;
+	border: none;
+	border-radius: 0.4rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition-normal);
+}
+
+.action-btn.disable, .action-btn.delete {
+	background: var(--danger);
+	color: white;
+}
+
+.action-btn.enable {
+	background: var(--success);
+	color: white;
+}
+
+.system-actions {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
+.system-btn {
+	padding: 1rem 1.5rem;
+	background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+	border: none;
+	border-radius: 0.5rem;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition-normal);
+}
+
+.system-btn.danger {
+	background: linear-gradient(135deg, var(--danger), #b91c1c);
+}
+
+@media (max-width: 768px) {
+	.user-row {
+		grid-template-columns: 1fr;
+		gap: 0.5rem;
+		text-align: center;
+	}
+
+	.user-actions {
+		justify-content: center;
+	}
+}
+

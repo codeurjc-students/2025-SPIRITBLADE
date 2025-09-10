@@ -11,6 +11,6 @@ import com.tfg.tfg.model.entity.UserModel;
 public interface UserModelRepository extends JpaRepository<UserModel, Long> {
     
     Optional<UserModel> findByName(String name);
-    Optional<UserModel> findByContact(String email);
+    Optional<UserModel> findByEmail(String email);
 }
    

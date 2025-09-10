@@ -80,28 +80,26 @@ public class SecurityConfiguration {
 	public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
 		
 		http.authenticationProvider(authenticationProvider());
+
+		// Let Spring Security handle CORS using the CorsFilter/CorsConfiguration bean defined above
+		http.cors();
 		
 		http
-			.securityMatcher("/api/**")
+			.securityMatcher("/api/v1/**")
 			.exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt).accessDeniedHandler(customAccessDeniedHandler));
 		
 		http
 			.authorizeHttpRequests(authorize -> authorize
-                    // PUBLIC ENDPOINTS
-                    .requestMatchers(HttpMethod.GET,"/api/v1/users/*").permitAll()
-					.requestMatchers(HttpMethod.GET,"/api/v1/users/*/image").permitAll()
-					.requestMatchers(HttpMethod.GET,"/api/v1/products/*").permitAll()
-					.requestMatchers(HttpMethod.GET,"/api/v1/products").permitAll()
-					.requestMatchers(HttpMethod.GET,"/api/v1/products/*/image").permitAll()
-					.requestMatchers(HttpMethod.GET,"/api/v1/products/*/offers").permitAll()
+					// Allow preflight requests
+					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+					// PUBLIC ENDPOINTS (only auth endpoints for now)
+					.requestMatchers(HttpMethod.POST,"/api/v1/auth/**").permitAll()
 
-					.requestMatchers(HttpMethod.POST,"/api/v1/auth/*").permitAll()
-
-					// PRIVATE ENDPOINTS
+					// PRIVATE ENDPOINTS (all other /api/v1/** require authentication)
 					.requestMatchers(HttpMethod.GET,"/api/v1/users").hasAnyRole("USER", "ADMIN")
 					.requestMatchers(HttpMethod.GET,"/api/v1/users/*/products").hasAnyRole("USER")
 					.requestMatchers(HttpMethod.GET,"/api/v1/users/*/boughtProducts").hasAnyRole("USER")
-					
+                    
 					.requestMatchers(HttpMethod.POST,"/api/v1/products").hasAnyRole("USER")
 					.requestMatchers(HttpMethod.POST,"/api/v1/products/*/ratings").hasAnyRole("USER")
 					.requestMatchers(HttpMethod.POST,"/api/v1/products/*/offers").hasAnyRole("USER")
@@ -112,7 +110,7 @@ public class SecurityConfiguration {
 					.requestMatchers(HttpMethod.PUT,"/api/v1/users/*/active").hasAnyRole("ADMIN")
 					.requestMatchers(HttpMethod.PUT,"/api/v1/products/*/image").hasAnyRole("USER", "ADMIN")
 					.requestMatchers(HttpMethod.PUT,"/api/v1/users/*/image").hasAnyRole("USER", "ADMIN")
-					
+                    
 					.requestMatchers(HttpMethod.DELETE,"/api/v1/products/*").hasAnyRole("USER", "ADMIN")
 			);
 		

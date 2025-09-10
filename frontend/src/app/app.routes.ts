@@ -9,6 +9,7 @@ import { AdminComponent } from './component/admin/admin.component';
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'profile', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DashboardComponent }, 
   { path: 'summoner/:name', component: SummonerComponent }, 
   { path: 'admin', component: AdminComponent }, 

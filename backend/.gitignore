@@ -6,14 +6,6 @@
 *.war
 *.ear
 
-# Maven build files
-dependency-reduced-pom.xml
-release.properties
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-buildNumber.properties
-
 # Eclipse
 .classpath
 .project
