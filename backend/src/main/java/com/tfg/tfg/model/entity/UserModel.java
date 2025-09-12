@@ -36,7 +36,7 @@ public class UserModel{
 	@ElementCollection(fetch = FetchType.EAGER)
 	private List<String> rols;
 
-    protected UserModel(){
+    public UserModel(){
 
     }
 
