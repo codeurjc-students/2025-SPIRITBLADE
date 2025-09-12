@@ -1,7 +1,7 @@
 <main class="auth-container">
   <div class="auth-box">
     <h1>Welcome to SPIRITBLADE</h1>
-    
+
     <div class="auth-tabs">
       <button class="tab" [class.active]="isLoginMode" (click)="showLogin()">Login</button>
       <button class="tab" [class.active]="!isLoginMode" (click)="showRegister()">Register</button>
@@ -15,6 +15,9 @@
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" formControlName="password" required>
+      </div>
+      <div *ngIf="message" class="auth-message" [ngClass]="message.type">
+        {{ message.text }}
       </div>
       <button type="submit" class="auth-btn" [disabled]="loginForm.invalid">Login</button>
     </form>
@@ -36,6 +39,11 @@
         <label for="confirmPassword">Confirm Password</label>
         <input type="password" id="confirmPassword" formControlName="confirmPassword" required>
       </div>
+
+      <div *ngIf="message" class="auth-message" [ngClass]="message.type">
+        {{ message.text }}
+      </div>
+
       <button type="submit" class="auth-btn" [disabled]="registerForm.invalid">Register</button>
     </form>
   </div>

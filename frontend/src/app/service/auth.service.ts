@@ -4,7 +4,7 @@ import { API_URL } from './api.config';
 import { Observable } from 'rxjs';
 
 interface LoginRequest { username: string; password: string }
-interface LoginResponse { token: string; username: string; role: string }
+interface LoginResponse { token?: string; username?: string; role?: string }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -14,8 +14,8 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload, { withCredentials: true });
   }
 
-  register(payload: { username: string; email: string; password: string }): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_URL}/auth/register`, payload, { withCredentials: true });
+  register(payload: { name: string; email: string; password: string }): Observable<any> {
+    return this.http.post<any>(`${API_URL}/auth/register`, payload, { withCredentials: true });
   }
 
   logout(): void {

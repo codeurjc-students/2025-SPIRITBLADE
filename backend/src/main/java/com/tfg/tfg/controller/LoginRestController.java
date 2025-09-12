@@ -51,7 +51,7 @@ public class LoginRestController {
 		return ResponseEntity.ok(new AuthResponse(Status.SUCCESS, userLoginService.logout(response)));
 	}
 
-	@PostMapping("/user")
+	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody UserDTO userDTO) {
 
 		userService.createUser(userDTO);
@@ -59,15 +59,6 @@ public class LoginRestController {
 		Map<String, String> response = new HashMap<>();
 		response.put("message", "User registered successfully");
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
-	}
-
-	@PostMapping("/register")
-	public ResponseEntity<?> registerAlias(@RequestBody UserDTO userDTO) {
-		// Alias for frontend expecting /auth/register
-		userService.createUser(userDTO);
-		Map<String, String> response = new HashMap<>();
-		response.put("message", "User registered successfully");
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 }
