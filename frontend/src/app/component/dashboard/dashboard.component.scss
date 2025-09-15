@@ -1,20 +1,13 @@
-/* Dashboard & Admin Panel Improvements */
+/* Dashboard component specific styles - only non-global rules from wireframe */
+
+/* Ensure page content clears the fixed header/footer */
 .dashboard-container {
-	max-width: 1300px;
-	margin: 0 auto;
-	padding: 3rem 2rem;
+	margin-top: 80px; /* space for fixed header */
+	margin-bottom: 120px; /* space for fixed footer */
+	min-height: calc(100vh - 200px);
 }
 
-.dashboard-header {
-	background: var(--surface);
-	padding: 2.5rem;
-	border-radius: 1rem;
-	margin-bottom: 2.5rem;
-	border: 1px solid var(--surface-border);
-	box-shadow: var(--shadow-sm);
-	position: relative;
-}
-
+/* Grid of overview cards used only on dashboard */
 .overview-cards {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -22,6 +15,7 @@
 	margin-bottom: 2.5rem;
 }
 
+/* Lightweight chart card used on dashboard (override global chart-placeholder padding) */
 .chart-card {
 	background: var(--surface);
 	padding: 1.75rem 1.5rem;
@@ -47,4 +41,32 @@
 		height: auto !important;
 	}
 }
+
+/* Dashboard-specific variant of favorites / chart placeholder */
+/* Scoped chart placeholder for dashboard only */
+.dashboard-container .chart-placeholder {
+	height: 220px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, rgba(124,58,237,0.03), rgba(124,58,237,0.02));
+	border-radius: 0.75rem;
+	border: 1px dashed rgba(124,58,237,0.06);
+}
+
+/* Dashboard-specific remove button style (wireframe used a gradient here) */
+.favorite-card .remove-btn {
+	padding: 0.45rem 0.85rem;
+	background: linear-gradient(135deg, var(--danger), #b91c1c);
+	color: white;
+	border: none;
+	border-radius: 0.45rem;
+	cursor: pointer;
+}
+
+.favorite-card .remove-btn:hover {
+	opacity: 0.95;
+}
+
+/* Any other small dashboard-only tweaks can be added here */
 

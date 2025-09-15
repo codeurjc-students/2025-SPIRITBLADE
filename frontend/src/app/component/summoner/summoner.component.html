@@ -1,4 +1,17 @@
+
 <main class="summoner-container">
+	<section class="search-section">
+		<div class="search-box">
+			<input 
+				type="text" 
+				placeholder="Enter summoner name..." 
+				class="search-input"
+				[(ngModel)]="searchQuery"
+				(keyup.enter)="onSearch()">
+			<button class="search-btn" (click)="onSearch()">Search</button>
+		</div>
+	</section>
+
 	<section class="summoner-header">
 	<div class="summoner-info">
 	<div class="summoner-avatar">

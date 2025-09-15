@@ -30,6 +30,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <sonar.organization>codeurjc-students</sonar.organization>
     </properties>
     <dependencies>
 

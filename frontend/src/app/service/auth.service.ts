@@ -18,10 +18,8 @@ export class AuthService {
     return this.http.post<any>(`${API_URL}/auth/register`, payload, { withCredentials: true });
   }
 
-  logout(): void {
-    // Frontend-only logout behaviour (clear token)
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+  logout() {
+    console.log(this.http.post<any>(`${API_URL}/auth/logout`, {}, { withCredentials: true }));
   }
 
   saveSession(token: string, username: string) {
