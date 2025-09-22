@@ -1,11 +1,11 @@
 ﻿name: CI/CD - Quality Control & Testing
 
 on:
-  # Control de calidad básico: En commits a ramas de funcionalidad  
-  # Control de calidad completo: En Pull Requests hacia main y pushes directos a main
+  # Basic quality control: run on commits to feature branches
+  # Complete quality control: run on pull requests to main and direct pushes to main
   push:
     branches:
-      - '**'  # Todas las ramas
+      - '**'  # All branches
   
   pull_request:
     branches:
@@ -25,7 +25,7 @@ env:
 
 jobs:
   # ============================================
-  # CONTROL DE CALIDAD BÁSICO (Feature Branches)  
+  # BASIC QUALITY CONTROL (Feature Branches)
   # ============================================
   basic-quality-control:
     name: 🔍 Basic Quality Control
@@ -55,7 +55,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './frontend/package-lock.json'
 
-      # BACKEND: Compilación y tests unitarios
+      # BACKEND: Build and unit tests
       - name: 📦 Cache Maven packages
         if: matrix.component == 'backend'
         uses: actions/cache@v4
@@ -74,7 +74,7 @@ jobs:
         working-directory: ./backend
         run: mvn test -Dtest="**/*UnitTest" -B
 
-      # FRONTEND: Construcción y tests unitarios
+      # FRONTEND: Build and unit tests
       - name: 📦 Install Frontend Dependencies
         if: matrix.component == 'frontend'
         working-directory: ./frontend
@@ -91,7 +91,7 @@ jobs:
         run: npm test -- --watch=false --browsers=ChromeHeadless
 
   # ============================================
-  # CONTROL DE CALIDAD COMPLETO (PR to main)
+  # COMPLETE QUALITY CONTROL (PR to main)
   # ============================================
   complete-quality-control:
     name: 🔬 Complete Quality Control
@@ -132,7 +132,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # BACKEND: Tests completos
+      # BACKEND: Full test suite
       - name: 🏗️ Build Backend
         working-directory: ./backend
         run: mvn clean compile -B
@@ -152,7 +152,7 @@ jobs:
         run: mvn test -Dtest="**/*SystemTest,**/*E2ETest" -B
         continue-on-error: false
 
-      # FRONTEND: Tests completos
+      # FRONTEND: Full test suite
       - name: 📦 Install Frontend Dependencies
         working-directory: ./frontend
         run: npm ci
@@ -176,7 +176,7 @@ jobs:
         run: npm run test:e2e || echo "E2E tests not yet implemented"
         continue-on-error: true
 
-      # Análisis de cobertura y calidad
+      # Coverage and quality analysis
       - name: 📊 Generate Coverage Reports
         working-directory: ./backend
         run: mvn jacoco:report -B
@@ -199,7 +199,7 @@ jobs:
             frontend/coverage/
 
   # ============================================
-  # ANÁLISIS DE CÓDIGO CON SONARCLOUD
+  # SONARCLOUD CODE ANALYSIS
   # ============================================
   sonarcloud-analysis:
     name: 📊 SonarCloud Analysis
@@ -246,7 +246,7 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
   # ============================================
-  # VALIDACIÓN FINAL DE MERGE
+  # FINAL MERGE VALIDATION
   # ============================================
   merge-validation:
     name: ✅ Merge Validation
