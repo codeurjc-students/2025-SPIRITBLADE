@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tfg.tfg.model.dto.UserDTO;
-import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 
 @RestController
@@ -59,6 +58,19 @@ public class UserController {
         return userRepository.findById(id).map(u -> {
             userRepository.delete(u);
             return ResponseEntity.ok().build();
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getMyProfile() {
+        // Development stub: return first user if exists
+        return userRepository.findAll().stream().findFirst().map(u -> {
+            UserDTO dto = new UserDTO();
+            dto.id = u.getId();
+            dto.name = u.getName();
+            dto.image = u.getImage();
+            dto.email = u.getEmail();
+            return ResponseEntity.ok(dto);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

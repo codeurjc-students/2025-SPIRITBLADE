@@ -28,6 +28,8 @@ public class UserModel{
     private String image;
     private String email;
 
+    private boolean active = true;
+
     @Lob
     private Blob profilePic;
 
@@ -46,6 +48,14 @@ public class UserModel{
         this.rols = rols != null ? List.of(rols) : Collections.emptyList();
         this.image = "/users/" + this.id + "/image";
         this.profilePic= UploadStandardProfilePic();
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Long getId() {

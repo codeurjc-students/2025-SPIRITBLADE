@@ -8,10 +8,10 @@ export class DashboardService {
   private http = inject(HttpClient);
 
   getPersonalStats(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/me/stats`);
+    return this.http.get(`${API_URL}/dashboard/me/stats`, { withCredentials: true });
   }
 
   getFavoritesOverview(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/me/favorites`);
+    return this.http.get(`${API_URL}/dashboard/me/favorites`, { withCredentials: true });
   }
 }

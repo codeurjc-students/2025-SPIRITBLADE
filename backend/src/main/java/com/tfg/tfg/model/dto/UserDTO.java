@@ -6,6 +6,8 @@ public class UserDTO {
     public String image;
     public String email;
     public String password;
+    public java.util.List<String> roles;
+    public boolean active;
 
     public Long getId() {
         return id;

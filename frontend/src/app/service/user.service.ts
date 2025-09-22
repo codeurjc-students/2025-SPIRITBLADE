@@ -9,22 +9,22 @@ export class UserService {
   private http = inject(HttpClient);
 
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${API_URL}/users/me`);
+    return this.http.get<User>(`${API_URL}/users/me`, { withCredentials: true });
   }
 
   updateProfile(payload: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${API_URL}/users/me`, payload);
+    return this.http.put<User>(`${API_URL}/users/me`, payload, { withCredentials: true });
   }
 
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${API_URL}/admin/users`);
+    return this.http.get<User[]>(`${API_URL}/admin/users`, { withCredentials: true });
   }
 
   addFavoriteSummoner(summonerId: string): Observable<any> {
-    return this.http.post(`${API_URL}/users/me/favorites`, { summonerId });
+    return this.http.post(`${API_URL}/users/me/favorites`, { summonerId }, { withCredentials: true });
   }
 
   removeFavoriteSummoner(summonerId: string): Observable<any> {
-    return this.http.delete(`${API_URL}/users/me/favorites/${summonerId}`);
+    return this.http.delete(`${API_URL}/users/me/favorites/${summonerId}`, { withCredentials: true });
   }
 }

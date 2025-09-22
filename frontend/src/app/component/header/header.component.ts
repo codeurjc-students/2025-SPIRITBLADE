@@ -19,6 +19,10 @@ export class HeaderComponent {
     return this.auth.isAuthenticated();
   }
 
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
   logout(): void {
     this.auth.logout();
     // After logout navigate to the home page

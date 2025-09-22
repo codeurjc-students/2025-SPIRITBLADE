@@ -8,7 +8,8 @@
       <a routerLink="/">Home</a>
       <a *ngIf="!isAuthenticated" routerLink="/login">Login</a>
       <a *ngIf="isAuthenticated" routerLink="/dashboard">Profile</a>
-      <a *ngIf="isAuthenticated" (click)="logout()">Logout</a>
+  <a *ngIf="isAuthenticated && isAdmin" routerLink="/admin">Admin</a>
+      <a *ngIf="isAuthenticated"  href="" (click)="logout()">Logout</a>
     </div>
   </nav>
 </header>

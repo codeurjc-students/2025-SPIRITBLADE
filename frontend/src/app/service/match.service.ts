@@ -12,10 +12,10 @@ export class MatchService {
   }
 
   addNote(matchId: string, note: { text: string }): Observable<any> {
-    return this.http.post(`${API_URL}/matches/${matchId}/notes`, note);
+    return this.http.post(`${API_URL}/matches/${matchId}/notes`, note, { withCredentials: true });
   }
 
   getNotes(matchId: string): Observable<any> {
-    return this.http.get(`${API_URL}/matches/${matchId}/notes`);
+    return this.http.get(`${API_URL}/matches/${matchId}/notes`, { withCredentials: true });
   }
 }

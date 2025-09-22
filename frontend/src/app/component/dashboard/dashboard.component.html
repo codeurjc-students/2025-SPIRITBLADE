@@ -6,8 +6,8 @@
 				<button class="edit-avatar-btn">Edit</button>
 			</div>
 			<div class="user-info">
-				<h1>Welcome, ExampleUser</h1>
-				<p>Linked Account: ExampleSummoner</p>
+				<h1>Welcome, {{ stats?.username || 'Guest' }}</h1>
+				<p>Linked Account: {{ stats?.linkedSummoner || 'None' }}</p>
 				<button class="link-account-btn">Link LoL Account</button>
 			</div>
 		</div>
@@ -15,15 +15,12 @@
 
 	<section class="favorites">
 		<h2>Favorite Summoners</h2>
-		<div class="favorites-list">
-			<div class="favorite-card">
-				<span class="summoner-name">Pro Player 1</span>
-				<span class="summoner-rank">Challenger</span>
-				<button class="remove-btn">Remove</button>
-			</div>
-			<div class="favorite-card">
-				<span class="summoner-name">Pro Player 2</span>
-				<span class="summoner-rank">Grandmaster</span>
+		<div *ngIf="favoritesLoading">Cargando favoritos...</div>
+		<div *ngIf="favoritesError" class="error">{{ favoritesError }}</div>
+		<div class="favorites-list" *ngIf="!favoritesLoading && !favoritesError">
+			<div class="favorite-card" *ngFor="let f of favorites">
+				<span class="summoner-name">{{ f.name }}</span>
+				<span class="summoner-rank">{{ f.tier || 'Unranked' }} {{ f.rank || '' }}</span>
 				<button class="remove-btn">Remove</button>
 			</div>
 			<button class="add-favorite-btn">+ Add Favorite</button>
@@ -32,22 +29,24 @@
 
 	<section class="personal-stats">
 		<h2>Your Performance</h2>
-		<div class="stats-grid">
+		<div *ngIf="loading">Cargando estadísticas...</div>
+		<div *ngIf="error" class="error">{{ error }}</div>
+		<div *ngIf="stats" class="stats-grid">
 			<div class="stat-card">
 				<h3>Current Rank</h3>
-				<p class="stat-number">Gold II</p>
+				<p class="stat-number">{{ stats.currentRank || 'Unranked' }}</p>
 			</div>
 			<div class="stat-card">
 				<h3>LP Gained (7 days)</h3>
-				<p class="stat-number">+127</p>
+				<p class="stat-number">{{ stats.lp7days !== undefined ? stats.lp7days : '0' }}</p>
 			</div>
 			<div class="stat-card">
 				<h3>Main Role</h3>
-				<p class="stat-number">Mid Lane</p>
+				<p class="stat-number">{{ stats.mainRole || 'Unknown' }}</p>
 			</div>
 			<div class="stat-card">
 				<h3>Favorite Champion</h3>
-				<p class="stat-number">Yasuo</p>
+				<p class="stat-number">{{ stats.favoriteChampion || 'N/A' }}</p>
 			</div>
 		</div>
 		<div class="chart-placeholder">

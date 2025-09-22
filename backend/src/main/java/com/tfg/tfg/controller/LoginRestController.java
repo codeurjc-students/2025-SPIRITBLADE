@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,5 +61,22 @@ public class LoginRestController {
 		response.put("message", "User registered successfully");
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+
+	@GetMapping("/me")
+	public ResponseEntity<?> me() {
+		var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+
+		// Build a simple user info response with username and roles
+		Map<String, Object> resp = new HashMap<>();
+		String username = auth.getName();
+		resp.put("username", username);
+		var roles = auth.getAuthorities().stream().map(a -> a.getAuthority()).toList();
+		resp.put("roles", roles);
+
+		return ResponseEntity.ok(resp);
 	}
 }

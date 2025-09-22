@@ -92,26 +92,12 @@ public class SecurityConfiguration {
 			.authorizeHttpRequests(authorize -> authorize
 					// Allow preflight requests
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					// PUBLIC ENDPOINTS (only auth endpoints for now)
-					.requestMatchers(HttpMethod.POST,"/api/v1/auth/**").permitAll()
-
-					// PRIVATE ENDPOINTS (all other /api/v1/** require authentication)
-					.requestMatchers(HttpMethod.GET,"/api/v1/users").hasAnyRole("USER", "ADMIN")
-					.requestMatchers(HttpMethod.GET,"/api/v1/users/*/products").hasAnyRole("USER")
-					.requestMatchers(HttpMethod.GET,"/api/v1/users/*/boughtProducts").hasAnyRole("USER")
-                    
-					.requestMatchers(HttpMethod.POST,"/api/v1/products").hasAnyRole("USER")
-					.requestMatchers(HttpMethod.POST,"/api/v1/products/*/ratings").hasAnyRole("USER")
-					.requestMatchers(HttpMethod.POST,"/api/v1/products/*/offers").hasAnyRole("USER")
-					.requestMatchers(HttpMethod.POST,"/api/v1/products/*/image").hasAnyRole("USER")
-
-					.requestMatchers(HttpMethod.PUT,"/api/v1/products/*").hasAnyRole("USER", "ADMIN")
-					.requestMatchers(HttpMethod.PUT,"/api/v1/users").hasAnyRole("USER")
-					.requestMatchers(HttpMethod.PUT,"/api/v1/users/*/active").hasAnyRole("ADMIN")
-					.requestMatchers(HttpMethod.PUT,"/api/v1/products/*/image").hasAnyRole("USER", "ADMIN")
-					.requestMatchers(HttpMethod.PUT,"/api/v1/users/*/image").hasAnyRole("USER", "ADMIN")
-                    
-					.requestMatchers(HttpMethod.DELETE,"/api/v1/products/*").hasAnyRole("USER", "ADMIN")
+					// Allow unauthenticated POSTs to auth endpoints (login/register)
+					.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+					// Allow unauthenticated GETs for summoner lookup
+					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
+					// Any other request to /api/v1/** requires authentication
+					.anyRequest().authenticated()
 			);
 		
         // Disable Form login Authentication

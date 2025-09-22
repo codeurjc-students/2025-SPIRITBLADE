@@ -5,13 +5,14 @@ import { LoginComponent } from './component/login/login.component';
 import { DashboardComponent } from './component/dashboard/dashboard.component';
 import { SummonerComponent } from './component/summoner/summoner.component';
 import { AdminComponent } from './component/admin/admin.component';
+import { AuthGuard } from './service/security/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'profile', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: DashboardComponent }, 
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] }, 
   { path: 'summoner/:name', component: SummonerComponent }, 
-  { path: 'admin', component: AdminComponent }, 
+  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] }, 
   { path: '**', redirectTo: '' }
 ];

@@ -1,13 +1,13 @@
-package com.tfg.tfg.service;
+package com.tfg.tfg.model.dto;
 
-public class SummonerDto {
+public class SummonerSimpleDto {
     private String id;
     private String name;
     private Integer level;
 
-    public SummonerDto() {}
+    public SummonerSimpleDto() {}
 
-    public SummonerDto(String id, String name, Integer level) {
+    public SummonerSimpleDto(String id, String name, Integer level) {
         this.id = id;
         this.name = name;
         this.level = level;

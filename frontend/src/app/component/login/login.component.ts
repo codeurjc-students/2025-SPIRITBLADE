@@ -59,10 +59,6 @@ export class LoginComponent {
       this.message = null;
       this.authService.login(payload).subscribe({
         next: (response: any) => {
-          // Successful login — backend may set cookies or return token
-          if (response?.token) {
-            this.authService.saveSession(response.token, response.username);
-          }
           this.message = { type: 'success', text: 'Login successful. Redirecting...' };
           setTimeout(() => this.router.navigate(['/profile']), 600);
         },
@@ -102,9 +98,6 @@ export class LoginComponent {
           this.message = { type: 'success', text: 'Registration successful. Logging in...' };
           this.authService.login({ username: payload.name, password: payload.password }).subscribe({
             next: (loginResp: any) => {
-              if ((loginResp as any).token) {
-                this.authService.saveSession((loginResp as any).token, (loginResp as any).username);
-              }
               this.message = { type: 'success', text: 'Automatic login completed. Redirecting...' };
               setTimeout(() => this.router.navigate(['/profile']), 600);
             },

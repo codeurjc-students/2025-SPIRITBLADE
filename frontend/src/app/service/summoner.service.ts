@@ -9,18 +9,18 @@ export class SummonerService {
   private http = inject(HttpClient);
 
   getByName(name: string): Observable<Summoner> {
-    return this.http.get<Summoner>(`${API_URL}/summoners/name/${encodeURIComponent(name)}`);
+    return this.http.get<Summoner>(`${API_URL}/summoners/name/${encodeURIComponent(name)}`, { withCredentials: true });
   }
 
   getById(id: string): Observable<Summoner> {
-    return this.http.get<Summoner>(`${API_URL}/summoners/${id}`);
+    return this.http.get<Summoner>(`${API_URL}/summoners/${id}`, { withCredentials: true });
   }
 
   getChampionStats(summonerId: string): Observable<any> {
-    return this.http.get(`${API_URL}/summoners/${summonerId}/champion-stats`);
+    return this.http.get(`${API_URL}/summoners/${summonerId}/champion-stats`, { withCredentials: true });
   }
 
   getMatchHistory(summonerId: string, page = 0, size = 20): Observable<any> {
-    return this.http.get(`${API_URL}/summoners/${summonerId}/matches?page=${page}&size=${size}`);
+    return this.http.get(`${API_URL}/summoners/${summonerId}/matches?page=${page}&size=${size}`, { withCredentials: true });
   }
 }
