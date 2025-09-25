@@ -100,7 +100,6 @@ public class DataInitializer implements ApplicationRunner {
         c1.setKills(150);
         c1.setDeaths(80);
         c1.setAssists(100);
-        c1.setSummoner(s1);
 
         champRepo.save(c1);
 
