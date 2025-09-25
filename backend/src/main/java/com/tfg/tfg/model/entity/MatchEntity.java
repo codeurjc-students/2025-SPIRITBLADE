@@ -27,7 +27,12 @@ public class MatchEntity {
     private Summoner summoner;
 
     public MatchEntity() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Default constructor for JPA
+    }
+
+    public MatchEntity(String matchId, Summoner summoner) {
+        this.matchId = matchId;
+        this.summoner = summoner;
     }
 
     public Long getId() {

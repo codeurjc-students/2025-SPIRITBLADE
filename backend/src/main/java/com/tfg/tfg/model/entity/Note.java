@@ -22,7 +22,13 @@ public class Note {
     private MatchEntity match;
 
     public Note() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Constructor por defecto requerido por JPA
+    }
+
+    public Note(String text, LocalDateTime createdAt, MatchEntity match) {
+        this.text = text;
+        this.createdAt = createdAt;
+        this.match = match;
     }
 
     public Long getId() {
