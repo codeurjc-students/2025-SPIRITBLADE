@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/id/{id}/role/{role}")
-    public ResponseEntity<?> changeRole(@PathVariable Long id, @PathVariable String role) {
+    public ResponseEntity<Object> changeRole(@PathVariable Long id, @PathVariable String role) {
         return userRepository.findById(id).map(u -> {
             u.setRols(java.util.List.of(role));
             userRepository.save(u);
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @GetMapping("/id/{id}/delete")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id).map(u -> {
             userRepository.delete(u);
             return ResponseEntity.ok().build();

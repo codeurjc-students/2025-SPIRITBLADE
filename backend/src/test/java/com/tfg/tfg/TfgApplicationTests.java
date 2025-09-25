@@ -8,6 +8,7 @@ class TfgApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// Test context loading
 	}
 
 }

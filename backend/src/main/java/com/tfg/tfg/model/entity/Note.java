@@ -21,7 +21,9 @@ public class Note {
     @ManyToOne
     private MatchEntity match;
 
-    public Note() {}
+    public Note() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     public Long getId() {
         return id;

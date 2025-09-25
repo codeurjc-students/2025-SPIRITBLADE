@@ -26,7 +26,9 @@ public class MatchEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Summoner summoner;
 
-    public MatchEntity() {}
+    public MatchEntity() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     public Long getId() {
         return id;

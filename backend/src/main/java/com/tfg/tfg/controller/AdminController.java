@@ -44,7 +44,7 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}")
-    public ResponseEntity<?> setUserActive(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<Void> setUserActive(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         boolean active = Boolean.TRUE.equals(body.get("active"));
         var opt = userRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
@@ -56,7 +56,7 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) return ResponseEntity.notFound().build();
         userRepository.deleteById(id);
         return ResponseEntity.noContent().build();

@@ -53,7 +53,7 @@ public class LoginRestController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<?> register(@RequestBody UserDTO userDTO) {
+	public ResponseEntity<Map<String, String>> register(@RequestBody UserDTO userDTO) {
 
 		userService.createUser(userDTO);
 
@@ -64,7 +64,7 @@ public class LoginRestController {
 	}
 
 	@GetMapping("/me")
-	public ResponseEntity<?> me() {
+	public ResponseEntity<Map<String, Object>> me() {
 		var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
 		if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

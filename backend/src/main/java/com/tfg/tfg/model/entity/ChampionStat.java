@@ -1,11 +1,9 @@
 package com.tfg.tfg.model.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 
 @Entity(name = "CHAMPION_STATS")
 public class ChampionStat {
@@ -21,10 +19,9 @@ public class ChampionStat {
     private int deaths;
     private int assists;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Summoner summoner;
-
-    public ChampionStat() {}
+    public ChampionStat() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     public Long getId() {
         return id;
@@ -80,13 +77,5 @@ public class ChampionStat {
 
     public void setAssists(int assists) {
         this.assists = assists;
-    }
-
-    public Summoner getSummoner() {
-        return summoner;
-    }
-
-    public void setSummoner(Summoner summoner) {
-        this.summoner = summoner;
     }
 }
