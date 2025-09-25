@@ -1,0 +1,15 @@
+<header>
+  <nav class="navbar">
+    <div class="logo">
+      <img src="assets/images/logoNoBckgroungNoLetters.png" alt="SPIRITBLADE Logo" class="logo-img">
+      <span class="logo-text">SPIRITBLADE</span>
+    </div>
+    <div class="nav-links">
+      <a routerLink="/">Home</a>
+      <a *ngIf="!isAuthenticated" routerLink="/login">Login</a>
+      <a *ngIf="isAuthenticated" routerLink="/dashboard">Profile</a>
+  <a *ngIf="isAuthenticated && isAdmin" routerLink="/admin">Admin</a>
+      <a *ngIf="isAuthenticated"  href="" (click)="logout()">Logout</a>
+    </div>
+  </nav>
+</header>

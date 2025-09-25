@@ -1,0 +1,101 @@
+
+<main class="summoner-container">
+	<section class="search-section">
+		<div class="search-box">
+			<input 
+				type="text" 
+				placeholder="Enter summoner name..." 
+				class="search-input"
+				[(ngModel)]="searchQuery"
+				(keyup.enter)="onSearch()">
+			<button class="search-btn" (click)="onSearch()">Search</button>
+		</div>
+	</section>
+
+	<section class="summoner-header">
+	<div class="summoner-info">
+	<div class="summoner-avatar">
+	<div class="avatar-placeholder"></div>
+	</div>
+	<div class="summoner-details">
+	<div *ngIf="loading">Loading summoner...</div>
+	<div *ngIf="error" class="error">{{ error }}</div>
+	<div *ngIf="!loading && summoner">
+		<h1>{{ summoner.name }}</h1>
+		<p class="summoner-level">Level {{ summoner.level }}</p>
+		<div class="rank-info">
+		  <span class="rank">{{ summoner.tier || 'Unranked' }} {{ summoner.rank || '' }}</span>
+		  <span class="lp">{{ summoner.lp || 0 }} LP</span>
+		</div>
+	</div>
+	</div>
+	</div>
+	</section>
+
+	<section class="stats-overview">
+	<div class="stat-card">
+	<h3>Wins</h3>
+	<p class="stat-number">67</p>
+	</div>
+	<div class="stat-card">
+	<h3>Losses</h3>
+	<p class="stat-number">54</p>
+	</div>
+	<div class="stat-card">
+	<h3>Win Rate</h3>
+	<p class="stat-number">55%</p>
+	</div>
+	<div class="stat-card">
+	<h3>Avg KDA</h3>
+	<p class="stat-number">2.1</p>
+	</div>
+	</section>
+
+	<section class="champion-stats">
+	<h2>Most Played Champions</h2>
+	<div class="champion-list">
+	<div class="champion-card">
+	<div class="champion-icon"></div>
+	<span class="champion-name">Yasuo</span>
+	<span class="champion-games">12 games</span>
+	<span class="champion-winrate">67% WR</span>
+	</div>
+	<div class="champion-card">
+	<div class="champion-icon"></div>
+	<span class="champion-name">Zed</span>
+	<span class="champion-games">9 games</span>
+	<span class="champion-winrate">44% WR</span>
+	</div>
+	<div class="champion-card">
+	<div class="champion-icon"></div>
+	<span class="champion-name">Azir</span>
+	<span class="champion-games">7 games</span>
+	<span class="champion-winrate">71% WR</span>
+	</div>
+	</div>
+	</section>
+
+	<section class="match-history">
+	<h2>Recent Matches</h2>
+	<div class="match-list">
+	<div class="match-card win">
+	<span class="match-result">Victory</span>
+	<span class="match-champion">Yasuo</span>
+	<span class="match-kda">12/3/7</span>
+	<span class="match-duration">28m</span>
+	</div>
+	<div class="match-card loss">
+	<span class="match-result">Defeat</span>
+	<span class="match-champion">Zed</span>
+	<span class="match-kda">8/6/4</span>
+	<span class="match-duration">31m</span>
+	</div>
+	<div class="match-card win">
+	<span class="match-result">Victory</span>
+	<span class="match-champion">Azir</span>
+	<span class="match-kda">9/1/11</span>
+	<span class="match-duration">25m</span>
+	</div>
+	</div>
+	</section>
+</main>

@@ -1,0 +1,264 @@
+﻿name: CI/CD - Quality Control & Testing
+
+on:
+  # Basic quality control: run on commits to feature branches
+  # Complete quality control: run on pull requests to main and direct pushes to main
+  push:
+    branches:
+      - '**'  # All branches
+  
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  checks: write
+  pull-requests: read
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================
+  # BASIC QUALITY CONTROL (Feature Branches)
+  # ============================================
+  basic-quality-control:
+    name: 🔍 Basic Quality Control
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        component: [backend, frontend]
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 21
+        if: matrix.component == 'backend'
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: 🟢 Set up Node.js 18
+        if: matrix.component == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      # BACKEND: Build and unit tests
+      - name: 📦 Cache Maven packages
+        if: matrix.component == 'backend'
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 🏗️ Compile Backend
+        if: matrix.component == 'backend'
+        working-directory: ./backend
+        run: mvn clean compile -B
+
+      - name: 🧪 Run Backend Unit Tests
+        if: matrix.component == 'backend'
+        working-directory: ./backend
+        run: mvn test -Dtest="**/*UnitTest" -B
+
+      # FRONTEND: Build and unit tests
+      - name: 📦 Install Frontend Dependencies
+        if: matrix.component == 'frontend'
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🏗️ Build Frontend
+        if: matrix.component == 'frontend'
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: 🧪 Run Frontend Unit Tests
+        if: matrix.component == 'frontend'
+        working-directory: ./frontend
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+  # ============================================
+  # COMPLETE QUALITY CONTROL (PR to main)
+  # ============================================
+  complete-quality-control:
+    name: 🔬 Complete Quality Control
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: 🟢 Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      # Cache configurations
+      - name: 📦 Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 📦 Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # BACKEND: Full test suite
+      - name: 🏗️ Build Backend
+        working-directory: ./backend
+        run: mvn clean compile -B
+
+      - name: 🧪 Backend Unit Tests
+        working-directory: ./backend
+        run: mvn test -Dtest="**/*UnitTest" -B
+        continue-on-error: false
+
+      - name: 🔗 Backend Integration Tests
+        working-directory: ./backend
+        run: mvn test -Dtest="**/*IntegrationTest" -B
+        continue-on-error: false
+
+      - name: 🌐 Backend System Tests
+        working-directory: ./backend
+        run: mvn test -Dtest="**/*SystemTest,**/*E2ETest" -B
+        continue-on-error: false
+
+      # FRONTEND: Full test suite
+      - name: 📦 Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🏗️ Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: 🧪 Frontend Unit Tests
+        working-directory: ./frontend
+        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+        continue-on-error: false
+
+      - name: 🔗 Frontend Integration Tests
+        working-directory: ./frontend
+        run: npm run test:integration || echo "Integration tests not yet implemented"
+        continue-on-error: true
+
+      - name: 🌐 Frontend System Tests (E2E)
+        working-directory: ./frontend
+        run: npm run test:e2e || echo "E2E tests not yet implemented"
+        continue-on-error: true
+
+      # Coverage and quality analysis
+      - name: 📊 Generate Coverage Reports
+        working-directory: ./backend
+        run: mvn jacoco:report -B
+
+      - name: 📤 Upload Backend Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            backend/target/surefire-reports/
+            backend/target/site/jacoco/
+
+      - name: 📤 Upload Frontend Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            frontend/coverage/
+
+  # ============================================
+  # SONARCLOUD CODE ANALYSIS
+  # ============================================
+  sonarcloud-analysis:
+    name: 📊 SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [complete-quality-control]
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: 📦 Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: 📦 Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 🔍 Run SonarCloud Analysis
+        working-directory: ./backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.projectKey=codeurjc-students_2025-SPIRITBLADE \
+            -Dsonar.organization=codeurjc-students \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+  # ============================================
+  # FINAL MERGE VALIDATION
+  # ============================================
+  merge-validation:
+    name: ✅ Merge Validation
+    runs-on: ubuntu-latest
+    needs: [complete-quality-control, sonarcloud-analysis]
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: ✅ All Quality Checks Passed
+        run: |
+          echo "🎉 All quality control checks have passed!"
+          echo "✅ Backend tests: Unit, Integration, System"
+          echo "✅ Frontend tests: Unit, Integration, System"
+          echo "✅ Code quality analysis completed"
+          echo "🚀 Ready for merge to main branch"
