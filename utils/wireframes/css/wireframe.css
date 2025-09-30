@@ -972,12 +972,12 @@ footer {
   text-align: center;
 }
 
-.user-row:has(.user-status:contains("Active")) .user-status {
+.user-status.active {
   background: rgba(16, 185, 129, 0.2);
   color: var(--success);
 }
 
-.user-row:has(.user-status:contains("Inactive")) .user-status {
+.user-status.inactive {
   background: rgba(220, 38, 38, 0.2);
   color: var(--danger);
 }

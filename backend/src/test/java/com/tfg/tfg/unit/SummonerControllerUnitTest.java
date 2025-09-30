@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  * Pruebas unitarias del controlador Summoner con dobles del repositorio.
  */
 @ExtendWith(MockitoExtension.class)
-public class SummonerControllerUnitTest {
+class SummonerControllerUnitTest {
 
     @Mock
     private SummonerRepository summonerRepository;
@@ -32,7 +32,7 @@ public class SummonerControllerUnitTest {
     private SummonerController summonerController;
 
     @Test
-    public void testGetAllSummoners_ReturnsListOfSummoners() {
+    void testGetAllSummoners_ReturnsListOfSummoners() {
         // Arrange
         Summoner summoner1 = new Summoner("riot-1", "TestSummoner1", 50);
         summoner1.setTier("Gold");
@@ -43,7 +43,7 @@ public class SummonerControllerUnitTest {
         when(summonerRepository.findAll()).thenReturn(mockSummoners);
 
         // Act
-        ResponseEntity response = summonerController.getAllSummoners();
+        ResponseEntity<?> response = summonerController.getAllSummoners();
 
         // Assert
         assertEquals(200, response.getStatusCode().value());
@@ -52,7 +52,7 @@ public class SummonerControllerUnitTest {
     }
 
     @Test
-    public void testGetSummonerByName_ExistingSummoner_Returns200() {
+    void testGetSummonerByName_ExistingSummoner_Returns200() {
         // Arrange
         String summonerName = "ExistingSummoner";
         Summoner mockSummoner = new Summoner("riot-existing", summonerName, 85);
@@ -62,7 +62,7 @@ public class SummonerControllerUnitTest {
             .thenReturn(Optional.of(mockSummoner));
 
         // Act
-        ResponseEntity response = summonerController.getSummoner(summonerName);
+        ResponseEntity<?> response = summonerController.getSummoner(summonerName);
 
         // Assert
         assertEquals(200, response.getStatusCode().value());
@@ -71,14 +71,14 @@ public class SummonerControllerUnitTest {
     }
 
     @Test
-    public void testGetSummonerByName_NonExistentSummoner_Returns404() {
+    void testGetSummonerByName_NonExistentSummoner_Returns404() {
         // Arrange
         String summonerName = "NonExistentSummoner";
         when(summonerRepository.findByName(anyString()))
             .thenReturn(Optional.empty());
 
         // Act
-        ResponseEntity response = summonerController.getSummoner(summonerName);
+        ResponseEntity<?> response = summonerController.getSummoner(summonerName);
 
         // Assert
         assertEquals(404, response.getStatusCode().value());
@@ -86,7 +86,7 @@ public class SummonerControllerUnitTest {
     }
 
     @Test
-    public void testGetById_ExistingSummoner_Returns200() {
+    void testGetById_ExistingSummoner_Returns200() {
         // Arrange
         Long summonerId = 1L;
         Summoner mockSummoner = new Summoner("riot-1", "TestSummoner", 60);
@@ -95,7 +95,7 @@ public class SummonerControllerUnitTest {
             .thenReturn(Optional.of(mockSummoner));
 
         // Act
-        ResponseEntity response = summonerController.getById(summonerId);
+        ResponseEntity<?> response = summonerController.getById(summonerId);
 
         // Assert
         assertEquals(200, response.getStatusCode().value());
@@ -104,14 +104,14 @@ public class SummonerControllerUnitTest {
     }
 
     @Test
-    public void testGetById_NonExistentSummoner_Returns404() {
+    void testGetById_NonExistentSummoner_Returns404() {
         // Arrange
         Long summonerId = 999L;
         when(summonerRepository.findById(anyLong()))
             .thenReturn(Optional.empty());
 
         // Act
-        ResponseEntity response = summonerController.getById(summonerId);
+        ResponseEntity<?> response = summonerController.getById(summonerId);
 
         // Assert
         assertEquals(404, response.getStatusCode().value());

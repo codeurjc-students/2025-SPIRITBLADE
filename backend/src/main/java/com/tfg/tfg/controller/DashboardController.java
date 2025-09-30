@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,11 +20,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RequestMapping("/api/v1/dashboard")
 public class DashboardController {
 
-    @Autowired
-    private SummonerRepository summonerRepository;
+    private static final String UNRANKED = "Unranked";
+    
+    private final SummonerRepository summonerRepository;
+    private final UserModelRepository userModelRepository;
 
-    @Autowired
-    private UserModelRepository userModelRepository;
+    public DashboardController(SummonerRepository summonerRepository, UserModelRepository userModelRepository) {
+        this.summonerRepository = summonerRepository;
+        this.userModelRepository = userModelRepository;
+    }
 
     @GetMapping("/me/stats")
     public ResponseEntity<Map<String, Object>> myStats() {
@@ -55,12 +58,15 @@ public class DashboardController {
             // ignore and keep defaults
         }
         if (s != null) {
-            result.put("currentRank", s.getTier() == null ? "Unranked" : s.getTier() + " " + (s.getRank() == null ? "" : s.getRank()));
+            String tier = s.getTier() == null ? UNRANKED : s.getTier();
+            String rank = s.getRank() == null ? "" : s.getRank();
+            String currentRank = tier.equals(UNRANKED) ? tier : tier + " " + rank;
+            result.put("currentRank", currentRank);
             result.put("lp7days", 42);
             result.put("mainRole", "Mid Lane");
             result.put("favoriteChampion", s.getChampionStats().stream().findFirst().map(c -> c.getChampionId()).orElse(null));
         } else {
-            result.put("currentRank", "Unranked");
+            result.put("currentRank", UNRANKED);
             result.put("lp7days", 0);
             result.put("mainRole", "Unknown");
             result.put("favoriteChampion", null);
@@ -109,11 +115,11 @@ public class DashboardController {
                 .limit(2)
                 .map(s -> {
                     SummonerDTO dto = new SummonerDTO();
-                    dto.id = s.getId();
-                    dto.name = s.getName();
-                    dto.riotId = s.getRiotId();
-                    dto.tier = s.getTier();
-                    dto.rank = s.getRank();
+                    dto.setId(s.getId());
+                    dto.setName(s.getName());
+                    dto.setRiotId(s.getRiotId());
+                    dto.setTier(s.getTier());
+                    dto.setRank(s.getRank());
                     return dto;
                 }).toList();
 

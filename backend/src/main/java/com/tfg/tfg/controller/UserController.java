@@ -1,9 +1,7 @@
 package com.tfg.tfg.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,18 +15,21 @@ import com.tfg.tfg.repository.UserModelRepository;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    @Autowired
-    private UserModelRepository userRepository;
+    private final UserModelRepository userRepository;
+
+    public UserController(UserModelRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> listUsers() {
         List<UserDTO> list = userRepository.findAll().stream().map(u -> {
             UserDTO dto = new UserDTO();
-            dto.id = u.getId();
-            dto.name = u.getName();
-            dto.image = u.getImage();
+            dto.setId(u.getId());
+            dto.setName(u.getName());
+            dto.setImage(u.getImage());
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
 
         return ResponseEntity.ok(list);
     }
@@ -37,9 +38,9 @@ public class UserController {
     public ResponseEntity<UserDTO> getByName(@PathVariable String name) {
         return userRepository.findByName(name).map(u -> {
             UserDTO dto = new UserDTO();
-            dto.id = u.getId();
-            dto.name = u.getName();
-            dto.image = u.getImage();
+            dto.setId(u.getId());
+            dto.setName(u.getName());
+            dto.setImage(u.getImage());
             return ResponseEntity.ok(dto);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -66,10 +67,10 @@ public class UserController {
         // Development stub: return first user if exists
         return userRepository.findAll().stream().findFirst().map(u -> {
             UserDTO dto = new UserDTO();
-            dto.id = u.getId();
-            dto.name = u.getName();
-            dto.image = u.getImage();
-            dto.email = u.getEmail();
+            dto.setId(u.getId());
+            dto.setName(u.getName());
+            dto.setImage(u.getImage());
+            dto.setEmail(u.getEmail());
             return ResponseEntity.ok(dto);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }

@@ -2,7 +2,6 @@ package com.tfg.tfg.security;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,17 +30,20 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-	@Autowired
-	private JwtRequestFilter jwtRequestFilter;
+	private final JwtRequestFilter jwtRequestFilter;
+	private final RepositoryUserDetailsService userDetailsService;
+	private final UnauthorizedHandlerJwt unauthorizedHandlerJwt;
+	private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-	@Autowired
-	public RepositoryUserDetailsService userDetailsService;
-
-	@Autowired
-	private UnauthorizedHandlerJwt unauthorizedHandlerJwt;
-
-	@Autowired
-	private CustomAccessDeniedHandler customAccessDeniedHandler;
+	public SecurityConfiguration(JwtRequestFilter jwtRequestFilter,
+								RepositoryUserDetailsService userDetailsService,
+								UnauthorizedHandlerJwt unauthorizedHandlerJwt,
+								CustomAccessDeniedHandler customAccessDeniedHandler) {
+		this.jwtRequestFilter = jwtRequestFilter;
+		this.userDetailsService = userDetailsService;
+		this.unauthorizedHandlerJwt = unauthorizedHandlerJwt;
+		this.customAccessDeniedHandler = customAccessDeniedHandler;
+	}
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -81,8 +83,8 @@ public class SecurityConfiguration {
 		
 		http.authenticationProvider(authenticationProvider());
 
-		// Let Spring Security handle CORS using the CorsFilter/CorsConfiguration bean defined above
-		http.cors();
+		// CORS is handled by the CorsFilter bean defined above, so we can use default configuration
+		http.cors(cors -> {});
 		
 		http
 			.securityMatcher("/api/v1/**")
@@ -101,13 +103,13 @@ public class SecurityConfiguration {
 			);
 		
         // Disable Form login Authentication
-        http.formLogin(formLogin -> formLogin.disable());
+        http.formLogin(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
 
         // Disable CSRF protection (it is difficult to implement in REST APIs)
         http.csrf(csrf -> csrf.disable());
 
         // Disable Basic Authentication
-        http.httpBasic(httpBasic -> httpBasic.disable());
+        http.httpBasic(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
 
         // Stateless session
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

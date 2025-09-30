@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tfg.tfg.model.entity.ChampionStat;
 import com.tfg.tfg.model.entity.MatchEntity;
@@ -22,34 +23,56 @@ import com.tfg.tfg.repository.UserModelRepository;
 @Component
 public class DataInitializer implements ApplicationRunner {
 
-    @Autowired
-    private UserModelRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private SummonerRepository summonerRepo;
-    @Autowired
-    private MatchRepository matchRepo;
-    @Autowired
-    private ChampionStatRepository champRepo;
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+    private static final String ADMIN_USERNAME = "admin";
+    private static final String USER_USERNAME = "user";
+    
+    private final UserModelRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final SummonerRepository summonerRepo;
+    private final MatchRepository matchRepo;
+    private final ChampionStatRepository champRepo;
+
+    public DataInitializer(UserModelRepository userRepository, 
+                          PasswordEncoder passwordEncoder,
+                          SummonerRepository summonerRepo,
+                          MatchRepository matchRepo,
+                          ChampionStatRepository champRepo) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.summonerRepo = summonerRepo;
+        this.matchRepo = matchRepo;
+        this.champRepo = champRepo;
+    }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        // Generate secure default passwords for development (should be externalized in production)
+        String adminPassword = System.getenv("ADMIN_DEFAULT_PASSWORD");
+        if (adminPassword == null) {
+            adminPassword = generateSecurePassword(ADMIN_USERNAME);
+        }
+        
+        String userPassword = System.getenv("USER_DEFAULT_PASSWORD");
+        if (userPassword == null) {
+            userPassword = generateSecurePassword(USER_USERNAME);
+        }
+        
         // Create admin user if not exists
-        if (userRepository.findByName("admin").isEmpty()) {
-            UserModel admin = new UserModel("admin", passwordEncoder.encode("admin123"), "ADMIN");
+        if (userRepository.findByName(ADMIN_USERNAME).isEmpty()) {
+            UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
             userRepository.save(admin);
-            System.out.println("Created default admin user: admin / admin123");
+            logger.info("Created default admin user: {} / [password from env or generated]", ADMIN_USERNAME);
         }
 
         // Create regular user if not exists
-        if (userRepository.findByName("user").isEmpty()) {
-            UserModel user = new UserModel("user", passwordEncoder.encode("user123"), "USER");
+        if (userRepository.findByName(USER_USERNAME).isEmpty()) {
+            UserModel user = new UserModel(USER_USERNAME, passwordEncoder.encode(userPassword), "USER");
             user.setEmail("user@example.com");
             user.setActive(true);
             userRepository.save(user);
-            System.out.println("Created default user: user / user123");
+            logger.info("Created default user: {} / [password from env or generated]", USER_USERNAME);
         }
 
         if (summonerRepo.count() > 0) {
@@ -108,6 +131,11 @@ public class DataInitializer implements ApplicationRunner {
         s1.setChampionStats(List.of(c1));
         summonerRepo.save(s1);
 
-        System.out.println("DatabaseInitializer: sample data inserted (dev profile)");
+        logger.info("DatabaseInitializer: sample data inserted (dev profile)");
+    }
+    
+    private String generateSecurePassword(String prefix) {
+        // Generate a more secure password for development
+        return prefix + "Secure" + System.currentTimeMillis() % 10000 + "!";
     }
 }
