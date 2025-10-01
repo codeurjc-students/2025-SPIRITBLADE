@@ -1,11 +1,18 @@
 package com.tfg.tfg.model.dto;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChampionStatDTO {
-    public Long id;
-    public Integer championId;
-    public int gamesPlayed;
-    public int wins;
-    public int kills;
-    public int deaths;
-    public int assists;
+    private Long id;
+    private Integer championId;
+    private int gamesPlayed;
+    private int wins;
+    private int kills;
+    private int deaths;
+    private int assists;
 }

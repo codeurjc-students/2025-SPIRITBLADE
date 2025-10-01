@@ -1,12 +1,19 @@
 package com.tfg.tfg.model.dto;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SummonerDTO {
-    public Long id;
-    public String riotId;
-    public String name;
-    public Integer level;
-    public Integer profileIconId;
-    public String tier;
-    public String rank;
-    public Integer lp;
+    private Long id;
+    private String riotId;
+    private String name;
+    private Integer level;
+    private Integer profileIconId;
+    private String tier;
+    private String rank;
+    private Integer lp;
 }

@@ -1,13 +1,19 @@
 package com.tfg.tfg.model.dto;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MatchDTO {
-    public Long id;
-    public String matchId;
-    public LocalDateTime timestamp;
-    public boolean win;
-    public int kills;
-    public int deaths;
-    public int assists;
+    private Long id;
+    private String matchId;
+    private LocalDateTime timestamp;
+    private boolean win;
+    private int kills;
+    private int deaths;
+    private int assists;
 }

@@ -2,7 +2,6 @@ package com.tfg.tfg.service;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.SummonerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +13,11 @@ import java.util.Optional;
 @Service
 public class SummonerService {
 
-    @Autowired
-    private SummonerRepository summonerRepository;
+    private final SummonerRepository summonerRepository;
+
+    public SummonerService(SummonerRepository summonerRepository) {
+        this.summonerRepository = summonerRepository;
+    }
 
     /**
      * Busca un summoner por nombre.

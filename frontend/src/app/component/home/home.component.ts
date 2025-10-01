@@ -25,7 +25,7 @@ export class HomeComponent {
   ];
 
   onSearch() {
-    if (this.searchQuery.trim()) {
+    if (this.searchQuery && this.searchQuery.trim()) {
       this.router.navigate(['/summoner', this.searchQuery.trim()]);
     }
   }

@@ -3,7 +3,6 @@ package com.tfg.tfg.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -26,11 +25,13 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/api/v1/auth")
 public class LoginRestController {
 
-	@Autowired
-	private UserService userService;
+	private final UserService userService;
+    private final UserLoginService userLoginService;
 
-    @Autowired
-	private UserLoginService userLoginService;
+    public LoginRestController(UserService userService, UserLoginService userLoginService) {
+        this.userService = userService;
+        this.userLoginService = userLoginService;
+    }
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(

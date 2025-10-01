@@ -47,7 +47,7 @@ public class UserModel{
         this.encodedPassword = encodedPassword;
         this.rols = rols != null ? List.of(rols) : Collections.emptyList();
         this.image = "/users/" + this.id + "/image";
-        this.profilePic= UploadStandardProfilePic();
+        this.profilePic= uploadStandardProfilePic();
     }
 
     public boolean isActive() {
@@ -124,7 +124,7 @@ public class UserModel{
         }
     }
 
-    private Blob UploadStandardProfilePic() {
+    private Blob uploadStandardProfilePic() {
         try {
             InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.jpg");
             if (imageStream != null) {

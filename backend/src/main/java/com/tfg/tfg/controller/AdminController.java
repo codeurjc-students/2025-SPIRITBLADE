@@ -2,9 +2,7 @@ package com.tfg.tfg.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,21 +21,24 @@ import com.tfg.tfg.repository.UserModelRepository;
 @RequestMapping("/api/v1/admin")
 public class AdminController {
 
-    @Autowired
-    private UserModelRepository userRepository;
+    private final UserModelRepository userRepository;
+
+    public AdminController(UserModelRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> listUsers() {
         List<UserDTO> users = userRepository.findAll().stream().map(u -> {
             UserDTO dto = new UserDTO();
-            dto.id = u.getId();
-            dto.name = u.getName();
-            dto.email = u.getEmail();
-            dto.roles = u.getRols();
-            dto.active = u.isActive();
+            dto.setId(u.getId());
+            dto.setName(u.getName());
+            dto.setEmail(u.getEmail());
+            dto.setRoles(u.getRols());
+            dto.setActive(u.isActive());
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
 
         return ResponseEntity.ok(users);
     }

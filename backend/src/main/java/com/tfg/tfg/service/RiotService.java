@@ -2,7 +2,6 @@ package com.tfg.tfg.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tfg.tfg.model.dto.SummonerSimpleDto;
 import com.tfg.tfg.model.entity.Summoner;
@@ -12,11 +11,15 @@ import java.util.Optional;
 
 @Service
 public class RiotService {
+    
     @Value("${riot.api.key}")
     private String apiKey;
     
-    @Autowired
-    private SummonerRepository summonerRepository;
+    private final SummonerRepository summonerRepository;
+
+    public RiotService(SummonerRepository summonerRepository) {
+        this.summonerRepository = summonerRepository;
+    }
 
     public SummonerSimpleDto getSummonerByName(String name) {
         // Try to read from DB first (this allows DatabaseInitializer data to be used)
