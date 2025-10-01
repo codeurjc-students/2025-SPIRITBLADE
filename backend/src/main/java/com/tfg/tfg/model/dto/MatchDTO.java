@@ -1,7 +1,13 @@
 package com.tfg.tfg.model.dto;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MatchDTO {
     private Long id;
     private String matchId;
@@ -10,61 +16,4 @@ public class MatchDTO {
     private int kills;
     private int deaths;
     private int assists;
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getMatchId() {
-        return matchId;
-    }
-
-    public void setMatchId(String matchId) {
-        this.matchId = matchId;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public boolean isWin() {
-        return win;
-    }
-
-    public void setWin(boolean win) {
-        this.win = win;
-    }
-
-    public int getKills() {
-        return kills;
-    }
-
-    public void setKills(int kills) {
-        this.kills = kills;
-    }
-
-    public int getDeaths() {
-        return deaths;
-    }
-
-    public void setDeaths(int deaths) {
-        this.deaths = deaths;
-    }
-
-    public int getAssists() {
-        return assists;
-    }
-
-    public void setAssists(int assists) {
-        this.assists = assists;
-    }
 }
