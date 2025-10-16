@@ -201,15 +201,11 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
         
-        // Get ranked matches ordered by timestamp DESC (most recent first)
+        // Get ranked matches ordered by timestamp ASC (oldest first)
         List<MatchEntity> rankedMatches = matchRepository.findRankedMatchesBySummoner(summoner, "RANKED");
         
-        // Convert to mutable list and reverse to get oldest first for calculation
-        List<MatchEntity> mutableMatches = new java.util.ArrayList<>(rankedMatches);
-        java.util.Collections.reverse(mutableMatches);
-        
-        // Calculate LP progression from current LP backwards
-        List<RankHistoryDTO> dtos = calculateLPProgression(summoner, mutableMatches);
+        // Calculate LP progression - matches are already ordered oldest first
+        List<RankHistoryDTO> dtos = calculateLPProgression(summoner, rankedMatches);
         
         return ResponseEntity.ok(dtos);
     }
@@ -291,48 +287,41 @@ public class DashboardController {
         int calculatedLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
         String currentTier = summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER;
         String currentRank = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
-        int cumulativeWins = summoner.getWins() != null ? summoner.getWins() : 0;
-        int cumulativeLosses = summoner.getLosses() != null ? summoner.getLosses() : 0;
         
-        // Go backwards through match history
-        for (int i = rankedMatches.size() - 1; i >= 0; i--) {
+        // Calculate wins/losses going forward, LP going backward
+        int forwardWins = 0;
+        int forwardLosses = 0;
+        
+        for (int i = 0; i < rankedMatches.size(); i++) {
             MatchEntity match = rankedMatches.get(i);
             
-            // Calculate LP and wins/losses BEFORE this match
-            int lpChange = calculateLPChange(currentTier, match.isWin());
-            calculatedLP -= lpChange; // Subtract because we're going backwards
-            
-            int winsBeforeMatch = cumulativeWins;
-            int lossesBeforeMatch = cumulativeLosses;
-            
+            // Update cumulative forward count
             if (match.isWin()) {
-                winsBeforeMatch--;
+                forwardWins++;
             } else {
-                lossesBeforeMatch--;
+                forwardLosses++;
             }
             
-            // Create DTO with state AFTER this match (chronologically)
+            // Calculate LP for this point (working backwards from current LP)
+            int lpAtThisPoint = calculatedLP;
+            
+            // For LP calculation: work backwards from the end to this point
+            for (int j = rankedMatches.size() - 1; j > i; j--) {
+                MatchEntity laterMatch = rankedMatches.get(j);
+                int change = calculateLPChange(currentTier, laterMatch.isWin());
+                lpAtThisPoint -= change;
+            }
+            
+            // Create DTO with state AFTER this match
             RankHistoryDTO dto = new RankHistoryDTO();
             dto.setDate(match.getTimestamp().format(DATE_FORMATTER));
             dto.setTier(currentTier);
             dto.setRank(currentRank);
-            int lpAfterMatch = calculatedLP + lpChange;
-            dto.setLeaguePoints(Math.clamp(lpAfterMatch, MIN_LP, MAX_LP)); // LP after match
+            dto.setLeaguePoints(Math.clamp(lpAtThisPoint, MIN_LP, MAX_LP));
+            dto.setWins(forwardWins);
+            dto.setLosses(forwardLosses);
             
-            // Wins/losses should be cumulative UP TO this point
-            if (match.isWin()) {
-                dto.setWins(winsBeforeMatch + 1);
-                dto.setLosses(lossesBeforeMatch);
-            } else {
-                dto.setWins(winsBeforeMatch);
-                dto.setLosses(lossesBeforeMatch + 1);
-            }
-            
-            result.add(0, dto);
-            
-            // Update for next iteration (going backwards)
-            cumulativeWins = winsBeforeMatch;
-            cumulativeLosses = lossesBeforeMatch;
+            result.add(dto);
         }
         
         return result;

@@ -472,15 +472,19 @@ class DashboardControllerSimpleUnitTest {
             assertEquals("GOLD", result.get(0).getTier());
             assertEquals("II", result.get(0).getRank());
             
-            // Verify cumulative stats calculated correctly
-            assertEquals(8, result.get(0).getWins());  // 10 - 2 wins
-            assertEquals(5, result.get(0).getLosses()); // 5 - 0 losses
+            // Verify cumulative stats calculated correctly (showing state AFTER each match)
+            // Match history: WIN, LOSS, WIN (3 matches from 10W-5L total)
+            // After match1 (WIN): 1W-0L
+            assertEquals(1, result.get(0).getWins());
+            assertEquals(0, result.get(0).getLosses());
             
-            assertEquals(8, result.get(1).getWins());  // 10 - 2 wins
-            assertEquals(4, result.get(1).getLosses()); // 5 - 1 loss
+            // After match2 (LOSS): 1W-1L  
+            assertEquals(1, result.get(1).getWins());
+            assertEquals(1, result.get(1).getLosses());
             
-            assertEquals(10, result.get(2).getWins());  // Current state
-            assertEquals(5, result.get(2).getLosses());
+            // After match3 (WIN): 2W-1L
+            assertEquals(2, result.get(2).getWins());
+            assertEquals(1, result.get(2).getLosses());
         }
     }
 

@@ -467,10 +467,6 @@ class UserControllerSimpleUnitTest {
         String username = "testuser";
         
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("document.pdf");
-        when(mockFile.getContentType()).thenReturn("application/pdf");
-        when(mockFile.isEmpty()).thenReturn(false);
-        when(mockFile.getSize()).thenReturn(1024L);
         
         // Mock the service to throw IllegalArgumentException for invalid file type
         when(userAvatarService.uploadAvatar(eq(username), any()))
@@ -503,10 +499,6 @@ class UserControllerSimpleUnitTest {
         String username = "testuser";
         
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("large.png");
-        when(mockFile.getSize()).thenReturn(10L * 1024 * 1024); // 10MB
-        when(mockFile.getContentType()).thenReturn("image/png");
-        when(mockFile.isEmpty()).thenReturn(false);
         
         // Mock the service to throw IllegalArgumentException for file too large
         when(userAvatarService.uploadAvatar(eq(username), any()))
