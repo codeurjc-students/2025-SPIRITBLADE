@@ -212,7 +212,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					},
 					tooltip: {
 						callbacks: {
-							label: (context) => {
+							label: (context: any) => {
 								const label = context.dataset?.label || '';
 								const parsed: any = context.parsed;
 								let valueNum = 0;
@@ -228,7 +228,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 								return `${label}: ${Math.round(valueNum)} LP`;
 							},
-							afterLabel: (context) => {
+							afterLabel: (context: any) => {
 								const index = context.dataIndex;
 								const entry = this.rankHistory?.[index];
 								if (!entry) return '';
@@ -279,7 +279,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						},
 						ticks: {
 							color: 'rgb(255, 99, 132)',
-							callback: (value) => `${value}%`
+							callback: (value: any) => `${value}%`
 						},
 						grid: {
 							drawOnChartArea: false,
