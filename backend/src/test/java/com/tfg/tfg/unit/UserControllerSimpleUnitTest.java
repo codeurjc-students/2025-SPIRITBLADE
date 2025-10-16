@@ -446,6 +446,7 @@ class UserControllerSimpleUnitTest {
             mockedSecurityContextHolder.when(org.springframework.security.core.context.SecurityContextHolder::getContext)
                 .thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
             // Act
@@ -482,6 +483,7 @@ class UserControllerSimpleUnitTest {
             mockedSecurityContextHolder.when(org.springframework.security.core.context.SecurityContextHolder::getContext)
                 .thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
             // Act
@@ -513,6 +515,7 @@ class UserControllerSimpleUnitTest {
             mockedSecurityContextHolder.when(org.springframework.security.core.context.SecurityContextHolder::getContext)
                 .thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
             // Act
@@ -541,6 +544,7 @@ class UserControllerSimpleUnitTest {
             mockedSecurityContextHolder.when(org.springframework.security.core.context.SecurityContextHolder::getContext)
                 .thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
             // Act

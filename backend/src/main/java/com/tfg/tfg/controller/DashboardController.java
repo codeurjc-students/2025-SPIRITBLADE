@@ -204,11 +204,12 @@ public class DashboardController {
         // Get ranked matches ordered by timestamp DESC (most recent first)
         List<MatchEntity> rankedMatches = matchRepository.findRankedMatchesBySummoner(summoner, "RANKED");
         
-        // Reverse to get oldest first for calculation
-        java.util.Collections.reverse(rankedMatches);
+        // Convert to mutable list and reverse to get oldest first for calculation
+        List<MatchEntity> mutableMatches = new java.util.ArrayList<>(rankedMatches);
+        java.util.Collections.reverse(mutableMatches);
         
         // Calculate LP progression from current LP backwards
-        List<RankHistoryDTO> dtos = calculateLPProgression(summoner, rankedMatches);
+        List<RankHistoryDTO> dtos = calculateLPProgression(summoner, mutableMatches);
         
         return ResponseEntity.ok(dtos);
     }
