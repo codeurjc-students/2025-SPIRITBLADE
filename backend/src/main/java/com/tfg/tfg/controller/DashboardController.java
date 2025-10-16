@@ -298,25 +298,41 @@ public class DashboardController {
         for (int i = rankedMatches.size() - 1; i >= 0; i--) {
             MatchEntity match = rankedMatches.get(i);
             
+            // Calculate LP and wins/losses BEFORE this match
+            int lpChange = calculateLPChange(currentTier, match.isWin());
+            calculatedLP -= lpChange; // Subtract because we're going backwards
+            
+            int winsBeforeMatch = cumulativeWins;
+            int lossesBeforeMatch = cumulativeLosses;
+            
+            if (match.isWin()) {
+                winsBeforeMatch--;
+            } else {
+                lossesBeforeMatch--;
+            }
+            
+            // Create DTO with state AFTER this match (chronologically)
             RankHistoryDTO dto = new RankHistoryDTO();
             dto.setDate(match.getTimestamp().format(DATE_FORMATTER));
             dto.setTier(currentTier);
             dto.setRank(currentRank);
-            dto.setLeaguePoints(Math.clamp(calculatedLP, MIN_LP, MAX_LP));
-            dto.setWins(cumulativeWins);
-            dto.setLosses(cumulativeLosses);
+            int lpAfterMatch = calculatedLP + lpChange;
+            dto.setLeaguePoints(Math.clamp(lpAfterMatch, MIN_LP, MAX_LP)); // LP after match
+            
+            // Wins/losses should be cumulative UP TO this point
+            if (match.isWin()) {
+                dto.setWins(winsBeforeMatch + 1);
+                dto.setLosses(lossesBeforeMatch);
+            } else {
+                dto.setWins(winsBeforeMatch);
+                dto.setLosses(lossesBeforeMatch + 1);
+            }
             
             result.add(0, dto);
             
-            // Calculate LP before this match using tier-based estimation
-            int lpChange = calculateLPChange(currentTier, match.isWin());
-            calculatedLP -= lpChange; // Subtract because we're going backwards
-            
-            if (match.isWin()) {
-                cumulativeWins--;
-            } else {
-                cumulativeLosses--;
-            }
+            // Update for next iteration (going backwards)
+            cumulativeWins = winsBeforeMatch;
+            cumulativeLosses = lossesBeforeMatch;
         }
         
         return result;

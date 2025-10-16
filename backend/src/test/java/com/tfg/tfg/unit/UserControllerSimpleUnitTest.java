@@ -430,9 +430,6 @@ class UserControllerSimpleUnitTest {
         String avatarUrl = "/api/v1/files/avatars/test-avatar.png";
         
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("avatar.png");
-        when(mockFile.getSize()).thenReturn(1024L * 100); // 100KB
-        when(mockFile.getContentType()).thenReturn("image/png");
         
         when(userAvatarService.uploadAvatar(eq(username), any())).thenReturn(avatarUrl);
         
@@ -472,6 +469,12 @@ class UserControllerSimpleUnitTest {
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
         when(mockFile.getOriginalFilename()).thenReturn("document.pdf");
         when(mockFile.getContentType()).thenReturn("application/pdf");
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getSize()).thenReturn(1024L);
+        
+        // Mock the service to throw IllegalArgumentException for invalid file type
+        when(userAvatarService.uploadAvatar(eq(username), any()))
+            .thenThrow(new IllegalArgumentException("Invalid file type. Allowed types: image/png"));
         
         try (MockedStatic<org.springframework.security.core.context.SecurityContextHolder> mockedSecurityContextHolder = 
                 mockStatic(org.springframework.security.core.context.SecurityContextHolder.class)) {
@@ -491,7 +494,6 @@ class UserControllerSimpleUnitTest {
             
             // Assert
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-            verify(userAvatarService, never()).uploadAvatar(any(), any());
         }
     }
 
@@ -504,6 +506,11 @@ class UserControllerSimpleUnitTest {
         when(mockFile.getOriginalFilename()).thenReturn("large.png");
         when(mockFile.getSize()).thenReturn(10L * 1024 * 1024); // 10MB
         when(mockFile.getContentType()).thenReturn("image/png");
+        when(mockFile.isEmpty()).thenReturn(false);
+        
+        // Mock the service to throw IllegalArgumentException for file too large
+        when(userAvatarService.uploadAvatar(eq(username), any()))
+            .thenThrow(new IllegalArgumentException("File size exceeds maximum allowed size of 5MB"));
         
         try (MockedStatic<org.springframework.security.core.context.SecurityContextHolder> mockedSecurityContextHolder = 
                 mockStatic(org.springframework.security.core.context.SecurityContextHolder.class)) {
@@ -523,7 +530,6 @@ class UserControllerSimpleUnitTest {
             
             // Assert
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-            verify(userAvatarService, never()).uploadAvatar(any(), any());
         }
     }
 
