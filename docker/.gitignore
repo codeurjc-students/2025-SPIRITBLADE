@@ -1,0 +1,22 @@
+# ============================================
+# Docker Directory - Git Ignore
+# ============================================
+
+# Environment files (contain sensitive data)
+.env
+.env.*
+!.env.example
+
+# SSL certificates and keys
+ssl/*.p12
+ssl/*.jks
+ssl/*.key
+ssl/*.crt
+ssl/*.pem
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

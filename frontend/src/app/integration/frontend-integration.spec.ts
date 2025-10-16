@@ -4,7 +4,6 @@ import { AuthService } from '../service/auth.service';
 import { SummonerService } from '../service/summoner.service';
 import { DashboardService } from '../service/dashboard.service';
 import { UserService } from '../service/user.service';
-import { MatchService } from '../service/match.service';
 import { AdminService } from '../service/admin.service';
 import { API_URL } from '../service/api.config';
 
@@ -23,7 +22,6 @@ describe('Frontend Integration Tests', () => {
   let summonerService: SummonerService;
   let dashboardService: DashboardService;
   let userService: UserService;
-  let matchService: MatchService;
   let adminService: AdminService;
 
   beforeEach(() => {
@@ -34,7 +32,6 @@ describe('Frontend Integration Tests', () => {
         SummonerService,
         DashboardService,
         UserService,
-        MatchService,
         AdminService
       ]
     });
@@ -44,7 +41,6 @@ describe('Frontend Integration Tests', () => {
     summonerService = TestBed.inject(SummonerService);
     dashboardService = TestBed.inject(DashboardService);
     userService = TestBed.inject(UserService);
-    matchService = TestBed.inject(MatchService);
     adminService = TestBed.inject(AdminService);
   });
 
@@ -59,7 +55,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeTruthy();
       expect(dashboardService).toBeTruthy();
       expect(userService).toBeTruthy();
-      expect(matchService).toBeTruthy();
       expect(adminService).toBeTruthy();
     });
 
@@ -282,55 +277,7 @@ describe('Frontend Integration Tests', () => {
     });
   });
 
-  describe('Match Service Integration', () => {
-    xit('should fetch match details from API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend
-      const matchId = 'EUW1_1234567890';
-      
-      matchService.getMatch(matchId).subscribe({
-        next: (match) => {
-          expect(match).toBeDefined();
-          expect(match.id).toBe(matchId);
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
-    xit('should manage match notes via API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend and authentication
-      const matchId = 'EUW1_1234567890';
-      const noteData = { text: 'Great game!' };
-      
-      matchService.addNote(matchId, noteData).subscribe({
-        next: (note) => {
-          expect(note).toBeDefined();
-          expect(note.text).toBe(noteData.text);
-          
-          // Test fetching notes
-          matchService.getNotes(matchId).subscribe({
-            next: (notes) => {
-              expect(Array.isArray(notes)).toBeTrue();
-              done();
-            },
-            error: (error) => {
-              expect(error.status).toBeDefined();
-              done();
-            }
-          });
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-  });
+  // Match Service tests removed - service eliminated as backend endpoints don't exist
 
   describe('Admin Service Integration', () => {
     xit('should fetch all users via admin API', (done) => {
@@ -389,7 +336,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeTruthy();
       expect(dashboardService).toBeTruthy();
       expect(userService).toBeTruthy();
-      expect(matchService).toBeTruthy();
       expect(adminService).toBeTruthy();
     });
 
@@ -405,7 +351,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeInstanceOf(SummonerService);
       expect(dashboardService).toBeInstanceOf(DashboardService);
       expect(userService).toBeInstanceOf(UserService);
-      expect(matchService).toBeInstanceOf(MatchService);
       expect(adminService).toBeInstanceOf(AdminService);
     });
 

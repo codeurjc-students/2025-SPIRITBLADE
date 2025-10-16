@@ -98,6 +98,8 @@ public class SecurityConfiguration {
 					.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
 					// Allow unauthenticated GETs for summoner lookup
 					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
+					// Allow public access to file serving endpoints (avatars, images, etc.)
+					.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
 					// Any other request to /api/v1/** requires authentication
 					.anyRequest().authenticated()
 			);

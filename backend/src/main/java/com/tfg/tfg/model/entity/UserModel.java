@@ -8,7 +8,10 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.sql.rowset.serial.SerialBlob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,15 +20,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 
-@Entity(name = "USERS")
+@Entity
 public class UserModel{
+
+    private static final Logger logger = LoggerFactory.getLogger(UserModel.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "`name`")
     private String name;
+    
+    @Column(name = "`image`")
     private String image;
+    
     private String email;
 
     private boolean active = true;
@@ -37,6 +46,14 @@ public class UserModel{
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	private List<String> rols;
+
+    // Linked League of Legends account
+    private String linkedSummonerPuuid;
+    private String linkedSummonerName;
+    private String linkedSummonerRegion;
+
+    // Avatar URL (from file storage service)
+    private String avatarUrl;
 
     public UserModel(){
 
@@ -114,6 +131,38 @@ public class UserModel{
         this.rols = rols;
     }  
 
+    public String getLinkedSummonerPuuid() {
+        return linkedSummonerPuuid;
+    }
+
+    public void setLinkedSummonerPuuid(String linkedSummonerPuuid) {
+        this.linkedSummonerPuuid = linkedSummonerPuuid;
+    }
+
+    public String getLinkedSummonerName() {
+        return linkedSummonerName;
+    }
+
+    public void setLinkedSummonerName(String linkedSummonerName) {
+        this.linkedSummonerName = linkedSummonerName;
+    }
+
+    public String getLinkedSummonerRegion() {
+        return linkedSummonerRegion;
+    }
+
+    public void setLinkedSummonerRegion(String linkedSummonerRegion) {
+        this.linkedSummonerRegion = linkedSummonerRegion;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public String determineUserType() {
         if (this.getRols().contains("ADMIN")) {
             return "Administrator";
@@ -133,7 +182,8 @@ public class UserModel{
             }
             return null;
         } catch (IOException | SQLException e) {
-            e.printStackTrace();
+            logger.warn("Failed to load default profile picture: {}", e.getMessage());
+            logger.debug("Stacktrace:", e);
             return null;
         }
     }

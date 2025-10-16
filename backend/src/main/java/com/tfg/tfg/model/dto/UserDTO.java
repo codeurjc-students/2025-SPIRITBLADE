@@ -16,4 +16,5 @@ public class UserDTO {
     private String password;
     private List<String> roles;
     private boolean active;
+    private String avatarUrl;
 }

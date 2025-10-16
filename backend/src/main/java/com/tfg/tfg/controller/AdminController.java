@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tfg.tfg.mapper.UserMapper;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -30,15 +31,9 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> listUsers() {
-        List<UserDTO> users = userRepository.findAll().stream().map(u -> {
-            UserDTO dto = new UserDTO();
-            dto.setId(u.getId());
-            dto.setName(u.getName());
-            dto.setEmail(u.getEmail());
-            dto.setRoles(u.getRols());
-            dto.setActive(u.isActive());
-            return dto;
-        }).toList();
+        List<UserDTO> users = userRepository.findAll().stream()
+            .map(UserMapper::toDTO)
+            .toList();
 
         return ResponseEntity.ok(users);
     }

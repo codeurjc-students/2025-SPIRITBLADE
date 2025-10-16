@@ -2,6 +2,7 @@ package com.tfg.tfg.unit;
 
 import com.tfg.tfg.controller.LoginRestController;
 import com.tfg.tfg.model.dto.UserDTO;
+import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.security.jwt.AuthResponse;
 import com.tfg.tfg.security.jwt.LoginRequest;
 import com.tfg.tfg.security.jwt.UserLoginService;
@@ -141,7 +142,8 @@ class LoginRestControllerSimpleUnitTest {
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("password");
 
-        doNothing().when(userService).createUser(userDTO);
+        UserModel createdUser = new UserModel("testuser", "encodedPassword", "USER");
+        when(userService.createUser(userDTO)).thenReturn(createdUser);
 
         // When
         ResponseEntity<Map<String, String>> result = loginRestController.register(userDTO);

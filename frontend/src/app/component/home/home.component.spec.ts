@@ -4,15 +4,50 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HomeComponent } from './home.component';
+import { SummonerService } from '../../service/summoner.service';
+import { of, throwError } from 'rxjs';
+import { Summoner } from '../../dto/summoner.model';
 
 describe('HomeComponent - Unit Tests', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockSummonerService: jasmine.SpyObj<SummonerService>;
+
+  const mockRecentSearches: Summoner[] = [
+    { 
+      id: '1', 
+      name: 'Player1#EUW', 
+      level: 150, 
+      profileIconId: 1, 
+      profileIconUrl: 'http://example.com/icon1.png',
+      tier: 'GOLD',
+      rank: 'II',
+      lp: 50,
+      wins: 100,
+      losses: 90
+    },
+    { 
+      id: '2', 
+      name: 'Player2#EUW', 
+      level: 200, 
+      profileIconId: 2, 
+      profileIconUrl: 'http://example.com/icon2.png',
+      tier: 'PLATINUM',
+      rank: 'IV',
+      lp: 75,
+      wins: 150,
+      losses: 120
+    }
+  ];
 
   beforeEach(async () => {
-    // Create spy for Router
+    // Create spies
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockSummonerService = jasmine.createSpyObj('SummonerService', ['getRecentSearches']);
+    
+    // Default mock implementation
+    mockSummonerService.getRecentSearches.and.returnValue(of(mockRecentSearches));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -22,7 +57,8 @@ describe('HomeComponent - Unit Tests', () => {
         HomeComponent
       ],
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: SummonerService, useValue: mockSummonerService }
       ]
     }).compileComponents();
 
@@ -39,19 +75,42 @@ describe('HomeComponent - Unit Tests', () => {
       expect(component.searchQuery).toBe('');
     });
 
-    it('should initialize with predefined recent searches', () => {
+    it('should initialize with empty recent searches array', () => {
       expect(component.recentSearches).toBeDefined();
-      expect(component.recentSearches.length).toBe(4);
-      expect(component.recentSearches[0]).toEqual({ name: 'Example Player 1', rank: 'Gold II' });
+      expect(Array.isArray(component.recentSearches)).toBeTrue();
+      expect(component.recentSearches.length).toBe(0);
     });
 
-    it('should have all recent searches with name and rank properties', () => {
-      component.recentSearches.forEach(search => {
-        expect(search.name).toBeDefined();
-        expect(search.rank).toBeDefined();
-        expect(typeof search.name).toBe('string');
-        expect(typeof search.rank).toBe('string');
-      });
+    it('should load recent searches on ngOnInit', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      expect(mockSummonerService.getRecentSearches).toHaveBeenCalled();
+      expect(component.recentSearches.length).toBe(2);
+      expect(component.loadingRecentSearches).toBeFalse();
+    });
+
+    it('should set loading state while fetching recent searches', () => {
+      // Arrange
+      mockSummonerService.getRecentSearches.and.returnValue(of(mockRecentSearches));
+
+      // Act
+      component.loadRecentSearches();
+
+      // Assert - loading should be false after observable completes
+      expect(component.loadingRecentSearches).toBeFalse();
+    });
+
+    it('should populate recent searches with correct data', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      expect(component.recentSearches[0].name).toBe('Player1#EUW');
+      expect(component.recentSearches[0].tier).toBe('GOLD');
+      expect(component.recentSearches[1].name).toBe('Player2#EUW');
+      expect(component.recentSearches[1].tier).toBe('PLATINUM');
     });
   });
 
@@ -124,39 +183,59 @@ describe('HomeComponent - Unit Tests', () => {
   });
 
   describe('Recent Searches Functionality', () => {
-    it('should log summoner name when searching recent summoner', () => {
+    it('should navigate to summoner page when clicking recent search', () => {
       // Arrange
-      const consoleSpy = spyOn(console, 'log');
-      const summonerName = 'Example Player 1';
+      const summoner = mockRecentSearches[0];
 
       // Act
-      component.searchSummoner(summonerName);
+      component.searchSummoner(summoner);
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith('Searching for recent summoner:', summonerName);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Player1#EUW']);
     });
 
-    it('should handle empty summoner name in recent search', () => {
+    it('should handle summoner click with all data fields', () => {
       // Arrange
-      const consoleSpy = spyOn(console, 'log');
+      const summoner: Summoner = {
+        id: '3',
+        name: 'TestPlayer#NA',
+        level: 100,
+        profileIconId: 3,
+        tier: 'DIAMOND',
+        rank: 'I'
+      };
 
       // Act
-      component.searchSummoner('');
+      component.searchSummoner(summoner);
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith('Searching for recent summoner:', '');
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestPlayer#NA']);
     });
 
-    it('should handle special characters in recent summoner search', () => {
+    it('should handle error when loading recent searches', () => {
       // Arrange
-      const consoleSpy = spyOn(console, 'log');
-      const specialName = 'Player@#$%';
+      const consoleSpy = spyOn(console, 'error');
+      mockSummonerService.getRecentSearches.and.returnValue(throwError(() => new Error('API Error')));
 
       // Act
-      component.searchSummoner(specialName);
+      component.loadRecentSearches();
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith('Searching for recent summoner:', specialName);
+      expect(consoleSpy).toHaveBeenCalled();
+      expect(component.loadingRecentSearches).toBeFalse();
+      expect(component.recentSearches.length).toBe(0);
+    });
+
+    it('should handle empty recent searches response', () => {
+      // Arrange
+      mockSummonerService.getRecentSearches.and.returnValue(of([]));
+
+      // Act
+      component.loadRecentSearches();
+
+      // Assert
+      expect(component.recentSearches.length).toBe(0);
+      expect(component.loadingRecentSearches).toBeFalse();
     });
   });
 
@@ -229,21 +308,46 @@ describe('HomeComponent - Unit Tests', () => {
   });
 
   describe('Data Validation', () => {
-    it('should have valid recent searches data structure', () => {
+    it('should have valid recent searches data structure after loading', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
       expect(Array.isArray(component.recentSearches)).toBeTrue();
       expect(component.recentSearches.length).toBeGreaterThan(0);
     });
 
-    it('should have consistent rank format in recent searches', () => {
-      const validRanks = ['Gold II', 'Platinum IV', 'Diamond I', 'Master'];
-      component.recentSearches.forEach((search, index) => {
-        expect(search.rank).toBe(validRanks[index]);
+    it('should have consistent data structure in recent searches', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      component.recentSearches.forEach(search => {
+        expect(search.name).toBeDefined();
+        expect(search.level).toBeDefined();
+        expect(typeof search.name).toBe('string');
+        expect(typeof search.level).toBe('number');
       });
     });
 
     it('should have non-empty names in recent searches', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
       component.recentSearches.forEach(search => {
         expect(search.name.trim().length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should include profile icon URLs in recent searches', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      component.recentSearches.forEach(search => {
+        expect(search.profileIconUrl).toBeDefined();
+        expect(typeof search.profileIconUrl).toBe('string');
       });
     });
   });
@@ -273,6 +377,57 @@ describe('HomeComponent - Unit Tests', () => {
       });
 
       expect(mockRouter.navigate).toHaveBeenCalledTimes(3);
+    });
+
+    it('should navigate when clicking on recent summoner card', () => {
+      // Arrange
+      component.ngOnInit();
+      const summoner = component.recentSearches[0];
+
+      // Act
+      component.searchSummoner(summoner);
+
+      // Assert
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', summoner.name]);
+    });
+  });
+
+  describe('Service Integration', () => {
+    it('should call SummonerService on component initialization', () => {
+      // Act
+      component.ngOnInit();
+
+      // Assert
+      expect(mockSummonerService.getRecentSearches).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle service errors gracefully', () => {
+      // Arrange
+      const error = new Error('Service unavailable');
+      mockSummonerService.getRecentSearches.and.returnValue(throwError(() => error));
+      const consoleSpy = spyOn(console, 'error');
+
+      // Act
+      component.loadRecentSearches();
+
+      // Assert
+      expect(consoleSpy).toHaveBeenCalled();
+      expect(component.loadingRecentSearches).toBeFalse();
+    });
+
+    it('should update component state after successful service call', () => {
+      // Arrange
+      const newMockData: Summoner[] = [
+        { id: '99', name: 'NewPlayer#EUW', level: 500, profileIconId: 99 }
+      ];
+      mockSummonerService.getRecentSearches.and.returnValue(of(newMockData));
+
+      // Act
+      component.loadRecentSearches();
+
+      // Assert
+      expect(component.recentSearches).toEqual(newMockData);
+      expect(component.loadingRecentSearches).toBeFalse();
     });
   });
 });

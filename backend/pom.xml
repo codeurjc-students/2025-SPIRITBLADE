@@ -78,6 +78,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- MySQL Driver for production -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- JWT Dependencies -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -108,12 +115,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.6.3</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -158,6 +159,13 @@
             <artifactId>junit-jupiter</artifactId>
             <version>1.19.3</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- AWS SDK for S3 (MinIO compatible) -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.12.772</version>
         </dependency>
 
     </dependencies>

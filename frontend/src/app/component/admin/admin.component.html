@@ -1,37 +1,310 @@
 <div class="admin-page">
 	<header class="admin-header">
-		<h1>Admin Panel</h1>
+		<h1>🛡️ Admin Panel</h1>
 		<div class="admin-actions">
-			<button class="btn-primary">Create User</button>
-			<button class="btn-secondary">System Logs</button>
+			<button class="btn-primary" (click)="openCreateModal()">
+				<i class="icon-plus"></i> Create User
+			</button>
 		</div>
 	</header>
 
-	<section class="users-table">
-		<h2>Users</h2>
-		<table>
-			<thead>
-				<tr>
-					<th>Username</th>
-					<th>Email</th>
-					<th>Role</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>admin</td>
-					<td>admin@example.com</td>
-					<td>ADMIN</td>
-					<td><button>Edit</button> <button>Delete</button></td>
-				</tr>
-				<tr>
-					<td>user</td>
-					<td>user@example.com</td>
-					<td>USER</td>
-					<td><button>Edit</button> <button>Delete</button></td>
-				</tr>
-			</tbody>
-		</table>
+	<!-- Error Message -->
+	<div *ngIf="errorMessage" class="error-alert">
+		{{ errorMessage }}
+	</div>
+
+	<!-- Filters Section -->
+	<div class="filters-section">
+		<div class="filters-row">
+			<div class="filter-group">
+				<label>🔍 Search:</label>
+				<input 
+					type="text" 
+					[(ngModel)]="searchTerm" 
+					placeholder="Username or email..."
+					class="filter-input"
+				/>
+			</div>
+			
+			<div class="filter-group">
+				<label>👤 Role:</label>
+				<select [(ngModel)]="filterRole" class="filter-select">
+					<option value="">All Roles</option>
+					<option value="ADMIN">Admin</option>
+					<option value="USER">User</option>
+				</select>
+			</div>
+			
+			<div class="filter-group">
+				<label>� Status:</label>
+				<select [(ngModel)]="filterActive" class="filter-select">
+					<option value="all">All Status</option>
+					<option value="true">Active</option>
+					<option value="false">Inactive</option>
+				</select>
+			</div>
+			
+			<div class="filter-actions">
+				<button class="btn-primary" (click)="applyFilters()">
+					Apply Filters
+				</button>
+				<button class="btn-secondary" (click)="clearFilters()">
+					Clear
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Loading Spinner -->
+	<div *ngIf="isLoading" class="loading-spinner">
+		<div class="spinner"></div>
+		<p>Loading users...</p>
+	</div>
+
+	<!-- Users Table -->
+	<section class="users-table" *ngIf="!isLoading">
+		<h2>Users Management ({{ totalElements }} users total, showing page {{ currentPage + 1 }} of {{ totalPages }})</h2>
+		
+		<div class="table-responsive">
+			<table>
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Username</th>
+						<th>Email</th>
+						<th>Roles</th>
+						<th>Status</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let user of users" [class.inactive-row]="!user.active">
+						<td>{{ user.id }}</td>
+						<td>
+							<strong>{{ user.name }}</strong>
+						</td>
+						<td>{{ user.email || 'N/A' }}</td>
+						<td>
+							<span 
+								*ngFor="let role of user.roles" 
+								[class]="'badge ' + getRoleBadgeClass(user.roles)"
+							>
+								{{ role }}
+							</span>
+						</td>
+						<td>
+							<span [class]="'badge ' + getStatusBadgeClass(user.active)">
+								{{ user.active ? '✓ Active' : '✗ Inactive' }}
+							</span>
+						</td>
+						<td class="actions-cell">
+							<button 
+								class="btn-icon btn-edit" 
+								(click)="openEditModal(user)"
+								title="Edit user"
+							>
+								✏️ Edit
+							</button>
+							<button 
+								class="btn-icon btn-toggle" 
+								(click)="toggleUserActive(user)"
+								title="Toggle active status"
+							>
+								{{ user.active ? '🔒 Deactivate' : '🔓 Activate' }}
+							</button>
+							<button 
+								class="btn-icon btn-delete" 
+								(click)="openDeleteModal(user)"
+								title="Delete user"
+							>
+								🗑️ Delete
+							</button>
+						</td>
+					</tr>
+					<tr *ngIf="users.length === 0">
+						<td colspan="6" class="no-results">
+							No users found with current filters
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<!-- Pagination Controls -->
+		<div class="pagination-controls" *ngIf="totalPages > 1">
+			<button 
+				class="btn-page" 
+				(click)="previousPage()" 
+				[disabled]="currentPage === 0"
+			>
+				⬅️ Previous
+			</button>
+			
+			<div class="page-numbers">
+				<button 
+					*ngFor="let page of pages"
+					class="btn-page-number" 
+					[class.active]="page === currentPage"
+					(click)="goToPage(page)"
+				>
+					{{ page + 1 }}
+				</button>
+			</div>
+			
+			<button 
+				class="btn-page" 
+				(click)="nextPage()" 
+				[disabled]="currentPage >= totalPages - 1"
+			>
+				Next ➡️
+			</button>
+			
+			<div class="page-info">
+				Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total users)
+			</div>
+		</div>
 	</section>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+	<div class="modal-content" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Create New User</h2>
+			<button class="close-btn" (click)="closeCreateModal()">✕</button>
+		</div>
+		<div class="modal-body">
+			<form (ngSubmit)="createUser()">
+				<div class="form-group">
+					<label for="username">Username *</label>
+					<input 
+						id="username"
+						type="text" 
+						[(ngModel)]="newUser.name" 
+						name="username"
+						required
+						placeholder="Enter username"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="email">Email *</label>
+					<input 
+						id="email"
+						type="email" 
+						[(ngModel)]="newUser.email" 
+						name="email"
+						required
+						placeholder="user@example.com"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="password">Password *</label>
+					<input 
+						id="password"
+						type="password" 
+						[(ngModel)]="newUser.password" 
+						name="password"
+						required
+						placeholder="Min. 6 characters"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="role">Role</label>
+					<select [(ngModel)]="newUser.roles[0]" name="role">
+						<option value="USER">USER</option>
+						<option value="ADMIN">ADMIN</option>
+					</select>
+				</div>
+				<div class="form-actions">
+					<button type="button" class="btn-secondary" (click)="closeCreateModal()">
+						Cancel
+					</button>
+					<button type="submit" class="btn-primary">
+						Create User
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" *ngIf="showEditModal && selectedUser" (click)="closeEditModal()">
+	<div class="modal-content" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Edit User: {{ selectedUser.name }}</h2>
+			<button class="close-btn" (click)="closeEditModal()">✕</button>
+		</div>
+		<div class="modal-body">
+			<form (ngSubmit)="updateUser()">
+				<div class="form-group">
+					<label for="edit-username">Username</label>
+					<input 
+						id="edit-username"
+						type="text" 
+						[(ngModel)]="selectedUser.name" 
+						name="username"
+						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="edit-email">Email</label>
+					<input 
+						id="edit-email"
+						type="email" 
+						[(ngModel)]="selectedUser.email" 
+						name="email"
+						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="edit-role">Role</label>
+					<select [(ngModel)]="selectedUser.roles[0]" name="role">
+						<option value="USER">USER</option>
+						<option value="ADMIN">ADMIN</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>
+						<input 
+							type="checkbox" 
+							[(ngModel)]="selectedUser.active" 
+							name="active"
+						/>
+						Active
+					</label>
+				</div>
+				<div class="form-actions">
+					<button type="button" class="btn-secondary" (click)="closeEditModal()">
+						Cancel
+					</button>
+					<button type="submit" class="btn-primary">
+						Save Changes
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal && selectedUser" (click)="closeDeleteModal()">
+	<div class="modal-content modal-small" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>⚠️ Confirm Deletion</h2>
+			<button class="close-btn" (click)="closeDeleteModal()">✕</button>
+		</div>
+		<div class="modal-body">
+			<p>Are you sure you want to delete user <strong>{{ selectedUser.name }}</strong>?</p>
+			<p class="warning-text">This action cannot be undone.</p>
+			<div class="form-actions">
+				<button type="button" class="btn-secondary" (click)="closeDeleteModal()">
+					Cancel
+				</button>
+				<button type="button" class="btn-danger" (click)="deleteUser()">
+					Delete User
+				</button>
+			</div>
+		</div>
+	</div>
 </div>

@@ -1,28 +1,46 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+import { SummonerService } from '../../service/summoner.service';
+import { Summoner } from '../../dto/summoner.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
 
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   searchQuery = '';
+  recentSearches: Summoner[] = [];
+  loadingRecentSearches = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private summonerService: SummonerService
+  ) {}
 
-  recentSearches = [
-    { name: 'Example Player 1', rank: 'Gold II' },
-    { name: 'Example Player 2', rank: 'Platinum IV' },
-    { name: 'Example Player 3', rank: 'Diamond I' },
-    { name: 'Example Player 4', rank: 'Master' }
-  ];
+  ngOnInit(): void {
+    this.loadRecentSearches();
+  }
+
+  loadRecentSearches() {
+    this.loadingRecentSearches = true;
+    this.summonerService.getRecentSearches().subscribe({
+      next: searches => {
+        this.recentSearches = searches;
+        this.loadingRecentSearches = false;
+      },
+      error: err => {
+        console.debug('Error loading recent searches:', err);
+        this.loadingRecentSearches = false;
+      }
+    });
+  }
 
   onSearch() {
     if (this.searchQuery && this.searchQuery.trim()) {
@@ -30,8 +48,7 @@ export class HomeComponent {
     }
   }
 
-  searchSummoner(summonerName: string) {
-    console.log('Searching for recent summoner:', summonerName);
-    // TODO: Navegar al perfil del invocador
+  searchSummoner(summoner: Summoner) {
+    this.router.navigate(['/summoner', summoner.name]);
   }
 }

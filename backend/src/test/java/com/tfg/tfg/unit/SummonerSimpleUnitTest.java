@@ -2,14 +2,9 @@ package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.model.entity.MatchEntity;
-import com.tfg.tfg.model.entity.ChampionStat;
 
 class SummonerSimpleUnitTest {
 
@@ -18,21 +13,15 @@ class SummonerSimpleUnitTest {
         Summoner summoner = new Summoner();
         assertNotNull(summoner);
         assertNull(summoner.getId());
-        assertNotNull(summoner.getMatches());
-        assertNotNull(summoner.getChampionStats());
-        assertTrue(summoner.getMatches().isEmpty());
-        assertTrue(summoner.getChampionStats().isEmpty());
     }
 
     @Test
     void testSummonerParameterizedConstructor() {
-        Summoner summoner = new Summoner("riot#123", "TestSummoner", 50);
+        Summoner summoner = new Summoner("riot#123", "TestSummoner#EUW", 50);
         
         assertEquals("riot#123", summoner.getRiotId());
-        assertEquals("TestSummoner", summoner.getName());
+        assertEquals("TestSummoner#EUW", summoner.getName());
         assertEquals(50, summoner.getLevel());
-        assertNotNull(summoner.getMatches());
-        assertNotNull(summoner.getChampionStats());
     }
 
     @Test
@@ -57,25 +46,7 @@ class SummonerSimpleUnitTest {
         assertEquals(75, summoner.getLp());
     }
 
-    @Test
-    void testSummonerMatches() {
-        Summoner summoner = new Summoner();
-        List<MatchEntity> matches = new ArrayList<>();
-        summoner.setMatches(matches);
-        
-        assertEquals(matches, summoner.getMatches());
-        assertTrue(summoner.getMatches().isEmpty());
-    }
-
-    @Test
-    void testSummonerChampionStats() {
-        Summoner summoner = new Summoner();
-        List<ChampionStat> championStats = new ArrayList<>();
-        summoner.setChampionStats(championStats);
-        
-        assertEquals(championStats, summoner.getChampionStats());
-        assertTrue(summoner.getChampionStats().isEmpty());
-    }
+    // Tests for matches and championStats removed - data now fetched from Riot API in real-time
 
     @Test
     void testSummonerWithNullValues() {

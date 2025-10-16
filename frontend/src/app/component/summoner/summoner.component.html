@@ -4,7 +4,7 @@
 		<div class="search-box">
 			<input 
 				type="text" 
-				placeholder="Enter summoner name..." 
+				placeholder="Enter Riot ID (e.g. Player#EUW)..." 
 				class="search-input"
 				[(ngModel)]="searchQuery"
 				(keyup.enter)="onSearch()">
@@ -15,7 +15,12 @@
 	<section class="summoner-header">
 	<div class="summoner-info">
 	<div class="summoner-avatar">
-	<div class="avatar-placeholder"></div>
+		<img 
+			*ngIf="summoner && summoner.profileIconUrl" 
+			[src]="summoner.profileIconUrl" 
+			[alt]="summoner.name + ' profile icon'"
+			class="avatar-image">
+		<div *ngIf="!summoner || !summoner.profileIconUrl" class="avatar-placeholder"></div>
 	</div>
 	<div class="summoner-details">
 	<div *ngIf="loading">Loading summoner...</div>
@@ -32,70 +37,193 @@
 	</div>
 	</section>
 
-	<section class="stats-overview">
+	<section class="stats-overview" *ngIf="!loading && summoner">
 	<div class="stat-card">
-	<h3>Wins</h3>
-	<p class="stat-number">67</p>
-	</div>
-	<div class="stat-card">
-	<h3>Losses</h3>
-	<p class="stat-number">54</p>
+	<h3>Ranked Wins</h3>
+	<p class="stat-number">{{ summoner.wins || 0 }}</p>
 	</div>
 	<div class="stat-card">
 	<h3>Win Rate</h3>
-	<p class="stat-number">55%</p>
+	<p class="stat-number">{{ getWinRate() }}</p>
 	</div>
 	<div class="stat-card">
-	<h3>Avg KDA</h3>
-	<p class="stat-number">2.1</p>
+	<h3>Total Games</h3>
+	<p class="stat-number">{{ getTotalGames() }}</p>
 	</div>
 	</section>
 
 	<section class="champion-stats">
 	<h2>Most Played Champions</h2>
-	<div class="champion-list">
-	<div class="champion-card">
-	<div class="champion-icon"></div>
-	<span class="champion-name">Yasuo</span>
-	<span class="champion-games">12 games</span>
-	<span class="champion-winrate">67% WR</span>
+	<div class="loading-message" *ngIf="loadingMasteries">Loading champion masteries...</div>
+	<div class="champion-list" *ngIf="!loadingMasteries && championMasteries.length > 0">
+	<div class="champion-card" *ngFor="let mastery of championMasteries">
+	<div class="champion-icon">
+		<img *ngIf="mastery.championIconUrl" 
+			[src]="mastery.championIconUrl" 
+			[alt]="getChampionName(mastery)"
+			class="champion-icon-img">
 	</div>
-	<div class="champion-card">
-	<div class="champion-icon"></div>
-	<span class="champion-name">Zed</span>
-	<span class="champion-games">9 games</span>
-	<span class="champion-winrate">44% WR</span>
+	<span class="champion-name">{{ getChampionName(mastery) }}</span>
+	<span class="champion-level">{{ getChampionLevel(mastery) }}</span>
+	<span class="champion-points">{{ getChampionPoints(mastery) }}</span>
 	</div>
-	<div class="champion-card">
-	<div class="champion-icon"></div>
-	<span class="champion-name">Azir</span>
-	<span class="champion-games">7 games</span>
-	<span class="champion-winrate">71% WR</span>
 	</div>
+	<div class="no-data" *ngIf="!loadingMasteries && championMasteries.length === 0 && summoner">
+		No champion mastery data available
 	</div>
 	</section>
 
 	<section class="match-history">
 	<h2>Recent Matches</h2>
-	<div class="match-list">
-	<div class="match-card win">
-	<span class="match-result">Victory</span>
-	<span class="match-champion">Yasuo</span>
-	<span class="match-kda">12/3/7</span>
-	<span class="match-duration">28m</span>
+	<div class="loading-message" *ngIf="loadingMatches">Loading match history...</div>
+	<div class="match-list" *ngIf="!loadingMatches && matchHistory.length > 0">
+	<div class="match-card-wrapper" 
+		*ngFor="let match of matchHistory" 
+		[class.win]="match.win" 
+		[class.loss]="!match.win"
+		[class.expanded]="isMatchExpanded(match.matchId || '')">
+		
+		<!-- Match Summary (always visible, clickable) -->
+		<button 
+			class="match-summary"
+			(click)="toggleMatchDetails(match.matchId || '')"
+			[attr.aria-expanded]="isMatchExpanded(match.matchId || '')"
+			[attr.aria-label]="'Match details for ' + (match.championName || 'Unknown') + ', ' + (match.win ? 'Victory' : 'Defeat')"
+			type="button">
+			<div class="match-champion-icon">
+				<img *ngIf="match.championIconUrl" 
+					[src]="match.championIconUrl" 
+					[alt]="match.championName || 'Unknown'"
+					class="match-champion-icon-img">
+			</div>
+			<span class="match-result">{{ match.win ? 'Victory' : 'Defeat' }}</span>
+			<span class="match-champion">{{ match.championName || 'Unknown' }}</span>
+			<span class="match-kda">{{ getKda(match) }}</span>
+			<span class="match-duration">{{ getGameDuration(match) }}</span>
+			<span class="match-toggle-icon">{{ isMatchExpanded(match.matchId || '') ? '▼' : '▶' }}</span>
+		</button>
+		
+		<!-- Match Details (expandable) -->
+		<div class="match-details" *ngIf="isMatchExpanded(match.matchId || '')">
+			<!-- Loading state -->
+			<div *ngIf="isLoadingMatchDetails(match.matchId || '')" class="loading-details">
+				<span>Loading match details...</span>
+			</div>
+			
+			<!-- Match details loaded -->
+			<div *ngIf="!isLoadingMatchDetails(match.matchId || '') && getMatchDetail(match.matchId || '')">
+				<ng-container *ngIf="getMatchDetail(match.matchId || '') as matchDetail">
+					<!-- Match Info Header -->
+					<div class="match-info-header">
+						<div class="match-info-item">
+							<span class="info-label">Game Mode:</span>
+							<span class="info-value">{{ matchDetail.gameMode || 'Unknown' }}</span>
+						</div>
+						<div class="match-info-item">
+							<span class="info-label">Duration:</span>
+							<span class="info-value">{{ getGameDuration(match) }}</span>
+						</div>
+						<div class="match-info-item">
+							<span class="info-label">Date:</span>
+							<span class="info-value">{{ getMatchTimestamp(match) }}</span>
+						</div>
+					</div>
+
+					<!-- Teams Display -->
+					<div class="teams-container" *ngIf="matchDetail.teams && matchDetail.teams.length > 0">
+						<div class="team-section" *ngFor="let team of matchDetail.teams" 
+							[class.winning-team]="team.win" 
+							[class.losing-team]="!team.win">
+							
+							<div class="team-header">
+								<h3 [class.win-text]="team.win" [class.loss-text]="!team.win">
+									{{ getTeamName(team.teamId) }} - {{ team.win ? 'Victory' : 'Defeat' }}
+								</h3>
+								<div class="team-objectives" *ngIf="team.baronKills !== undefined">
+									<span class="objective">🐉 {{ team.dragonKills }}</span>
+									<span class="objective">👑 {{ team.baronKills }}</span>
+									<span class="objective">🗼 {{ team.towerKills }}</span>
+								</div>
+							</div>
+
+							<!-- Bans -->
+							<div class="team-bans" *ngIf="team.bans && team.bans.length > 0">
+								<span class="bans-label">Bans:</span>
+								<span class="bans-list">{{ team.bans.join(', ') }}</span>
+							</div>
+
+							<!-- Participants Table -->
+							<div class="participants-table" *ngIf="team.participants && team.participants.length > 0">
+								<div class="participant-header">
+									<span class="col-player">Player</span>
+									<span class="col-champion">Champion</span>
+									<span class="col-kda">KDA</span>
+									<span class="col-cs">CS</span>
+									<span class="col-gold">Gold</span>
+									<span class="col-damage">Damage</span>
+								</div>
+								
+								<div class="participant-row" *ngFor="let participant of team.participants">
+									<div class="col-player">
+										<span class="player-name">{{ participant.riotIdGameName || participant.summonerName || 'Unknown' }}</span>
+										<span class="player-tag" *ngIf="participant.riotIdTagline">#{{ participant.riotIdTagline }}</span>
+									</div>
+									
+									<div class="col-champion">
+										<img *ngIf="participant.championIconUrl" 
+											[src]="participant.championIconUrl" 
+											[alt]="participant.championName || 'Champion'"
+											class="participant-champion-icon">
+										<span>{{ participant.championName || 'Unknown' }}</span>
+										<span class="champion-level">Lv.{{ participant.level || 0 }}</span>
+									</div>
+									
+									<div class="col-kda">
+										<span class="kda-numbers">{{ participant.kills }}/{{ participant.deaths }}/{{ participant.assists }}</span>
+										<span class="kda-ratio">({{ getParticipantKdaRatio(participant) }})</span>
+									</div>
+									
+									<div class="col-cs">
+										{{ participant.totalMinionsKilled || 0 }}
+									</div>
+									
+									<div class="col-gold">
+										{{ getFormattedGold(participant.goldEarned) }}
+									</div>
+									
+									<div class="col-damage">
+										{{ getFormattedDamage(participant.totalDamageDealtToChampions) }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</ng-container>
+			</div>
+		</div>
 	</div>
-	<div class="match-card loss">
-	<span class="match-result">Defeat</span>
-	<span class="match-champion">Zed</span>
-	<span class="match-kda">8/6/4</span>
-	<span class="match-duration">31m</span>
 	</div>
-	<div class="match-card win">
-	<span class="match-result">Victory</span>
-	<span class="match-champion">Azir</span>
-	<span class="match-kda">9/1/11</span>
-	<span class="match-duration">25m</span>
+	<div class="no-data" *ngIf="!loadingMatches && matchHistory.length === 0 && summoner">
+		No recent matches available
 	</div>
+	
+	<!-- Pagination controls -->
+	<div class="pagination-controls" *ngIf="!loadingMatches && matchHistory.length > 0">
+		<button 
+			class="pagination-btn" 
+			*ngIf="currentMatchPage > 0"
+			(click)="loadPreviousMatchPage()"
+			[disabled]="loadingMatches">
+			← Back to Start
+		</button>
+		<span class="page-info">{{ matchHistory.length }} matches</span>
+		<button 
+			class="pagination-btn" 
+			*ngIf="hasMoreMatches"
+			(click)="loadNextMatchPage()"
+			[disabled]="loadingMatches">
+			Load More →
+		</button>
 	</div>
 	</section>
 </main>

@@ -16,16 +16,32 @@
     </div>
   </section>
 
-  <section class="recent-searches">
+  <section class="recent-searches" *ngIf="!loadingRecentSearches && recentSearches.length > 0">
     <h3>Recent Searches</h3>
     <div class="summoner-list">
       <div 
         class="summoner-card" 
         *ngFor="let summoner of recentSearches"
-        (click)="searchSummoner(summoner.name)">
-        <span class="summoner-name">{{ summoner.name }}</span>
-        <span class="summoner-rank">{{ summoner.rank }}</span>
+        (click)="searchSummoner(summoner)">
+        <div class="summoner-avatar">
+          <img *ngIf="summoner.profileIconUrl" 
+            [src]="summoner.profileIconUrl" 
+            [alt]="summoner.name"
+            class="avatar-img">
+        </div>
+        <div class="summoner-info">
+          <span class="summoner-name">{{ summoner.name }}</span>
+          <span class="summoner-level">Level {{ summoner.level }}</span>
+        </div>
+        <div class="summoner-rank-badge">
+          <span class="rank-tier">{{ summoner.tier || 'Unranked' }}</span>
+          <span class="rank-division" *ngIf="summoner.rank">{{ summoner.rank }}</span>
+        </div>
       </div>
     </div>
+  </section>
+  
+  <section class="loading-section" *ngIf="loadingRecentSearches">
+    <p>Loading recent searches...</p>
   </section>
 </main>

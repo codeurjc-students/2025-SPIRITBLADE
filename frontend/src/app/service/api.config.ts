@@ -1,2 +1,2 @@
 // Base API URL used by services. Change if your backend API base differs.
-export const API_URL = 'http://localhost:8080/api/v1';
+export const API_URL = 'https://localhost:443/api/v1';

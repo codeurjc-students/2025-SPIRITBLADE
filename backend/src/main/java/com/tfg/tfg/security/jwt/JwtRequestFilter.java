@@ -35,7 +35,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
 		try {
-			var claims = jwtTokenProvider.validateToken(request, true);
+			// Read token from Authorization header instead of cookies
+			var claims = jwtTokenProvider.validateToken(request, false);
 			var userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
 
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -45,7 +46,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		} catch (Exception ex) {
 			//Avoid logging when no token is found
-			if(!ex.getMessage().equals("No access token cookie found in request")) {
+			String message = ex.getMessage();
+			if(message != null && 
+			   (message.contains("Authorization header") || 
+			    message.contains("Bearer") ||
+			    message.equals("No access token cookie found in request") || 
+			    message.equals("No cookies found in request"))) {
+				// Silent fail - this is expected for public endpoints
+			} else {
 				log.error("Exception processing JWT Token: ", ex);
 			}			
 		}

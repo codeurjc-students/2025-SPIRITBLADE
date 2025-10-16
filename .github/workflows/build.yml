@@ -2,10 +2,10 @@
 
 on:
   # Basic quality control: run on commits to feature branches
-  # Complete quality control: run on pull requests to main and direct pushes to main
+  # Complete quality control: run on pull requests to main
   push:
     branches:
-      - '**'  # All branches
+      - '**'
   
   pull_request:
     branches:

@@ -2,13 +2,40 @@
 	<section class="user-profile">
 		<div class="profile-header">
 			<div class="user-avatar">
-				<div class="avatar-placeholder"></div>
-				<button class="edit-avatar-btn">Edit</button>
+				<div class="avatar-placeholder" [class.has-avatar]="avatarUrl">
+					<!-- Avatar Image -->
+					<img 
+						*ngIf="avatarUrl" 
+						[src]="avatarUrl" 
+						alt="User Avatar" 
+						class="avatar-image"
+						(load)="onAvatarLoad()"
+						(error)="onAvatarError($event)"
+					/>
+					<div *ngIf="!avatarUrl" class="default-avatar-icon">👤</div>
+					<div *ngIf="avatarUploading" class="avatar-loading">
+						<span>Uploading...</span>
+					</div>
+				</div>
+				<button class="edit-avatar-btn" (click)="openAvatarPicker()" [disabled]="avatarUploading">
+					{{ avatarUploading ? 'Uploading...' : 'Edit' }}
+				</button>
+				<div *ngIf="avatarError" class="avatar-error">{{ avatarError }}</div>
 			</div>
 			<div class="user-info">
 				<h1>Welcome, {{ stats?.username || 'Guest' }}</h1>
-				<p>Linked Account: {{ stats?.linkedSummoner || 'None' }}</p>
-				<button class="link-account-btn">Link LoL Account</button>
+				
+				<!-- Show linked account info or link button -->
+				<div *ngIf="linkedSummonerLoading" class="loading-text">Loading account info...</div>
+				<div *ngIf="!linkedSummonerLoading && linkedSummoner" class="linked-account-info">
+					<p class="linked-label">Linked Account:</p>
+					<p class="linked-summoner">{{ linkedSummoner.name }} ({{ linkedSummoner.region }})</p>
+					<button class="unlink-btn" (click)="unlinkAccount()">Unlink Account</button>
+				</div>
+				<div *ngIf="!linkedSummonerLoading && !linkedSummoner">
+					<p class="no-linked-account">No linked account</p>
+					<button class="link-account-btn" (click)="openLinkModal()">Link LoL Account</button>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -49,9 +76,79 @@
 				<p class="stat-number">{{ stats.favoriteChampion || 'N/A' }}</p>
 			</div>
 		</div>
-		<div class="chart-placeholder">
-			<p>[Performance Chart Placeholder]</p>
+		
+		<!-- LP Progression Chart - Only shown when account is linked -->
+		<div class="chart-container" *ngIf="linkedSummoner">
+			<h3>LP Progression Over Time</h3>
+			<div *ngIf="chartLoading" class="chart-loading">
+				<p>Loading rank history...</p>
+			</div>
+			<div *ngIf="chartError" class="chart-error">
+				<p>{{ chartError }}</p>
+			</div>
+			<div *ngIf="!chartLoading && !chartError && rankHistory.length > 0" class="chart-wrapper">
+				<canvas #lpChartCanvas></canvas>
+			</div>
+			<div *ngIf="!chartLoading && !chartError && rankHistory.length === 0" class="chart-empty">
+				<p>No rank history available. Play some ranked games to see your progression!</p>
+			</div>
+		</div>
+
+		<!-- Message when no account is linked -->
+		<div class="no-linked-chart-message" *ngIf="!linkedSummoner && !linkedSummonerLoading">
+			<p>Link your League of Legends account to see your LP progression chart</p>
 		</div>
 	</section>
 </main>
+
+<!-- Link Account Modal -->
+<div class="modal-overlay" *ngIf="showLinkModal" (click)="closeLinkModal()">
+	<div class="modal-content" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Link League of Legends Account</h2>
+			<button class="close-btn" (click)="closeLinkModal()">&times;</button>
+		</div>
+		
+		<div class="modal-body">
+			<div class="form-group">
+				<label for="summonerName">Summoner Name</label>
+				<input 
+					type="text" 
+					id="summonerName" 
+					[(ngModel)]="summonerName" 
+					placeholder="Enter your summoner name"
+					[disabled]="linkLoading"
+				/>
+			</div>
+			
+			<div class="form-group">
+				<label for="region">Region</label>
+				<select id="region" [(ngModel)]="selectedRegion" disabled>
+					<option value="EUW">EUW - Europe West</option>
+				</select>
+				<small style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+					Currently only EUW region is supported
+				</small>
+			</div>
+			
+			<div *ngIf="linkError" class="error-message">
+				{{ linkError }}
+			</div>
+			
+			<div *ngIf="linkSuccess" class="success-message">
+				{{ linkSuccess }}
+			</div>
+		</div>
+		
+		<div class="modal-footer">
+			<button class="cancel-btn" (click)="closeLinkModal()" [disabled]="linkLoading">
+				Cancel
+			</button>
+			<button class="submit-btn" (click)="submitLinkAccount()" [disabled]="linkLoading">
+				<span *ngIf="!linkLoading">Link Account</span>
+				<span *ngIf="linkLoading">Linking...</span>
+			</button>
+		</div>
+	</div>
+</div>
 

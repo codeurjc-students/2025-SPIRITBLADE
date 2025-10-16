@@ -63,8 +63,8 @@ export class LoginComponent {
           setTimeout(() => this.router.navigate(['/profile']), 600);
         },
         error: (err: any) => {
-          console.error('Login failed', err);
-          // Show friendly message depending on status
+          // For debugging keep a non-intrusive debug log and show friendly UI message
+          console.debug('Login failed', err);
           if (err?.status === 401 || err?.status === 403) {
             this.message = { type: 'error', text: 'Invalid credentials. Please check your username/password.' };
           } else if (err?.status === 0) {
@@ -83,7 +83,7 @@ export class LoginComponent {
       const confirm = this.registerForm.get('confirmPassword')?.value ?? '';
 
       if (password !== confirm) {
-        console.error('Passwords do not match');
+        this.message = { type: 'error', text: 'Passwords do not match.' };
         return;
       }
 
@@ -102,13 +102,13 @@ export class LoginComponent {
               setTimeout(() => this.router.navigate(['/profile']), 600);
             },
             error: (err: any) => {
-              console.error('Auto-login after registration failed', err);
+              console.debug('Auto-login after registration failed', err);
               this.message = { type: 'info', text: 'Registration successful, but automatic login failed. Please try logging in manually.' };
             }
           });
         },
         error: (error: any) => {
-          console.error('Registration failed', error);
+          console.debug('Registration failed', error);
           if (error?.status === 409) {
             this.message = { type: 'error', text: 'User already exists.' };
           } else if (error?.status === 400) {
