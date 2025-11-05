@@ -98,6 +98,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test1234
+          MYSQL_DATABASE: spiritblade_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -132,6 +146,33 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      # Setup MinIO for integration tests
+      - name: 🗄️ Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e "MINIO_ROOT_USER=minioadmin" \
+            -e "MINIO_ROOT_PASSWORD=minioadmin123" \
+            minio/minio server /data --console-address ":9001"
+          
+          # Wait for MinIO to be ready
+          echo "Waiting for MinIO to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              echo "MinIO is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          # Create test bucket
+          docker run --rm --network="host" \
+            -e MC_HOST_minio=http://minioadmin:minioadmin123@localhost:9000 \
+            minio/mc mb minio/spiritblade-test || true
+
       # BACKEND: Full test suite
       - name: 🏗️ Build Backend
         working-directory: ./backend
@@ -144,6 +185,19 @@ jobs:
 
       - name: 🔗 Backend Integration Tests
         working-directory: ./backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/spiritblade_test
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: test1234
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_BUCKET_NAME: spiritblade-test
+          SERVER_SSL_ENABLED: false
+          SERVER_PORT: 8080
         run: mvn test -Dtest="**/*IntegrationTest" -B
         continue-on-error: false
 
