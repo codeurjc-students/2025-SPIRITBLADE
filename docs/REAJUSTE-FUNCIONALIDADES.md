@@ -27,221 +27,252 @@ El reajuste de funcionalidades responde a:
 #### Funcionalidad Básica (v0.1)
 
 **ANTES (Definición Original)**:
-- Búsqueda libre de invocadores por Riot ID
-- Visualización de perfiles con rango y estadísticas
-- Acceso a historial de partidas públicas
-- Estadísticas básicas de campeones (KDA, winrate, maestría)
+# Feature Re-adjustment — SPIRITBLADE
 
-**AHORA (Definición Actualizada)**:
-- **Búsqueda de invocadores y visualización de su perfil y rango**
-- **Visualización del historial público de partidas con sistema de caché**
-- **Acceso a estadísticas básicas de campeones** incluyendo maestrías, campeones más jugados y datos de rendimiento general
-
-**Cambios clave**:
-- ✅ Énfasis explícito en el **sistema de caché** como característica diferenciadora
-- ✅ Mayor detalle en las estadísticas de campeones (maestrías, más jugados, rendimiento general)
-- ✅ Consolidación de búsqueda y visualización de perfil como funcionalidad integrada
+**Date**: October 2025  
+**Project version**: 0.1.0  
+**Status**: Documentation updated
 
 ---
 
-#### Funcionalidad Intermedia (v0.2)
+## Executive summary
 
-**ANTES (Definición Original)**:
-- Ver estadísticas agregadas (genérico)
+This document describes the feature re-adjustment performed for the SPIRITBLADE project in October 2025, explaining the changes to feature definitions and the reasons behind them.
 
-**AHORA (Definición Actualizada)**:
-- **Visualización de estadísticas agregadas por invocadores**, con información detallada de partidas almacenadas en caché
+### Motivation
 
-**Cambios clave**:
-- ✅ Especificación de que las estadísticas agregadas se basan en **invocadores**
-- ✅ Énfasis en el aprovechamiento del **sistema de caché** para optimizar rendimiento
-- ✅ Clarificación de que se utiliza información detallada de partidas ya almacenadas
-
----
-
-#### Funcionalidad Avanzada (v1.0)
-
-**ANTES (Definición Original)**:
-- Estadísticas globales de comunidad (feature específica)
-
-**AHORA (Definición Actualizada)**:
-- **Sistema inteligente de caché** que minimiza los tiempos de carga mientras garantiza datos actualizados
-- **Estrategia híbrida de acceso a datos** que balancea rendimiento y frescura de información
-
-**Cambios clave**:
-- ✅ Cambio de enfoque desde features específicas a **infraestructura técnica avanzada**
-- ✅ Priorización del **rendimiento y optimización** como valor diferencial
-- ✅ Sistema de caché como funcionalidad avanzada estratégica (no solo implementación técnica)
-- ✅ Balance explícito entre rendimiento y actualidad de datos
+The re-adjustment responds to:
+1. Optimization of available development time for the thesis
+2. Prioritization of core features that deliver the most value to users
+3. Focus on quality over the number of features
+4. Realistic alignment with academic resources and deadlines
 
 ---
 
-### Usuario Registrado
+## Changes made
 
-#### Funcionalidad Básica (v0.1)
+### Anonymous users
 
-**ANTES (Definición Original)**:
-- Asociación de cuenta de League of Legends al perfil
-- Guardado de invocadores favoritos
-- Dashboard personalizado con estadísticas propias
-- Análisis avanzado de rendimiento con gráficos
-- Sistema de notas en partidas
+#### Core features (v0.1)
 
-**AHORA (Definición Actualizada)**:
-- **Acceso a panel de control personalizable**
-- **Consulta de datos detallados de partidas recientes** con información enriquecida de la API de Riot
-- **Visualización de campeones con mayor maestría y rendimiento personal**
+Before (original definition):
+- Free-form summoner search by Riot ID
+- Profile pages with rank and statistics
+- Public match history access
+- Basic champion stats (KDA, win rate, mastery)
 
-**Cambios clave**:
-- ✅ Simplificación y **priorización de funcionalidades core**
-- ✅ Eliminación de features secundarias de la v0.1 (favoritos, notas) → movidas a versiones posteriores
-- ✅ Énfasis en **consulta detallada** y **datos enriquecidos** de la API de Riot
-- ✅ Foco en visualización de maestría y rendimiento (funcionalidad más demandada)
-- ⚠️ "Dashboard personalizado" → "Panel de control personalizable" (mayor flexibilidad)
+Now (updated definition):
+- Summoner search and profile view
+- Public match history with caching
+- Basic champion stats including masteries, most-played champions and general performance
 
----
-
-#### Funcionalidad Intermedia (v0.2)
-
-**ANTES (Definición Original)**:
-- Análisis avanzado de rendimiento con gráficos (Chart.js)
-- Añadir notas en partidas
-- Recibir notificaciones
-
-**AHORA (Definición Actualizada)**:
-- **Acceso a datos detallados de rendimiento personal con campeones favoritos**
-- **Visualización del historial de partidas con información contextual enriquecida**
-
-**Cambios clave**:
-- ✅ Consolidación de múltiples features en **funcionalidades integradas**
-- ✅ Enfoque en **profundización de datos** ya existentes (rendimiento personal, contexto de partidas)
-- ✅ Eliminación de features de menor prioridad (notas, notificaciones) → evaluadas para v1.0
-- ✅ Mayor énfasis en análisis de campeones favoritos (valor para usuario competitivo)
+Key changes:
+- ✅ Explicit emphasis on the caching system as a differentiator
+- ✅ More detailed champion statistics (mastery, most-played, general performance)
+- ✅ Consolidation of search and profile viewing into a single integrated feature
 
 ---
 
-#### Funcionalidad Avanzada (v1.0)
+#### Intermediate features (v0.2)
 
-**ANTES (Definición Original)**:
-- Recibir reportes por email (tentativo)
-- Recomendaciones de builds
-- Rankings personalizados
-- Análisis predictivo (tentativo)
+Before (original definition):
+- View aggregated statistics (generic)
 
-**AHORA (Definición Actualizada)**:
-- **Dashboard personalizado con indicadores clave de rendimiento (KPIs)** calculados a partir del historial de partidas
-- **Sistema de caché inteligente** que prioriza la base de datos antes de realizar costosas llamadas a APIs externas
-- **Validación automática de frescura de datos** con mínimo impacto en tiempos de carga
+Now (updated definition):
+- Aggregated statistics per summoner, using cached detailed match data
 
-**Cambios clave**:
-- ✅ Cambio de enfoque desde features específicas a **arquitectura técnica avanzada**
-- ✅ Priorización de **KPIs y análisis de rendimiento** sobre features experimentales (email, ML)
-- ✅ Sistema de caché inteligente como diferenciador técnico clave
-- ✅ Énfasis en **optimización de costes** (reducción de llamadas a APIs externas)
-- ✅ Validación automática de datos para garantizar calidad sin comprometer performance
-- ⚠️ Features como builds, rankings y análisis predictivo quedan como posibles extensiones futuras
+Key changes:
+- ✅ Clarified that aggregated statistics are built from summoner data
+- ✅ Emphasis on using the caching system to optimize performance
+- ✅ Clarified that detailed match data already stored in cache will be used
 
 ---
 
-## 📊 Comparativa de Enfoque
+#### Advanced features (v1.0)
 
-### Enfoque Original
-- **Cantidad de features**: Amplio catálogo de funcionalidades específicas
-- **Estrategia**: Cubrir múltiples casos de uso con features dedicadas
-- **Complejidad**: Alta variedad de implementaciones independientes
+Before (original definition):
+- Global community statistics (specific feature)
 
-### Enfoque Actualizado
-- **Calidad de implementación**: Funcionalidades core implementadas con excelencia técnica
-- **Estrategia**: Sistema robusto de caché y acceso a datos como diferenciador
-- **Complejidad**: Arquitectura técnica sólida que facilita escalabilidad futura
+Now (updated definition):
+- Intelligent caching system that minimizes load times while ensuring fresh data
+- Hybrid data access strategy that balances performance and data freshness
 
----
-
-## 🎯 Justificación del Cambio
-
-### Razones Técnicas
-
-1. **Optimización de Recursos**
-   - El sistema de caché inteligente reduce significativamente las llamadas a la API de Riot
-   - Menor coste operacional y mejor rendimiento general
-   - Infraestructura más sostenible a largo plazo
-
-2. **Escalabilidad**
-   - Una arquitectura de datos sólida facilita la adición de features futuras
-   - El sistema de caché es reutilizable para todas las funcionalidades
-   - Base técnica robusta sobre la que construir
-
-3. **Experiencia de Usuario**
-   - Tiempos de carga minimizados (caché inteligente)
-   - Datos siempre actualizados (validación automática)
-   - Balance óptimo entre rendimiento y frescura de datos
-
-### Razones de Proyecto
-
-1. **Alineación con Tiempos del TFG**
-   - Foco en demostrar excelencia técnica en áreas core
-   - Evita dispersión en múltiples features de menor impacto
-   - Permite dedicar más tiempo a calidad y testing
-
-2. **Priorización de Valor**
-   - Las funcionalidades actualizadas cubren el 90% de los casos de uso principales
-   - Sistema de caché es diferenciador técnico más valioso que features específicas
-   - Mejor balance entre complejidad técnica y utilidad práctica
-
-3. **Enfoque Académico**
-   - Mayor énfasis en arquitectura de software y patrones de diseño
-   - Demostración de capacidades de optimización y rendimiento
-   - Trabajo más alineado con objetivos de aprendizaje de un TFG
+Key changes:
+- ✅ Shift from specific features to advanced technical infrastructure
+- ✅ Prioritization of performance and optimization as a core differentiator
+- ✅ Treat the caching system as a strategic advanced feature (not merely an implementation detail)
+- ✅ Explicit balance between performance and data freshness
 
 ---
 
-## 📈 Impacto en el Proyecto
+### Registered users
 
-### Documentación Actualizada
+#### Core features (v0.1)
 
-Los siguientes documentos han sido actualizados para reflejar el nuevo enfoque:
+Before (original definition):
+- Link League of Legends account to profile
+- Save favorite summoners
+- Personalized dashboard with personal stats
+- Advanced performance analysis with charts
+- Match notes system
 
-- ✅ `Funcionalidades.md` - Descripciones detalladas con capturas de pantalla
-- ✅ `Funcionalidades-Detalladas.md` - Tablas de funcionalidades por versión
-- ✅ `Inicio-Proyecto.md` - Objetivos funcionales del proyecto
-- 📋 Otros documentos técnicos según sea necesario
+Now (updated definition):
+- Access to a customizable control panel
+- Detailed recent-match data enriched from the Riot API
+- View champions with highest mastery and personal performance
 
-### Implementación
-
-**Estado actual (v0.1)**:
-- ✅ Sistema básico de caché implementado (BD MySQL)
-- ✅ Funcionalidades básicas para usuario anónimo
-- ✅ Funcionalidades básicas para usuario registrado
-- ✅ Dashboard personalizable en desarrollo
-
-**Próximos pasos (v0.2)**:
-- 📋 Mejora del sistema de caché (Redis + estrategia multinivel)
-- 📋 Estadísticas agregadas por invocadores
-- 📋 Rendimiento personal detallado con campeones favoritos
-- 📋 Historial enriquecido con contexto
-
-**Futuro (v1.0)**:
-- 📋 Sistema de caché inteligente con validación automática
-- 📋 Dashboard con KPIs avanzados
-- 📋 Estrategia híbrida de acceso a datos
+Key changes:
+- ✅ Simplification and prioritization of core features
+- ✅ Secondary features (favorites, notes) moved to later versions
+- ✅ Emphasis on detailed querying and enriched Riot API data
+- ✅ Focus on mastery and performance views as high-value features
+- ⚠️ “Personalized dashboard” → “customizable control panel” (more flexible)
 
 ---
 
-## 🔗 Referencias
+#### Intermediate features (v0.2)
 
-- **Documento de Funcionalidades**: [Funcionalidades.md](Funcionalidades.md)
-- **Funcionalidades Detalladas**: [Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)
-- **Inicio del Proyecto**: [Inicio-Proyecto.md](Inicio-Proyecto.md)
-- **Estado del Proyecto**: [Project-Status.md](Project-Status.md)
+Before (original definition):
+- Advanced performance analysis with Chart.js
+- Add notes to matches
+- Receive notifications
+
+Now (updated definition):
+- Access to detailed personal performance data for favorite champions
+- Enriched match history with contextual information
+
+Key changes:
+- ✅ Consolidation of multiple small features into integrated capabilities
+- ✅ Focus on deepening existing data (personal performance, match context)
+- ✅ Lower-priority features (notes, notifications) deferred to v1.0
+- ✅ Increased emphasis on favorite-champion analysis (valuable for competitive users)
 
 ---
 
-## ✍️ Control de Cambios
+#### Advanced features (v1.0)
 
-| Fecha | Versión | Cambios |
-|-------|---------|---------|
-| Oct 2025 | 1.0 | Creación del documento. Reajuste completo de funcionalidades básicas, intermedias y avanzadas. |
+Before (original definition):
+- Receive email reports (tentative)
+- Build recommendations
+- Personalized leaderboards
+- Predictive analysis (tentative)
+
+Now (updated definition):
+- Personalized dashboard with KPIs computed from match history
+- Intelligent caching system that prioritizes the DB before expensive external API calls
+- Automatic freshness validation with minimal impact on load times
+
+Key changes:
+- ✅ Shift from specific features to advanced architectural capabilities
+- ✅ Prioritization of KPIs and performance analysis over experimental features (email, ML)
+- ✅ Intelligent caching as a key technical differentiator
+- ✅ Emphasis on cost optimization (fewer external API calls)
+- ✅ Automatic validation of data freshness to ensure quality without compromising performance
+- ⚠️ Features like builds, leaderboards and predictive analysis remain potential future extensions
 
 ---
 
-**[← Volver al README principal](../README.md)** | **[Ver Funcionalidades Actualizadas →](Funcionalidades.md)**
+## Approach comparison
+
+### Original approach
+- Feature breadth: broad catalogue of specific features
+- Strategy: cover many use cases with dedicated features
+- Complexity: high number of independent implementations
+
+### Updated approach
+- Quality of implementation: core features implemented with technical excellence
+- Strategy: robust caching and data access as a product differentiator
+- Complexity: solid technical architecture that simplifies future scaling
+
+---
+
+## Rationale
+
+### Technical reasons
+
+1. Optimization of resources
+   - The intelligent caching system drastically reduces calls to the Riot API
+   - Lower operational cost and improved overall performance
+   - More sustainable infrastructure in the long term
+
+2. Scalability
+   - A solid data architecture makes adding features easier
+   - The caching system is reusable across features
+   - Strong technical foundation for future development
+
+3. User experience
+   - Reduced load times (intelligent cache)
+   - Fresh data through automated validation
+   - Optimal balance between performance and data freshness
+
+### Project reasons
+
+1. Alignment with thesis timeline
+   - Focus on demonstrating technical excellence in core areas
+   - Avoid spreading effort across many low-impact features
+   - Allow more time for quality and testing
+
+2. Value prioritization
+   - Updated features cover 90% of primary use cases
+   - Caching is a more valuable technical differentiator than many small features
+   - Better balance between technical complexity and practical utility
+
+3. Academic focus
+   - Greater emphasis on software architecture and design patterns
+   - Demonstration of optimization and performance skills
+   - Work better aligned with academic learning outcomes
+
+---
+
+## Project impact
+
+### Updated documentation
+
+The following documents have been updated to reflect the new approach:
+
+- ✅ `Funcionalidades.md` — Feature descriptions with screenshots
+- ✅ `Funcionalidades-Detalladas.md` — Feature tables by version
+- ✅ `Inicio-Proyecto.md` — Project objectives
+- 📋 Other technical docs as required
+
+---
+
+### Implementation
+
+Current state (v0.1):
+- ✅ Basic cache implemented (MySQL)
+- ✅ Core anonymous features implemented
+- ✅ Core registered-user features implemented
+- ✅ Customizable dashboard in development
+
+Next steps (v0.2):
+- 📋 Improve caching (Redis + multi-level strategy)
+- 📋 Aggregated summoner statistics
+- 📋 Detailed personal performance for favorite champions
+- 📋 Enriched match history with context
+
+Future (v1.0):
+- 📋 Intelligent caching with automatic validation
+- 📋 KPI dashboard
+- 📋 Hybrid data access strategy
+
+---
+
+## References
+
+- Feature doc: [Funcionalidades.md](Funcionalidades.md)
+- Detailed features: [Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)
+- Project start: [Inicio-Proyecto.md](Inicio-Proyecto.md)
+- Project status: [Project-Status.md](Project-Status.md)
+
+---
+
+## Change log
+
+| Date | Version | Changes |
+|------|---------|---------|
+| Oct 2025 | 1.0 | Document created. Full re-adjustment of core, intermediate and advanced features. |
+
+---
+
+[← Back to main README](../README.md) | [View updated features →](Funcionalidades.md)

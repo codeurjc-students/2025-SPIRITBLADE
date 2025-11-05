@@ -1,345 +1,345 @@
-# Seguimiento - SPIRITBLADE
+# Tracking — SPIRITBLADE
 
-Este documento describe las estrategias de control de calidad, proceso de desarrollo, y métricas del proyecto SPIRITBLADE.
+This document describes the quality control strategies, development process, and project metrics for SPIRITBLADE.
 
 ---
 
-## 📊 Control de Calidad
+## 📊 Quality control
 
-### Estrategia de Testing
+### Testing strategy
 
-La aplicación implementa una pirámide de testing con múltiples niveles:
+The application implements a testing pyramid with multiple levels:
 
 ```
            /\
-          /E2E\        ← Tests End-to-End (Sistema completo)
+          /E2E\        ← End-to-end tests (full system)
          /------\
-        / Integr \     ← Tests de Integración (APIs + BD)
+        / Integr \     ← Integration tests (APIs + DB)
        /----------\
-      /   Unitarios \   ← Tests Unitarios (Lógica aislada)
+      /   Unit    \   ← Unit tests (isolated logic)
      /--------------\
 ```
 
-#### Tests Unitarios
+#### Unit tests
 
-**Backend (JUnit 5 + Mockito)**
-- Ubicación: `backend/src/test/java/.../unit/`
-- Objetivo: Probar lógica de negocio aislada
-- Mock de dependencias (repositories, external APIs)
-- Cobertura objetivo: ≥60%
+Backend (JUnit 5 + Mockito)
+- Location: `backend/src/test/java/.../unit/`
+- Goal: test isolated business logic
+- Mock dependencies (repositories, external APIs)
+- Coverage target: ≥60%
 
-**Frontend (Jasmine + Karma)**
-- Ubicación: `frontend/src/app/**/*.spec.ts`
-- Objetivo: Probar componentes y servicios Angular
-- Mock de HttpClient, servicios, routing
-- Cobertura objetivo: ≥50%
+Frontend (Jasmine + Karma)
+- Location: `frontend/src/app/**/*.spec.ts`
+- Goal: test Angular components and services
+- Mock HttpClient, services, and routing
+- Coverage target: ≥50%
 
-**Ejemplos implementados**:
-- `UserServiceSimpleUnitTest` - Lógica de creación de usuarios
-- `SummonerMapperTest` - Transformación DTO ↔ Entity
-- `AuthService.spec.ts` - Servicio de autenticación Angular
-- `LoginComponent.spec.ts` - Componente de login
-
----
-
-#### Tests de Integración
-
-**Backend (Spring Boot Test)**
-- Ubicación: `backend/src/test/java/.../integration/`
-- Objetivo: Probar integración entre capas
-- Context completo de Spring con `@SpringBootTest`
-- Base de datos H2 in-memory
-- MockMvc para simular peticiones HTTP
-
-**Ejemplos implementados**:
-- `SummonerIntegrationTest` - CRUD de invocadores + cache
-- `AuthIntegrationTest` - Flujo de autenticación completo
-- `AdminControllerIntegrationTest` - Endpoints administrativos
-
-**Frontend (Angular Testing Utilities)**
-- Ubicación: `frontend/src/app/integration/`
-- Objetivo: Probar interacción entre componentes y servicios
-- TestBed para configurar módulos
-- HttpClientTestingModule para APIs simuladas
+Examples implemented:
+- `UserServiceSimpleUnitTest` — user creation logic
+- `SummonerMapperTest` — DTO ↔ entity mapping
+- `AuthService.spec.ts` — Angular authentication service
+- `LoginComponent.spec.ts` — login component
 
 ---
 
-#### Tests de Sistema (E2E)
+#### Integration tests
 
-**Selenium WebDriver**
-- Ubicación: `backend/src/test/java/.../e2e/`
-- Objetivo: Validar flujos de usuario completos
-- Chrome headless automatizado
-- Verificación de UI + Backend + BD
+Backend (Spring Boot Test)
+- Location: `backend/src/test/java/.../integration/`
+- Goal: test integration across layers
+- Full Spring context with `@SpringBootTest`
+- H2 in-memory database
+- MockMvc to simulate HTTP requests
 
-**Escenarios implementados**:
-- `SummonerE2ETest` - Búsqueda de invocador de punta a punta
-- Verificación de navegación, carga de datos, rendimiento
+Examples implemented:
+- `SummonerIntegrationTest` — summoner CRUD + cache
+- `AuthIntegrationTest` — full authentication flow
+- `AdminControllerIntegrationTest` — admin endpoints
 
-**Estado**: 🚧 En desarrollo. E2E completo planificado para v0.2.
-
----
-
-### Métricas de Cobertura
-
-| Componente | Cobertura Actual | Objetivo | Estado |
-|------------|------------------|----------|--------|
-| Backend | ~55% | ≥60% | 🟡 Cercano |
-| Frontend | ~48% | ≥50% | 🟡 Cercano |
-| Global | ~52% | ≥55% | ✅ Cumplido |
-
-**Herramientas**:
-- Backend: JaCoCo (genera reportes HTML en `target/site/jacoco/`)
-- Frontend: karma-coverage (genera reportes en `coverage/`)
+Frontend (Angular testing utilities)
+- Location: `frontend/src/app/integration/`
+- Goal: test interaction between components and services
+- TestBed to configure modules
+- HttpClientTestingModule for simulated APIs
 
 ---
 
-### Análisis Estático (SonarCloud)
+#### System tests (E2E)
 
-**Configuración**:
-- Integrado en GitHub Actions (`.github/workflows/build.yml`)
-- Análisis en cada PR a `main`
-- Quality Gate configurado
+Selenium WebDriver
+- Location: `backend/src/test/java/.../e2e/`
+- Goal: validate end-to-end user flows
+- Chrome headless automation
+- Verify UI + backend + DB
 
-**Métricas objetivo**:
-- 🐛 Bugs: 0
-- 🔒 Vulnerabilidades de Seguridad: 0
-- 🧹 Code Smells: < 50
-- 📊 Duplicación de Código: < 5%
-- 📈 Cobertura: ≥55%
-- ⏱️ Deuda Técnica: < 1 día
+Implemented scenarios:
+- `SummonerE2ETest` — end-to-end summoner search
+- Verifies navigation, data loading and performance
 
-**Estado actual**: ✅ Quality Gate: PASSED
-
-**Acceso**: [SonarCloud - SPIRITBLADE](https://sonarcloud.io/summary/new_code?id=codeurjc-students_2025-SPIRITBLADE)
+Status: 🚧 In progress. Full E2E planned for v0.2.
 
 ---
 
-### Mejoras de Calidad Aplicadas (Code Smells Resueltos)
+### Coverage metrics
 
-**Backend**:
-- ✅ Reemplazado `e.printStackTrace()` por logging SLF4J
-- ✅ Evitado catch genéricos: captura específica de `HttpClientErrorException`
-- ✅ Uso de `Collections.emptyList()` en lugar de `new ArrayList<>()`
-- ✅ Logging mejorado: warn + debug stacktrace
-- ✅ Return empty string en lugar de null para URLs
-- ✅ Manejo de excepciones en refresh token con 401 Unauthorized
+| Component | Current coverage | Target | Status |
+|-----------|------------------:|-------:|:------:|
+| Backend | ~55% | ≥60% | 🟡 Close |
+| Frontend | ~48% | ≥50% | 🟡 Close |
+| Global | ~52% | ≥55% | ✅ Met |
 
-**Frontend**:
-- ✅ Reemplazado `console.error()` por `console.debug()`
-- ✅ Mensajes de error mostrados en UI en lugar de console
-- ✅ Manejo de errores HTTP con mensajes informativos
+Tools:
+- Backend: JaCoCo (HTML reports in `target/site/jacoco/`)
+- Frontend: karma-coverage (reports in `coverage/`)
 
 ---
 
-## 🔄 Proceso de Desarrollo
+### Static analysis (SonarCloud)
 
-### Metodología
+Configuration:
+- Integrated in GitHub Actions (`.github/workflows/build.yml`)
+- Analysis runs on every PR to `main`
+- Quality Gate configured
 
-El proyecto sigue un proceso **iterativo e incremental** con principios ágiles:
+Target metrics:
+- Bugs: 0
+- Security vulnerabilities: 0
+- Code smells: <50
+- Code duplication: <5%
+- Coverage: ≥55%
+- Technical debt: < 1 day
 
-- **Iteraciones cortas**: Sprints de 2-3 semanas
-- **Entregas incrementales**: Versión funcional al final de cada fase
-- **Integración continua**: Tests automáticos en cada commit
-- **Feedback rápido**: Revisión de código y deployment automático
+Current state: ✅ Quality Gate: PASSED
 
-### Fases del Proyecto
+Access: [SonarCloud - SPIRITBLADE](https://sonarcloud.io/summary/new_code?id=codeurjc-students_2025-SPIRITBLADE)
+
+---
+
+### Quality improvements applied (resolved code smells)
+
+Backend:
+- ✅ Replaced `e.printStackTrace()` with SLF4J logging
+- ✅ Avoided broad catches: now catching specific `HttpClientErrorException`
+- ✅ Use `Collections.emptyList()` instead of `new ArrayList<>()`
+- ✅ Improved logging: warn + debug stacktrace
+- ✅ Return empty string instead of null for URLs
+- ✅ Handle exceptions in refresh token flow returning 401 Unauthorized
+
+Frontend:
+- ✅ Replaced `console.error()` with `console.debug()` where appropriate
+- ✅ Display user-facing error messages in the UI instead of logging only to console
+- ✅ Improved HTTP error handling with informative messages
+
+---
+
+## 🔄 Development process
+
+### Methodology
+
+The project follows an iterative and incremental process with agile principles:
+
+- Short iterations: 2–3 week sprints
+- Incremental deliveries: working version at the end of each phase
+- Continuous integration: automated tests on every commit
+- Fast feedback: code review and automated deployments
+
+### Project phases
 
 ```
-Fase 1: Definición (Sep)          ✅ Completada
-Fase 2: Setup & CI (Oct)          ✅ Completada
-Fase 3: v0.1 Básica (Dic)         ✅ Completada
-├─ Milestone 0.1.0: Funcionalidades básicas
+Phase 1: Definition (Sep)          ✅ Completed
+Phase 2: Setup & CI (Oct)          ✅ Completed
+Phase 3: v0.1 Core (Dec)         ✅ Completed
+├─ Milestone 0.1.0: core features
 ├─ Docker deployment
 └─ CI/CD workflows
 
-Fase 4: v0.2 Intermedia (Mar)     📋 Planificada
-├─ Gráficos y análisis avanzado
-├─ Sistema de favoritos completo
-└─ Notificaciones
+Phase 4: v0.2 Intermediate (Mar)     📋 Planned
+├─ Charts and advanced analysis
+├─ Favorites system
+└─ Notifications
 
-Fase 5: v1.0 Avanzada (Abr)       📋 Planificada
+Phase 5: v1.0 Advanced (Apr)       📋 Planned
 ├─ ML predictions
-├─ Recomendaciones
-└─ Rankings personalizados
+├─ Recommendations
+└─ Personalized leaderboards
 
-Fase 6: Documentación (May)       📋 Planificada
-Fase 7: Defensa TFG (Jun)         📋 Planificada
+Phase 6: Documentation (May)       📋 Planned
+Phase 7: Defense (Jun)         📋 Planned
 ```
 
 ---
 
-### Gestión de Tareas (GitHub)
+### Task management (GitHub)
 
-**GitHub Issues**:
+GitHub Issues:
 - Labels: `bug`, `enhancement`, `documentation`, `good first issue`
-- Templates para bugs y features
-- Asignación de responsables
+- Templates for bugs and features
+- Assignment of owners
 
-**GitHub Projects**:
-- Tablero Kanban con columnas:
-  - 📋 Backlog
-  - 🚧 In Progress
-  - 👀 In Review
-  - ✅ Done
+GitHub Projects:
+- Kanban board columns:
+  - Backlog
+  - In Progress
+  - In Review
+  - Done
 
-**Milestones**:
-- v0.1.0 - Funcionalidades básicas (✅ Completado)
-- v0.2.0 - Funcionalidades intermedias (📋 Planificado)
-- v1.0.0 - Funcionalidades avanzadas (📋 Planificado)
+Milestones:
+- v0.1.0 — core features (✅ Completed)
+- v0.2.0 — intermediate features (📋 Planned)
+- v1.0.0 — advanced features (📋 Planned)
 
-**Enlace**: [GitHub Projects](https://github.com/codeurjc-students/2025-SPIRITBLADE/projects)
+Link: [GitHub Projects](https://github.com/codeurjc-students/2025-SPIRITBLADE/projects)
 
 ---
 
-### Control de Versiones (Git)
+### Version control (Git)
 
-**Estrategia de Branching**:
+Branching strategy:
 
 ```
-main (producción)
+main (production)
   ├─ feature/summoner-search     ✅ Merged
   ├─ feature/auth-jwt            ✅ Merged
   ├─ feature/admin-panel         ✅ Merged
   ├─ feature/docker-deployment   ✅ Merged
   ├─ hotfix/fix-api-timeout      ✅ Merged
-  └─ CodeSmells-&-Tests          🚧 En desarrollo
+  └─ CodeSmells-&-Tests          🚧 In progress
 ```
 
-**Reglas**:
-- `main` es protegida: requiere Pull Request
-- Commits deben pasar CI antes de merge
-- Revisión de código obligatoria
-- Squash commits al mergear
+Rules:
+- `main` is protected: pull request required
+- Commits must pass CI before merge
+- Code review required
+- Squash commits on merge
 
-**Convenciones de commit (Conventional Commits)**:
+Conventional commits examples:
+
 ```
-feat: añadir búsqueda de invocadores
-fix: corregir error en cálculo de winrate
-docs: actualizar README con instrucciones Docker
-test: añadir tests unitarios para UserService
-refactor: mejorar manejo de excepciones en RiotService
+feat: add summoner search
+fix: correct winrate calculation bug
+docs: update README with Docker instructions
+test: add unit tests for UserService
+refactor: improve exception handling in RiotService
 chore: bump version to 0.1.0
 ```
 
-**Métricas**:
-- Total de commits: ~80
-- Branches activas: 2-3
-- PRs merged: ~15
+Metrics:
+- Total commits: ~80
+- Active branches: 2–3
+- Merged PRs: ~15
 - Contributors: 1
 
 ---
 
-### Integración y Entrega Continua (CI/CD)
+### CI/CD
 
-**GitHub Actions Workflows**:
+GitHub Actions workflows
 
-#### 1. `build.yml` - Control de Calidad
-**Trigger**: Push a cualquier rama, PR a main
-**Acciones**:
-- ✅ Compilación backend (Maven)
-- ✅ Compilación frontend (npm)
-- ✅ Tests unitarios (JUnit + Jasmine)
-- ✅ Tests de integración
-- ✅ Coverage con JaCoCo + karma-coverage
-- ✅ SonarCloud analysis (solo en PR a main)
+1) `build.yml` — Quality control
+Trigger: push to any branch, PR to main
+Actions:
+- Build backend (Maven)
+- Build frontend (npm)
+- Unit tests (JUnit + Jasmine)
+- Integration tests
+- Coverage with JaCoCo + karma-coverage
+- SonarCloud analysis (PRs to main)
 
-#### 2. `deploy-dev.yml` - Deploy Automático
-**Trigger**: Push a `main`
-**Acciones**:
-- ✅ Build de imagen Docker multistage
-- ✅ Push a DockerHub con tag `dev`
-- ✅ Publicación de docker-compose como OCI artifact
+2) `deploy-dev.yml` — automatic deploy
+Trigger: push to `main`
+Actions:
+- Build multi-stage Docker image
+- Push to DockerHub with tag `dev`
+- Publish docker-compose as OCI artifact
 
-#### 3. `deploy-release.yml` - Deploy de Releases
-**Trigger**: Publicación de GitHub Release
-**Acciones**:
-- ✅ Build de imagen Docker
-- ✅ Push con tag de versión (ej: `0.1.0`)
-- ✅ Actualizar tag `latest`
-- ✅ Publicar docker-compose con versión
+3) `deploy-release.yml` — release deploy
+Trigger: GitHub Release
+Actions:
+- Build Docker image
+- Push with version tag (e.g. `0.1.0`)
+- Update `latest` tag
+- Publish versioned docker-compose
 
-#### 4. `manual-build.yml` - Build Manual
-**Trigger**: workflow_dispatch (manual)
-**Acciones**:
-- ✅ Build de imagen con tag custom: `<branch>-<timestamp>-<commit>`
-- ✅ Push a DockerHub
-- ✅ Útil para testing de features
+4) `manual-build.yml` — manual build
+Trigger: workflow_dispatch
+Actions:
+- Build image with custom tag: `<branch>-<timestamp>-<commit>`
+- Push to DockerHub
 
-**Reusabilidad**: Los workflows `deploy-dev` y `deploy-release` llaman a `build-push.yml` (reusable workflow) para evitar duplicación de código.
+Reusable workflows: `deploy-dev` and `deploy-release` call `build-push.yml` to avoid duplication.
 
-**Secretos configurados**:
+Secrets configured:
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
 - `SONAR_TOKEN`
 
-**Estado de CI**: [![Build Status](https://github.com/codeurjc-students/2025-SPIRITBLADE/workflows/CI%2FCD%20-%20Quality%20Control%20%26%20Testing/badge.svg)](https://github.com/codeurjc-students/2025-SPIRITBLADE/actions)
+CI status badge available in the repo actions page.
 
 ---
 
-### Versionado
+### Versioning
 
-**Estrategia**: Semantic Versioning (`MAJOR.MINOR.PATCH`)
+Strategy: Semantic Versioning (`MAJOR.MINOR.PATCH`)
 
-- **MAJOR**: Cambios incompatibles de API
-- **MINOR**: Nuevas funcionalidades compatibles
-- **PATCH**: Bug fixes
+- MAJOR: breaking API changes
+- MINOR: new backward-compatible features
+- PATCH: bug fixes
 
-**Versiones publicadas**:
-- v0.1.0 (Dic 2024) - Primera versión funcional con Docker
+Published versions:
+- v0.1.0 (Dec 2024) — first functional release with Docker
 
-**Próximas versiones**:
-- v0.2.0 (Mar 2025) - Funcionalidades intermedias
-- v1.0.0 (Abr 2025) - Funcionalidades avanzadas
+Upcoming:
+- v0.2.0 (Mar 2025) — intermediate features
+- v1.0.0 (Apr 2025) — advanced features
 
-**Proceso de Release**:
-1. **Pre-release**: Actualizar versiones con script `update-version.ps1/sh`
-2. **Commit & Tag**: `git commit -m "chore: bump version" && git tag 0.1.0`
-3. **Push**: `git push && git push --tags`
-4. **GitHub Release**: Crear release desde UI con changelog
-5. **Post-release**: Actualizar a siguiente SNAPSHOT (`0.2.0-SNAPSHOT`)
+Release process:
+1) Pre-release: update versions with `update-version.ps1/sh`
+2) Commit & tag: `git commit -m "chore: bump version" && git tag 0.1.0`
+3) Push: `git push && git push --tags`
+4) Create GitHub Release with changelog
+5) Post-release: bump to next SNAPSHOT (`0.2.0-SNAPSHOT`)
 
-**Documentación completa**: [RELEASE-PROCESS.md](RELEASE-PROCESS.md)
+Documentation: [RELEASE-PROCESS.md](RELEASE-PROCESS.md)
 
 ---
 
-## 📈 Métricas del Proyecto
+## 📈 Project metrics
 
-### Líneas de Código
+### Lines of code
 
-| Componente | Lenguaje | Archivos | Líneas |
-|------------|----------|----------|--------|
+| Component | Language | Files | Lines |
+|----------:|---------:|------:|------:|
 | Backend | Java | ~40 | ~3,500 |
 | Frontend | TypeScript | ~30 | ~2,500 |
 | Tests | Java/TS | ~25 | ~2,000 |
-| Configuración | YAML/JSON/XML | ~15 | ~800 |
+| Config | YAML/JSON/XML | ~15 | ~800 |
 | **TOTAL** | - | **~110** | **~8,800** |
 
-### Estadísticas de Desarrollo
+### Development stats
 
-- **Duración**: ~4 meses (Sep - Dic 2024)
-- **Commits**: ~80
-- **Pull Requests**: ~15
-- **Issues cerrados**: ~25
-- **Releases**: 1 (v0.1.0)
+- Duration: ~4 months (Sep–Dec 2024)
+- Commits: ~80
+- Pull requests: ~15
+- Issues closed: ~25
+- Releases: 1 (v0.1.0)
 
 ### Performance
 
-- **Build time**: ~3 minutos (CI)
-- **Docker image size**: ~180MB
-- **Tiempo de arranque**: ~30 segundos
-- **API response time**: <500ms (p95)
+- Build time: ~3 minutes (CI)
+- Docker image size: ~180MB
+- Startup time: ~30s
+- API response time: <500ms (p95)
 
 ---
 
-## 🔗 Enlaces de Seguimiento
+## 🔗 Tracking links
 
-- **GitHub Repository**: [SPIRITBLADE](https://github.com/codeurjc-students/2025-SPIRITBLADE)
-- **GitHub Actions**: [CI/CD Pipelines](https://github.com/codeurjc-students/2025-SPIRITBLADE/actions)
-- **SonarCloud**: [Quality Dashboard](https://sonarcloud.io/summary/new_code?id=codeurjc-students_2025-SPIRITBLADE)
-- **DockerHub**: [spiritblade](https://hub.docker.com/r/codeurjcstudents/spiritblade)
-- **Blog del Proyecto**: [Medium](https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3)
+- GitHub repo: https://github.com/codeurjc-students/2025-SPIRITBLADE
+- GitHub Actions: https://github.com/codeurjc-students/2025-SPIRITBLADE/actions
+- SonarCloud: https://sonarcloud.io/summary/new_code?id=codeurjc-students_2025-SPIRITBLADE
+- DockerHub: https://hub.docker.com/r/codeurjcstudents/spiritblade
+- Project blog: https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3
 
 ---
 
-**[← Volver al README principal](../README.md)**
+[← Back to main README](../README.md)

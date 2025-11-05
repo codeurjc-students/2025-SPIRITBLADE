@@ -25,10 +25,13 @@ The application is composed of three main components:
 | Aspect | Description |
 |--------|-------------|
 | **Type** | SPA web application with REST API |
-| **Technologies** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL, JWT |
-| **Tools** | VS Code, IntelliJ IDEA, Maven, npm, Git |
+| **Technologies** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL 8.0, JWT, MinIO |
+| **Security** | HTTPS only (port 443), SSL/TLS, JWT authentication, role-based access |
+| **Storage** | MinIO object storage (PNG validation enforced) |
+| **Documentation** | Swagger UI / OpenAPI 3.0 interactive documentation |
+| **Tools** | VS Code, IntelliJ IDEA, Maven, npm, Git, Docker |
 | **Quality control** | JUnit 5, Jasmine/Karma, JaCoCo, SonarCloud, GitHub Actions |
-| **Deployment** | Docker, Docker Compose (planned for Phase 3) |
+| **Deployment** | Docker, Docker Compose, HTTPS-only configuration |
 | **Development process** | Iterative and incremental, Git flow, DevOps with CI/CD |
 
 ---
@@ -45,8 +48,14 @@ The application is composed of three main components:
 **Spring Security** - Security framework that provides authentication and authorization. In the project, it implements JWT-based authentication and role-based access control.
 - Official URL: https://spring.io/projects/spring-security
 
-**MySQL** - Relational database management system used in production to store users, summoners, matches, and statistics.
+**MySQL 8.0** - Relational database management system (REQUIRED - H2 is not used). Stores users, summoners, matches, and statistics.
 - Official URL: https://www.mysql.com/
+
+**MinIO** - S3-compatible object storage for user files (profile pictures). Enforces PNG-only validation for security.
+- Official URL: https://min.io/
+
+**Springdoc OpenAPI** - Automatic API documentation generation with Swagger UI integration.
+- Official URL: https://springdoc.org/
 
 ### Frontend
 **Angular 17** - Web development framework with TypeScript that allows creating robust SPA applications. Uses standalone components for a more modular architecture.
@@ -169,8 +178,11 @@ AUTHENTICATED ENDPOINTS (JWT required)
 5. Token expires after 24 hours (refresh available)
 
 **Documentation**:
-- Manual: `docs/API.md`
-- Planned: OpenAPI/Swagger specification
+- Interactive: Swagger UI at `/swagger-ui.html`
+- OpenAPI Specification: `/v3/api-docs` (JSON) and `/v3/api-docs.yaml` (YAML)
+- Quick Guide: `docs/API.md`
+- Complete Guide: `docs/SWAGGER.md`
+- Tutorial: `docs/SWAGGER-QUICKSTART.md`
 
 ---
 
@@ -185,20 +197,28 @@ The backend follows **layered architecture** with Spring Boot best practices:
 
 ┌─────────────────────────────────────────────────────────────────┐
 │                      PRESENTATION LAYER                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │   Auth       │  │   Summoner   │  │    Admin     │         │
-│  │ Controller   │  │  Controller  │  │  Controller  │  ...    │
-│  └──────────────┘  └──────────────┘  └──────────────┘         │
-│         │                  │                  │                 │
-└─────────┼──────────────────┼──────────────────┼─────────────────┘
-          │                  │                  │
-          ▼                  ▼                  ▼
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │  Auth    │  │Summoner  │  │Dashboard │  │  Files   │       │
+│  │Controller│  │Controller│  │Controller│  │Controller│       │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+│  ┌──────────┐  ┌──────────┐                                    │
+│  │  User    │  │  Admin   │                                    │
+│  │Controller│  │Controller│                                    │
+│  └──────────┘  └──────────┘                                    │
+│         │              │              │              │          │
+└─────────┼──────────────┼──────────────┼──────────────┼──────────┘
+          │              │              │              │
+          ▼              ▼              ▼              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       BUSINESS LAYER                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
 │  │UserLoginSvc  │  │   Riot       │  │  Dashboard   │         │
-│  │              │  │   Service    │  │   Service    │  ...    │
+│  │UserAvatarSvc │  │   Service    │  │   Service    │         │
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
+│  ┌──────────────┐  ┌──────────────┐                            │
+│  │MinIOStorage  │  │DataDragon    │                            │
+│  │   Service    │  │   Service    │                            │
+│  └──────────────┘  └──────────────┘                            │
 │         │                  │                  │                 │
 └─────────┼──────────────────┼──────────────────┼─────────────────┘
           │                  │                  │
@@ -207,38 +227,60 @@ The backend follows **layered architecture** with Spring Boot best practices:
 │                        DATA LAYER                                │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
 │  │   User       │  │   Summoner   │  │    Match     │         │
-│  │ Repository   │  │  Repository  │  │  Repository  │  ...    │
+│  │ Repository   │  │  Repository  │  │  Repository  │         │
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
 │         │                  │                  │                 │
 └─────────┼──────────────────┼──────────────────┼─────────────────┘
           │                  │                  │
           ▼                  ▼                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      DATABASE (MySQL)                            │
+│                   DATABASE (MySQL 8.0 ONLY)                      │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
 │  │  users   │  │summoners │  │ matches  │  │favorites │       │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
 └─────────────────────────────────────────────────────────────────┘
+                          │
+                          │ (No H2, MySQL required)
+                          │
+┌─────────────────────────────────────────────────────────────────┐
+│              EXTERNAL STORAGE (MinIO - S3 Compatible)            │
+│  ┌────────────────────────────────────────┐                     │
+│  │  spiritblade-uploads bucket            │                     │
+│  │  - User avatars (PNG only)             │                     │
+│  │  - 3-layer PNG validation              │                     │
+│  └────────────────────────────────────────┘                     │
+└─────────────────────────────────────────────────────────────────┘
 
 CROSS-CUTTING CONCERNS
 ┌─────────────────────────────────────────────────────────────────┐
-│  Security (Spring Security + JWT)                               │
+│  Security (HTTPS only, Spring Security + JWT, SSL/TLS)          │
 │  Exception Handling (Global @ControllerAdvice)                  │
 │  Logging (SLF4J)                                                │
-│  External API Integration (RestTemplate → Riot Games API)       │
+│  External API Integration (WebClient → Riot Games API)          │
+│  API Documentation (Swagger UI / OpenAPI 3.0)                   │
+│  File Validation (PNG-only enforcement)                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 **Layer Responsibilities**:
-- **Controllers**: Handle HTTP requests, validation, response formatting
+- **Controllers** (6 total): Handle HTTP requests, validation, response formatting
+  - `LoginRestController` - Authentication endpoints (`/api/v1/auth`)
+  - `UserController` - User profile and favorites (`/api/v1/users`)
+  - `SummonerController` - Riot API integration (`/api/v1/summoners`)
+  - `DashboardController` - Analytics and stats (`/api/v1/dashboard`)
+  - `FileController` - File upload/download (`/api/v1/files`)
+  - `AdminController` - Admin operations (`/api/v1/admin`)
 - **Services**: Business logic, transaction management, API integration
 - **Repositories**: Data access using Spring Data JPA
-- **Models/Entities**: JPA entities mapping to database tables
+- **Models/Entities**: JPA entities mapping to MySQL tables
 
 **Key Components**:
-- **Security**: JWT-based authentication with `JwtTokenProvider` and `JwtAuthenticationFilter`
+- **Security**: HTTPS-only (port 443), JWT authentication with `JwtTokenProvider` and `JwtAuthenticationFilter`
 - **Riot Integration**: `RiotService` + `DataDragonService` for external API calls
+- **Storage**: `MinioStorageService` + `UserAvatarService` for file management
+- **Validation**: PNG-only enforcement in 3 layers (FileController, MinioStorageService, UserAvatarService)
 - **Exception Handling**: `GlobalExceptionHandler` for consistent error responses
+- **Documentation**: Springdoc OpenAPI with Swagger UI
 
 ---
 
@@ -535,24 +577,35 @@ The project follows a **testing pyramid** approach with multiple levels of autom
 - Token validation on protected endpoints
 - Role-based access control (USER vs ADMIN)
 - Token refresh mechanism
+- HTTPS-only security (port 443)
 
 ✅ **User Management**
 - User registration with validation
 - Profile retrieval and updates
 - Password encryption (BCrypt)
-- Profile picture upload
+- Profile picture upload (PNG only, MinIO storage)
+- Avatar validation (3-layer PNG enforcement)
+- Favorites management (add/remove summoners)
 
 ✅ **Summoner Operations**
 - Search by Riot ID (gameName + tagLine)
 - Fetch summoner data from Riot API
 - Retrieve ranked stats (tier, rank, LP, W/L)
 - Display champion mastery top 3
-- Match history with pagination
+- Match history with detailed statistics
+- Caching system for performance
 
 ✅ **Dashboard**
 - Personal statistics aggregation
-- Recent matches with details
+- Recent matches with performance metrics
 - Favorite summoners management
+- Performance analytics and KDA tracking
+
+✅ **File Management**
+- MinIO object storage integration
+- PNG-only validation (header + extension + content type)
+- Secure file upload/download
+- Profile avatar management
 
 ✅ **Admin Panel**
 - List all users with filters
@@ -562,15 +615,22 @@ The project follows a **testing pyramid** approach with multiple levels of autom
 
 ✅ **External API Integration**
 - Riot Games API authentication
-- Rate limit handling
+- Rate limit handling (20 req/s, 100 req/2min)
 - Error recovery (retries, fallbacks)
 - Data Dragon CDN for images
+
+✅ **API Documentation**
+- Swagger UI interactive documentation
+- OpenAPI 3.0 specification
+- JWT authentication in Swagger
+- Complete endpoint documentation
 
 ✅ **Frontend Components**
 - Component rendering with proper data binding
 - Routing with guards (Auth, Admin)
 - Form validation (reactive forms)
 - Error display with user-friendly messages
+- HTTPS-only communication
 
 ---
 
@@ -1048,8 +1108,9 @@ Before starting development, ensure you have these tools installed:
 | **Node.js** | 18+ | Frontend build | [nodejs.org](https://nodejs.org/) |
 | **Git** | Latest | Version control | [git-scm.com](https://git-scm.com/) |
 | **Maven** | 3.9+ | Backend build (included wrapper) | [maven.apache.org](https://maven.apache.org/) |
-| **MySQL** | 8.0+ | Database (optional for dev) | [mysql.com](https://www.mysql.com/) |
-| **Docker** | Latest | Containerization (optional) | [docker.com](https://www.docker.com/) |
+| **MySQL** | 8.0+ | Database (**REQUIRED** - not optional) | [mysql.com](https://www.mysql.com/) |
+| **Docker** | Latest | Containerization (optional for dev) | [docker.com](https://www.docker.com/) |
+| **MinIO** | Latest | Object storage (optional for dev) | [min.io](https://min.io/) |
 
 **Verify installations**:
 ```powershell
@@ -1058,9 +1119,11 @@ java -version      # Should show 21.x
 node -v            # Should show v18.x or higher
 git --version      # Any recent version
 mvn -version       # Should show 3.9.x (or use mvnw)
-mysql --version    # Should show 8.0.x (if installed)
+mysql --version    # Should show 8.0.x (REQUIRED)
 docker --version   # Should show 20.x or higher (if installed)
 ```
+
+⚠️ **Importante**: MySQL es obligatorio. El proyecto ya no soporta H2.
 
 ---
 
@@ -1086,46 +1149,15 @@ ls
 
 ### Local Development Setup
 
-#### Option 1: Development with H2 In-Memory Database (Simplest)
+#### Option 1: Development with MySQL (Recommended)
 
-**Advantages**:
-- ✅ No database installation needed
-- ✅ Fast startup
-- ✅ Automatic schema creation
-
-**Limitations**:
-- ⚠️ Data lost on restart
-- ⚠️ Not identical to production (MySQL)
-
-**Configuration**:
-No configuration needed! Backend uses H2 by default.
-
-**Start Backend**:
-```powershell
-cd backend
-.\mvnw.cmd spring-boot:run
-```
-
-**Start Frontend**:
-```bash
-cd frontend
-npm ci              # Install dependencies (first time only)
-npm start           # Start dev server with hot reload
-```
-
-**Access**:
-- Frontend: http://localhost:4200
-- Backend API: http://localhost:8080
-- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:testdb`)
-
----
-
-#### Option 2: Development with MySQL (Production-like)
+⚠️ **Importante**: SPIRITBLADE ya **NO usa H2**. MySQL es obligatorio para desarrollo y producción.
 
 **Advantages**:
 - ✅ Persistent data
 - ✅ Identical to production
 - ✅ Better for testing
+- ✅ Única base de datos soportada
 
 **Setup MySQL**:
 
@@ -1140,19 +1172,17 @@ npm start           # Start dev server with hot reload
 
 3. **Configure Backend**:
    
-   Edit `backend/src/main/resources/application.properties`:
+   La configuración por defecto en `backend/src/main/resources/application.properties` ya usa MySQL:
    ```properties
-   # Comment out H2 configuration
-   # spring.datasource.url=jdbc:h2:mem:testdb
-   
-   # Add MySQL configuration
-   spring.datasource.url=jdbc:mysql://localhost:3306/spiritblade_db
-   spring.datasource.username=spiritblade
-   spring.datasource.password=your_password
+   spring.datasource.url=jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+   spring.datasource.username=root
+   spring.datasource.password=1234
    spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
    spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
    spring.jpa.hibernate.ddl-auto=update
    ```
+   
+   Ajusta `username` y `password` según tu configuración local de MySQL.
 
 4. **Add Riot API Key** (required for summoner search):
    ```properties
@@ -1167,9 +1197,23 @@ npm start           # Start dev server with hot reload
    .\mvnw.cmd spring-boot:run
    ```
 
+6. **Start Frontend** (en otra terminal):
+   ```bash
+   cd frontend
+   npm install    # Primera vez
+   npm start      # Inicia servidor de desarrollo
+   ```
+
+7. **Access**:
+   - Backend API: https://localhost (puerto 443)
+   - Swagger UI: https://localhost/swagger-ui.html
+   - Frontend: http://localhost:4200 (desarrollo) o proxy inverso
+
+⚠️ **Certificado SSL**: Acepta el certificado autofirmado en tu navegador la primera vez.
+
 ---
 
-#### Option 3: Docker Compose (Full Stack)
+#### Option 2: Docker Compose (Full Stack)
 
 **Advantages**:
 - ✅ One command setup
@@ -1197,8 +1241,10 @@ npm start           # Start dev server with hot reload
    ```
 
 3. **Access**:
-   - Application: http://localhost:8080
+   - Application: https://localhost (puerto 443)
    - MySQL: localhost:3306 (username: spiritblade, password: spiritbladepass)
+
+⚠️ **Certificado SSL**: Acepta el certificado autofirmado en tu navegador cuando accedas por primera vez.
 
 See [Ejecucion.md](Ejecucion.md) for complete Docker deployment guide.
 
@@ -1299,12 +1345,74 @@ npm test -- --include='**/summoner.component.spec.ts'
 
 ### API Testing
 
+#### Using Swagger UI (Recommended)
+
+**Swagger UI** provides the easiest way to explore and test the API interactively:
+
+1. **Start the application**:
+   ```powershell
+   cd backend
+   .\mvnw.cmd spring-boot:run
+   ```
+
+2. **Open Swagger UI**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+   
+   ⚠️ **Primera vez**: Acepta el certificado SSL autofirmado en tu navegador
+
+3. **Authenticate**:
+   - Use `POST /auth/login` or `POST /auth/register`
+   - Copy the token from the response
+   - Click "Authorize" (🔓 icon) at the top right
+   - Paste token and click "Authorize"
+
+4. **Test any endpoint**:
+   - Expand an endpoint
+   - Click "Try it out"
+   - Fill parameters
+   - Click "Execute"
+   - View response
+
+**Advantages**:
+- ✅ No external tools needed
+- ✅ Always up-to-date with current code
+- ✅ Built-in authentication support
+- ✅ Complete request/response schemas
+- ✅ Export OpenAPI spec for other tools
+
+For detailed instructions, see [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md).
+
+---
+
+#### Using Postman
+
+**Import OpenAPI Specification**:
+1. Open Postman
+2. Import → Link → `https://localhost/v3/api-docs`
+3. Postman auto-generates collection from OpenAPI spec
+4. Set environment variable `baseUrl` = `https://localhost`
+5. **Important**: Disable SSL verification in Postman Settings for development
+
+**Or import exported spec**:
+```bash
+# Export OpenAPI spec first (with -k to skip SSL verification)
+curl -k https://localhost/v3/api-docs > openapi.json
+```
+Then import `openapi.json` into Postman.
+
+**Manual Testing**:
+1. **Login**: POST `/auth/login` with credentials
+2. **Copy token** from response
+3. **Set Authorization**: Bearer Token → Paste token
+4. **Test endpoints**: See Swagger UI for complete endpoint list
+
+---
+
 #### Using REST Client (VS Code Extension)
 
 Create `test.http` file:
 ```http
 ### Login
-POST http://localhost:8080/auth/login
+POST https://localhost/auth/login
 Content-Type: application/json
 
 {
@@ -1313,26 +1421,13 @@ Content-Type: application/json
 }
 
 ### Search Summoner (requires token from login)
-GET http://localhost:8080/summoners/search?gameName=Hide on bush&tagLine=KR
+GET https://localhost/summoners/search?gameName=Hide on bush&tagLine=KR
 Authorization: Bearer {{token}}
 ```
 
 Click "Send Request" above each request.
 
----
-
-#### Using Postman
-
-**Import Collection** (when available):
-1. Open Postman
-2. Import → `docs/postman/SPIRITBLADE.postman_collection.json`
-3. Set environment variable `baseUrl` = `http://localhost:8080`
-
-**Manual Testing**:
-1. **Login**: POST `/auth/login` with credentials
-2. **Copy token** from response
-3. **Set Authorization**: Bearer Token in subsequent requests
-4. **Test endpoints**: See `docs/API.md` for all endpoints
+⚠️ **Nota**: VS Code REST Client puede requerir configuración adicional para aceptar certificados autofirmados.
 
 ---
 
@@ -1340,7 +1435,10 @@ Click "Send Request" above each request.
 
 **Login**:
 ```powershell
-$response = Invoke-RestMethod -Uri "http://localhost:8080/auth/login" `
+# Deshabilitar verificación SSL para certificados autofirmados
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
+$response = Invoke-RestMethod -Uri "https://localhost/auth/login" `
   -Method POST `
   -ContentType "application/json" `
   -Body '{"username":"admin","password":"admin"}'
@@ -1350,9 +1448,11 @@ $token = $response.token
 
 **Search Summoner**:
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/summoners/search?gameName=Hide on bush&tagLine=KR" `
+Invoke-RestMethod -Uri "https://localhost/summoners/search?gameName=Hide on bush&tagLine=KR" `
   -Headers @{"Authorization"="Bearer $token"}
 ```
+
+⚠️ **Nota**: En desarrollo con certificados autofirmados, necesitas deshabilitar la verificación SSL en PowerShell como se muestra arriba.
 
 ---
 
@@ -1407,12 +1507,28 @@ docker run -p 8080:8080 \
 
 ### Troubleshooting
 
+#### HTTPS/SSL Issues
+
+**Error**: `ERR_CERT_AUTHORITY_INVALID` or browser security warning
+- **Solution**: This is normal with self-signed certificates in development
+- Click "Advanced" → "Proceed to localhost (unsafe)" in your browser
+- For curl, use `-k` flag: `curl -k https://localhost/...`
+- For PowerShell, disable certificate validation (see curl examples above)
+- For Postman, disable SSL verification in Settings
+
+**Error**: `Connection refused` when accessing `http://localhost:8080`
+- **Solution**: The server **only works with HTTPS on port 443**
+- Use `https://localhost` instead of `http://localhost:8080`
+- Check that SSL is enabled in `application.properties`: `server.ssl.enabled=true`
+
+---
+
 #### Backend won't start
 
-**Error**: `Port 8080 already in use`
-- **Solution**: Kill process using port 8080:
+**Error**: `Port 443 already in use`
+- **Solution**: Kill process using port 443 (requires admin privileges):
   ```powershell
-  netstat -ano | findstr :8080
+  netstat -ano | findstr :443
   taskkill /PID <PID> /F
   ```
 
@@ -1452,10 +1568,10 @@ docker run -p 8080:8080 \
 **Error**: `Access denied for user`
 - **Solution**: Check MySQL credentials in `application.properties`
 
-**Error**: `Unknown database 'spiritblade_db'`
-- **Solution**: Create database:
+**Error**: `Unknown database 'spiritblade'`
+- **Solution**: Create database (note: the default database name is `spiritblade`, not `spiritblade_db`):
   ```sql
-  CREATE DATABASE spiritblade_db;
+  CREATE DATABASE spiritblade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
   ```
 
 **Error**: `Table doesn't exist`
@@ -1533,7 +1649,9 @@ This development guide covers:
 
 **Documentation**:
 - [README.md](../README.md) - Main project page
-- [API.md](API.md) - REST API documentation
+- [API.md](API.md) - REST API documentation and Swagger UI access
+- [SWAGGER.md](SWAGGER.md) - Complete Swagger/OpenAPI guide
+- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Step-by-step Swagger tutorial
 - [Funcionalidades.md](Funcionalidades.md) - Feature descriptions
 - [Ejecucion.md](Ejecucion.md) - Docker deployment guide
 - [Seguimiento.md](Seguimiento.md) - Quality control and metrics
@@ -1542,6 +1660,7 @@ This development guide covers:
 
 **External Documentation**:
 - [Spring Boot Reference](https://docs.spring.io/spring-boot/docs/current/reference/html/)
+- [Springdoc OpenAPI (Swagger)](https://springdoc.org/)
 - [Angular Documentation](https://angular.io/docs)
 - [Riot Games API](https://developer.riotgames.com/docs/lol)
 
