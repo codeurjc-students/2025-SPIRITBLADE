@@ -196,8 +196,6 @@ jobs:
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
-          SERVER_SSL_ENABLED: false
-          SERVER_PORT: 8080
         run: mvn test -Dtest="**/*IntegrationTest" -B
         continue-on-error: false
 
@@ -214,8 +212,6 @@ jobs:
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
-          SERVER_SSL_ENABLED: false
-          SERVER_PORT: 0
         run: mvn test -Dtest="**/*SystemTest,**/*E2ETest" -B
         continue-on-error: false
 
