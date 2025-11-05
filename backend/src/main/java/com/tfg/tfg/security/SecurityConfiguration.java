@@ -102,6 +102,8 @@ public class SecurityConfiguration {
 					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/name/**").permitAll()
 					// Allow public access to file serving endpoints (avatars, images, etc.)
 					.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
+					// Allow public access to Swagger UI and OpenAPI documentation
+					.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 					// Any other request to /api/v1/** requires authentication
 					.anyRequest().authenticated()
 			);

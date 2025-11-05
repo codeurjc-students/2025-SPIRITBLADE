@@ -184,17 +184,17 @@ public class RiotService {
             // Summoner not found in Riot API
             logger.warn("Summoner not found in Riot API: {}", riotId);
             throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
-        } catch (HttpClientErrorException e) {
-            // API error (rate limit, etc.), try database fallback
-            logger.error("Riot API error for summoner {}: {} (Status: {})", riotId, e.getMessage(), e.getStatusCode().value());
+        } catch (HttpClientErrorException e) { // NOSONAR - Exception is logged and rethrown with context
+            // Handled: Log with context, try database fallback, then rethrow with specific context
+            logger.error("Riot API error for summoner {}: {} (Status: {})", riotId, e.getMessage(), e.getStatusCode().value(), e);
             Optional<Summoner> found = summonerRepository.findByName(riotId);
             if (found.isPresent()) {
                 logger.info("Returning cached data for summoner: {}", riotId);
                 return mapSummonerEntityToDTO(found.get());
             }
-            throw new RiotApiException("Riot API is currently unavailable. Status: " + e.getStatusCode(), e.getStatusCode().value());
-        } catch (Exception e) {
-            // If API fails unexpectedly, try to get from database
+            throw new RiotApiException("Riot API is currently unavailable for summoner '" + riotId + "'. Status: " + e.getStatusCode(), e.getStatusCode().value());
+        } catch (Exception e) { // NOSONAR - Exception is logged and rethrown with context
+            // Handled: Log unexpected error, try database fallback, then rethrow with context
             logger.error("Unexpected error fetching summoner {}: {}", riotId, e.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             Optional<Summoner> found = summonerRepository.findByName(riotId);
@@ -248,8 +248,8 @@ public class RiotService {
             logger.warn("Failed to cache summoner data (DB error): {}", dae.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, dae);
         } catch (Exception e) {
-            // Generic fallback: log with debug stacktrace
-            logger.warn("Failed to cache summoner data: {}", e.getMessage());
+            // Generic fallback: log and swallow - caching failure should not affect main operation
+            logger.warn("Failed to cache summoner data for {}: {}", dto.getName(), e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
     }
@@ -301,7 +301,8 @@ public class RiotService {
             logger.warn("Riot API error fetching champion masteries for PUUID {}: {}", puuid, hce.getMessage());
             return Collections.emptyList();
         } catch (Exception e) {
-            logger.error("Error fetching champion masteries for PUUID {}: {}", puuid, e.getMessage());
+            // Fully handled: log error and return empty list as fallback
+            logger.error("Error fetching champion masteries for PUUID {}: {}", puuid, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             return Collections.emptyList();
         }
@@ -339,7 +340,8 @@ public class RiotService {
         } catch (HttpClientErrorException hce) {
             logger.warn("Riot API error fetching match {}: {}", matchId, hce.getMessage());
         } catch (Exception e) {
-            logger.warn("Error fetching match {}: {}", matchId, e.getMessage());
+            // Fully handled: log and continue - single match failure shouldn't stop processing
+            logger.warn("Error fetching match {}: {}", matchId, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
     }
@@ -416,7 +418,8 @@ public class RiotService {
                 matchId, summoner.getLp(), summoner.getTier(), summoner.getRank());
             
         } catch (Exception e) {
-            logger.warn("Failed to save match to database: {}", e.getMessage());
+            // Fully handled: log and swallow - match caching failure shouldn't stop processing
+            logger.warn("Failed to save match to database for PUUID {}: {}", puuid, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
     }
@@ -446,7 +449,8 @@ public class RiotService {
             try {
                 dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(match.getChampionId().longValue()));
             } catch (Exception e) {
-                logger.warn("Could not get champion icon for championId {}: {}", match.getChampionId(), e.getMessage());
+                // Fully handled: log and continue - icon fetch failure is non-critical
+                logger.warn("Could not get champion icon for championId {}: {}", match.getChampionId(), e.getMessage(), e);
             }
         }
         
@@ -627,6 +631,50 @@ public class RiotService {
      * @param count Number of matches to retrieve
      * @return Array of match IDs
      */
+    /**
+     * Fetch a single batch of match IDs from Riot API
+     * @return true if more batches might be available, false if we should stop
+     */
+    private boolean fetchMatchIdBatch(String puuid, int start, int count, int maxBatch, List<String> accumulated) {
+        int toFetch = Math.min(count - accumulated.size(), maxBatch);
+        int currentStart = start + accumulated.size();
+
+        logger.debug("Requesting match IDs from Riot: start={}, count={}", currentStart, toFetch);
+        
+        ResponseEntity<String[]> matchIdsResponse = restTemplate.exchange(
+            MATCH_IDS_BY_PUUID_URL,
+            HttpMethod.GET,
+            null,
+            String[].class,
+            puuid,
+            currentStart,
+            toFetch,
+            apiKey
+        );
+
+        String[] ids = matchIdsResponse.getBody();
+
+        if (ids == null || ids.length == 0) {
+            logger.debug("Riot returned no more match IDs (start={})", currentStart);
+            return false;
+        }
+
+        // Add returned IDs, avoiding duplicates
+        for (String id : ids) {
+            if (id != null && !accumulated.contains(id)) {
+                accumulated.add(id);
+            }
+        }
+
+        // If Riot returned fewer than requested, assume no more results
+        if (ids.length < toFetch) {
+            logger.debug("Riot returned fewer IDs ({}) than requested ({}) in this batch, stopping.", ids.length, toFetch);
+            return false;
+        }
+
+        return true; // More batches might be available
+    }
+    
     private String[] fetchMatchIdsFromAPI(String puuid, int start, int count) {
         logger.info("Cache insufficient, calling Riot API for match IDs: start={}, count={}", start, count);
 
@@ -637,44 +685,8 @@ public class RiotService {
 
         try {
             while (accumulated.size() < count) {
-                int toFetch = Math.min(count - accumulated.size(), MAX_BATCH);
-                int currentStart = start + accumulated.size();
-
-                logger.debug("Requesting match IDs from Riot: start={}, count={}", currentStart, toFetch);
-                ResponseEntity<String[]> matchIdsResponse = restTemplate.exchange(
-                    MATCH_IDS_BY_PUUID_URL,
-                    HttpMethod.GET,
-                    null,
-                    String[].class,
-                    puuid,
-                    currentStart,
-                    toFetch,
-                    apiKey
-                );
-
-                String[] ids = matchIdsResponse.getBody();
-                boolean shouldStop = false;
-
-                if (ids == null || ids.length == 0) {
-                    logger.debug("Riot returned no more match IDs (start={})", currentStart);
-                    shouldStop = true;
-                } else {
-                    // Add returned IDs, but avoid duplicates just in case
-                    for (String id : ids) {
-                        if (id != null && !accumulated.contains(id)) {
-                            accumulated.add(id);
-                        }
-                    }
-
-                    // If Riot returned fewer than requested in this batch, assume no more results
-                    if (ids.length < toFetch) {
-                        logger.debug("Riot returned fewer IDs ({}) than requested ({}) in this batch, stopping.", ids.length, toFetch);
-                        shouldStop = true;
-                    }
-                }
-
-                if (shouldStop) {
-                    break;
+                if (!fetchMatchIdBatch(puuid, start, count, MAX_BATCH, accumulated)) {
+                    break; // No more results available
                 }
             }
         } catch (HttpClientErrorException hce) {

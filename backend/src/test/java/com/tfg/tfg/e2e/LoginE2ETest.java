@@ -97,7 +97,7 @@ class LoginE2ETest {
             responseContent.contains("error") || 
             responseContent.contains("Unauthorized") ||
             responseContent.contains("Method Not Allowed") ||
-            responseContent.length() > 0,
+            !responseContent.isEmpty(),
             "Auth API endpoint should respond"
         );
         
@@ -167,7 +167,7 @@ class LoginE2ETest {
         assertNotNull(responseContent);
         
         // The endpoint should respond (even if it's an error for GET request)
-        assertTrue(!responseContent.isEmpty(), "Register API endpoint should respond");
+        assertFalse(responseContent.isEmpty(), "Register API endpoint should respond");
         
         System.out.println("✓ Registration API endpoint is accessible");
     }

@@ -84,10 +84,10 @@ class MinioStorageServiceUnitTest {
     @Test
     void testStore_MultipartFile_WithoutFolder_Success() throws IOException {
         // Given
-        String originalFilename = "document.pdf";
-        String contentType = "application/pdf";
+        String originalFilename = "document.png";
+        String contentType = "image/png";
         long fileSize = 2048L;
-        byte[] content = "pdf content".getBytes();
+        byte[] content = "png content".getBytes();
         InputStream inputStream = new ByteArrayInputStream(content);
 
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -102,17 +102,17 @@ class MinioStorageServiceUnitTest {
         // Then
         assertNotNull(storedKey);
         assertFalse(storedKey.contains("/"));
-        assertTrue(storedKey.endsWith(".pdf"));
+        assertTrue(storedKey.endsWith(".png"));
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class));
     }
 
     @Test
     void testStore_MultipartFile_EmptyFolder_Success() throws IOException {
         // Given
-        String originalFilename = "file.txt";
+        String originalFilename = "file.png";
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
-        when(multipartFile.getContentType()).thenReturn("text/plain");
+        when(multipartFile.getContentType()).thenReturn("image/png");
         when(multipartFile.getSize()).thenReturn(100L);
         when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
@@ -122,44 +122,41 @@ class MinioStorageServiceUnitTest {
         // Then
         assertNotNull(storedKey);
         assertFalse(storedKey.contains("/"));
-        assertTrue(storedKey.endsWith(".txt"));
+        assertTrue(storedKey.endsWith(".png"));
     }
 
     @Test
-    void testStore_MultipartFile_NoExtension() throws IOException {
-        // Given
+    void testStore_MultipartFile_NoExtension_PNG() {
+        // Given - File without .png extension should be rejected even with PNG content type
         String originalFilename = "noextension";
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
-        when(multipartFile.getContentType()).thenReturn("application/octet-stream");
-        when(multipartFile.getSize()).thenReturn(512L);
-        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+        when(multipartFile.getContentType()).thenReturn("image/png");
 
-        // When
-        String storedKey = minioStorageService.store(multipartFile, "uploads");
-
-        // Then
-        assertNotNull(storedKey);
-        assertTrue(storedKey.startsWith("uploads/"));
-        assertFalse(storedKey.contains("."));
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "uploads");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        assertTrue(exception.getMessage().contains(".png"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
     }
 
     @Test
-    void testStore_MultipartFile_NullFilename() throws IOException {
-        // Given
+    void testStore_MultipartFile_NullFilename_PNG() {
+        // Given - Null filename should be rejected even with PNG content type
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn(null);
-        when(multipartFile.getContentType()).thenReturn("text/plain");
-        when(multipartFile.getSize()).thenReturn(100L);
-        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+        when(multipartFile.getContentType()).thenReturn("image/png");
 
-        // When
-        String storedKey = minioStorageService.store(multipartFile, "docs");
-
-        // Then
-        assertNotNull(storedKey);
-        assertTrue(storedKey.startsWith("docs/"));
-        assertFalse(storedKey.endsWith("."));
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "docs");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
     }
 
     @Test
@@ -177,10 +174,10 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_WithFolder_Success() throws IOException {
+    void testStore_InputStream_WithFolder_Success() {
         // Given
-        String fileName = "upload.jpg";
-        String contentType = "image/jpeg";
+        String fileName = "upload.png";
+        String contentType = "image/png";
         InputStream inputStream = new ByteArrayInputStream("image data".getBytes());
 
         // When
@@ -189,15 +186,15 @@ class MinioStorageServiceUnitTest {
         // Then
         assertNotNull(storedKey);
         assertTrue(storedKey.startsWith("images/"));
-        assertTrue(storedKey.endsWith(".jpg"));
+        assertTrue(storedKey.endsWith(".png"));
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class));
     }
 
     @Test
-    void testStore_InputStream_WithoutFolder_Success() throws IOException {
+    void testStore_InputStream_WithoutFolder_Success() {
         // Given
-        String fileName = "data.json";
-        String contentType = "application/json";
+        String fileName = "data.png";
+        String contentType = "image/png";
         InputStream inputStream = new ByteArrayInputStream("{}".getBytes());
 
         // When
@@ -206,37 +203,152 @@ class MinioStorageServiceUnitTest {
         // Then
         assertNotNull(storedKey);
         assertFalse(storedKey.contains("/"));
-        assertTrue(storedKey.endsWith(".json"));
+        assertTrue(storedKey.endsWith(".png"));
     }
 
     @Test
-    void testStore_InputStream_EmptyFolder() throws IOException {
+    void testStore_InputStream_EmptyFolder() {
         // Given
-        String fileName = "test.xml";
+        String fileName = "test.png";
         InputStream inputStream = new ByteArrayInputStream("<xml/>".getBytes());
 
         // When
-        String storedKey = minioStorageService.store(inputStream, fileName, "text/xml", "");
+        String storedKey = minioStorageService.store(inputStream, fileName, "image/png", "");
 
         // Then
         assertNotNull(storedKey);
         assertFalse(storedKey.contains("/"));
-        assertTrue(storedKey.endsWith(".xml"));
+        assertTrue(storedKey.endsWith(".png"));
     }
 
     @Test
-    void testStore_InputStream_NoExtension() throws IOException {
-        // Given
+    void testStore_InputStream_NoExtension_PNG() {
+        // Given - File without .png extension should be rejected even with PNG content type
         String fileName = "noext";
         InputStream inputStream = new ByteArrayInputStream("data".getBytes());
 
-        // When
-        String storedKey = minioStorageService.store(inputStream, fileName, "application/octet-stream", "bin");
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            minioStorageService.store(inputStream, fileName, "image/png", "bin");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        assertTrue(exception.getMessage().contains(".png"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
 
-        // Then
-        assertNotNull(storedKey);
-        assertTrue(storedKey.startsWith("bin/"));
-        assertFalse(storedKey.substring(storedKey.lastIndexOf("/")).contains("."));
+    // Tests for PNG-only validation - Multipart Files
+    @Test
+    void testStore_MultipartFile_RejectsJPEG() {
+        // Given - Validation fails at content type check, filename not needed
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getContentType()).thenReturn("image/jpeg");
+
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "images");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file type"));
+        assertTrue(exception.getMessage().contains("PNG"));
+        assertTrue(exception.getMessage().contains("image/jpeg"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    void testStore_MultipartFile_RejectsGIF() {
+        // Given - Validation fails at content type check, filename not needed
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getContentType()).thenReturn("image/gif");
+
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "images");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file type"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    void testStore_MultipartFile_RejectsPDF() {
+        // Given - Validation fails at content type check, filename not needed
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getContentType()).thenReturn("application/pdf");
+
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "docs");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file type"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    void testStore_MultipartFile_RejectsWrongExtension() {
+        // Given - PNG content type but non-PNG extension (.jpg)
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getOriginalFilename()).thenReturn("image.jpg");
+        when(multipartFile.getContentType()).thenReturn("image/png");
+
+        // When & Then
+        IOException exception = assertThrows(IOException.class, () -> {
+            minioStorageService.store(multipartFile, "images");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        assertTrue(exception.getMessage().contains(".png"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    // Tests for PNG-only validation - InputStream
+    @Test
+    void testStore_InputStream_RejectsJPEG() {
+        // Given
+        String fileName = "photo.jpg";
+        InputStream inputStream = new ByteArrayInputStream("jpeg data".getBytes());
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            minioStorageService.store(inputStream, fileName, "image/jpeg", "images");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file type"));
+        assertTrue(exception.getMessage().contains("PNG"));
+        assertTrue(exception.getMessage().contains("image/jpeg"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    void testStore_InputStream_RejectsTextFile() {
+        // Given
+        String fileName = "document.txt";
+        InputStream inputStream = new ByteArrayInputStream("text".getBytes());
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            minioStorageService.store(inputStream, fileName, "text/plain", "docs");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file type"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
+    }
+
+    @Test
+    void testStore_InputStream_RejectsWrongExtension() {
+        // Given - PNG content type but non-PNG extension (.jpeg)
+        String fileName = "image.jpeg";
+        InputStream inputStream = new ByteArrayInputStream("png data".getBytes());
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            minioStorageService.store(inputStream, fileName, "image/png", "images");
+        });
+        
+        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        assertTrue(exception.getMessage().contains(".png"));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class));
     }
 
     @Test

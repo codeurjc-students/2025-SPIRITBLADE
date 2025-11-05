@@ -19,8 +19,15 @@ import com.tfg.tfg.security.jwt.LoginRequest;
 import com.tfg.tfg.security.jwt.UserLoginService;
 import com.tfg.tfg.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Tag(name = "Authentication", description = "Authentication management endpoints")
 @RestController
 @RequestMapping("/api/v1/auth")
 public class LoginRestController {
@@ -33,6 +40,21 @@ public class LoginRestController {
         this.userLoginService = userLoginService;
     }
 
+	@Operation(
+		summary = "User login",
+		description = "Authenticates a user with username and password, returns JWT token"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "Login successful",
+			content = @Content(schema = @Schema(implementation = AuthResponse.class))
+		),
+		@ApiResponse(
+			responseCode = "401",
+			description = "Invalid credentials"
+		)
+	})
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(
 			@RequestBody LoginRequest loginRequest,
@@ -41,6 +63,21 @@ public class LoginRestController {
 		return userLoginService.login(loginRequest);
 	}
 
+	@Operation(
+		summary = "Refresh JWT token",
+		description = "Refreshes an expired JWT token using the refresh token cookie"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "Token refreshed successfully",
+			content = @Content(schema = @Schema(implementation = AuthResponse.class))
+		),
+		@ApiResponse(
+			responseCode = "401",
+			description = "Invalid or expired refresh token"
+		)
+	})
 	@PostMapping("/refresh")
 	public ResponseEntity<AuthResponse> refreshToken(
 			@CookieValue(name = "RefreshToken", required = false) String refreshToken, HttpServletResponse response) {
@@ -48,11 +85,36 @@ public class LoginRestController {
 		return userLoginService.refresh(response, refreshToken);
 	}
 
+	@Operation(
+		summary = "User logout",
+		description = "Logs out the current user and invalidates the refresh token"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "Logout successful",
+			content = @Content(schema = @Schema(implementation = AuthResponse.class))
+		)
+	})
 	@PostMapping("/logout")
 	public ResponseEntity<AuthResponse> logOut(HttpServletResponse response) {
 		return ResponseEntity.ok(new AuthResponse(Status.SUCCESS, userLoginService.logout(response)));
 	}
 
+	@Operation(
+		summary = "User registration",
+		description = "Registers a new user in the system"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "201",
+			description = "User registered successfully"
+		),
+		@ApiResponse(
+			responseCode = "400",
+			description = "Invalid user data or username already exists"
+		)
+	})
 	@PostMapping("/register")
 	public ResponseEntity<Map<String, String>> register(@RequestBody UserDTO userDTO) {
 
@@ -64,6 +126,20 @@ public class LoginRestController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
+	@Operation(
+		summary = "Get current user info",
+		description = "Returns basic information about the currently authenticated user"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(
+			responseCode = "200",
+			description = "User information retrieved successfully"
+		),
+		@ApiResponse(
+			responseCode = "401",
+			description = "User not authenticated"
+		)
+	})
 	@GetMapping("/me")
 	public ResponseEntity<Map<String, Object>> me() {
 		var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();

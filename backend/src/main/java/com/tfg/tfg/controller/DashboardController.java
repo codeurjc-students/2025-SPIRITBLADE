@@ -37,7 +37,41 @@ public class DashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     private static final String UNRANKED = "Unranked";
+    private static final String GUEST = "Guest";
+    private static final String UNKNOWN = "Unknown";
+    private static final String SUCCESS_KEY = "success";
+    private static final String MESSAGE_KEY = "message";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    
+    /**
+     * Helper class to encapsulate match processing context
+     */
+    private static class MatchProcessingContext {
+        List<com.tfg.tfg.model.dto.MatchHistoryDTO> sortedMatches;
+        Map<String, MatchEntity> existingMatches;
+        Summoner summoner;
+        String currentTier;
+        String divisionTracker;
+        int lpTracker;
+        Map<String, Integer> lpByMatchId;
+        List<MatchEntity> newMatches;
+        
+        MatchProcessingContext(List<com.tfg.tfg.model.dto.MatchHistoryDTO> sortedMatches,
+                               Map<String, MatchEntity> existingMatches,
+                               Summoner summoner,
+                               String currentTier,
+                               String divisionTracker,
+                               int lpTracker) {
+            this.sortedMatches = sortedMatches;
+            this.existingMatches = existingMatches;
+            this.summoner = summoner;
+            this.currentTier = currentTier;
+            this.divisionTracker = divisionTracker;
+            this.lpTracker = lpTracker;
+            this.lpByMatchId = new java.util.HashMap<>();
+            this.newMatches = new java.util.ArrayList<>();
+        }
+    }
     private static final String DEFAULT_TIER = "UNRANKED";
     private static final String DEFAULT_RANK = "I";
     private static final int MIN_LP = 0;
@@ -85,7 +119,7 @@ public class DashboardController {
     }
     
     /**
-     * Resolves the authenticated username or returns "Guest"
+     * Resolves the authenticated username or returns GUEST
      */
     private String resolveUsername() {
         try {
@@ -96,14 +130,14 @@ public class DashboardController {
         } catch (Exception ex) {
             // ignore and return default
         }
-        return "Guest";
+        return GUEST;
     }
     
     /**
      * Finds the summoner name linked to the authenticated user from UserModel
      */
     private String resolveLinkedSummonerName(String username) {
-        if ("Guest".equals(username)) {
+        if (GUEST.equals(username)) {
             return null;
         }
         
@@ -130,7 +164,7 @@ public class DashboardController {
         } else {
             result.put("currentRank", UNRANKED);
             result.put("lp7days", 0);
-            result.put("mainRole", "Unknown");
+            result.put("mainRole", UNKNOWN);
             result.put("favoriteChampion", null);
         }
     }
@@ -191,9 +225,7 @@ public class DashboardController {
             }
             
             // Calculate the net LP gain/loss
-            int lpDifference = currentLP - firstMatchLP;
-            
-            return lpDifference;
+            return currentLP - firstMatchLP;
         } catch (Exception e) {
             // If calculation fails, return 0
             return 0;
@@ -213,7 +245,7 @@ public class DashboardController {
                     .toList();
             
             if (recentMatches.isEmpty()) {
-                return "Unknown";
+                return UNKNOWN;
             }
             
             // Count occurrences of each lane
@@ -227,12 +259,12 @@ public class DashboardController {
             String mainLane = laneCounts.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .map(Map.Entry::getKey)
-                    .orElse("Unknown");
+                    .orElse(UNKNOWN);
             
             // Format lane name nicely
             return formatLaneName(mainLane);
         } catch (Exception e) {
-            return "Unknown";
+            return UNKNOWN;
         }
     }
     
@@ -241,7 +273,7 @@ public class DashboardController {
      */
     private String formatLaneName(String lane) {
         if (lane == null || lane.isEmpty()) {
-            return "Unknown";
+            return UNKNOWN;
         }
         
         return switch (lane.toUpperCase()) {
@@ -260,7 +292,7 @@ public class DashboardController {
         // Return favorite summoners for the authenticated user
         String username = resolveUsername();
         
-        if ("Guest".equals(username)) {
+        if (GUEST.equals(username)) {
             return ResponseEntity.ok(List.of());
         }
         
@@ -288,31 +320,31 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> addFavorite(@PathVariable String summonerName) {
         String username = resolveUsername();
         
-        if ("Guest".equals(username)) {
-            return ResponseEntity.status(401).body(Map.of("success", false, "message", "User not authenticated"));
+        if (GUEST.equals(username)) {
+            return ResponseEntity.status(401).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not authenticated"));
         }
         
         UserModel user = userRepository.findByName(username).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(404).body(Map.of("success", false, "message", "User not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
         }
         
         // Find summoner by name
         Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
         if (summoner == null) {
-            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Summoner not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
         }
         
         // Check if it's the user's own linked summoner
         if (summonerName.equalsIgnoreCase(user.getLinkedSummonerName())) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Cannot add your own linked account as favorite"));
+            return ResponseEntity.badRequest().body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Cannot add your own linked account as favorite"));
         }
         
         // Add to favorites
         user.addFavoriteSummoner(summoner);
         userRepository.save(user);
         
-        return ResponseEntity.ok(Map.of("success", true, "message", "Summoner added to favorites"));
+        return ResponseEntity.ok(Map.of(SUCCESS_KEY, true, MESSAGE_KEY, "Summoner added to favorites"));
     }
 
     /**
@@ -323,26 +355,26 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> removeFavorite(@PathVariable String summonerName) {
         String username = resolveUsername();
         
-        if ("Guest".equals(username)) {
-            return ResponseEntity.status(401).body(Map.of("success", false, "message", "User not authenticated"));
+        if (GUEST.equals(username)) {
+            return ResponseEntity.status(401).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not authenticated"));
         }
         
         UserModel user = userRepository.findByName(username).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(404).body(Map.of("success", false, "message", "User not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
         }
         
         // Find summoner by name
         Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
         if (summoner == null) {
-            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Summoner not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
         }
         
         // Remove from favorites
         user.removeFavoriteSummoner(summoner);
         userRepository.save(user);
         
-        return ResponseEntity.ok(Map.of("success", true, "message", "Summoner removed from favorites"));
+        return ResponseEntity.ok(Map.of(SUCCESS_KEY, true, MESSAGE_KEY, "Summoner removed from favorites"));
     }
 
     /**
@@ -584,46 +616,22 @@ public class DashboardController {
                 cachedRankedMatches = matchRepository.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
             }
             
-            String queueTypeLog = queueId != null ? (queueId == 420 ? "Solo/Duo" : "Flex") : "All Ranked";
+            String queueTypeLog = determineQueueTypeLog(queueId);
             logger.info("💾 Found {} cached ranked matches ({}) in database for user {}", 
                 cachedRankedMatches.size(), queueTypeLog, username);
             
             // Check if we need to update from API
-            boolean needsUpdate = false;
+            boolean needsUpdate = cachedRankedMatches.isEmpty() 
+                || checkIfCacheNeedsUpdate(cachedRankedMatches, summoner.getPuuid());
             
             if (cachedRankedMatches.isEmpty()) {
                 logger.info("📥 No cached matches, fetching from API");
-                needsUpdate = true;
-            } else {
-                // Get the most recent match from database
-                MatchEntity mostRecentCached = cachedRankedMatches.get(0);
-                String mostRecentMatchId = mostRecentCached.getMatchId();
-                
-                // Check API for the latest match to see if there are new matches
-                try {
-                    List<com.tfg.tfg.model.dto.MatchHistoryDTO> latestFromApi = 
-                        riotService.getMatchHistory(summoner.getPuuid(), 0, 1);
-                    
-                    if (!latestFromApi.isEmpty()) {
-                        String latestApiMatchId = latestFromApi.get(0).getMatchId();
-                        
-                        if (!latestApiMatchId.equals(mostRecentMatchId)) {
-                            logger.info("� New matches detected (latest API: {} vs cached: {}), updating...", 
-                                latestApiMatchId, mostRecentMatchId);
-                            needsUpdate = true;
-                        } else {
-                            logger.info("✅ Cache is up to date, using database data");
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.warn("⚠️ Could not check latest match from API, using cache: {}", e.getMessage());
-                }
             }
             
             // If cache is valid, return from database
             if (!needsUpdate && cachedRankedMatches.size() >= size) {
                 List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = cachedRankedMatches.stream()
-                    .skip(page * size)
+                    .skip((long) page * size)
                     .limit(size)
                     .map(this::convertMatchEntityToDTO)
                     .toList();
@@ -645,20 +653,7 @@ public class DashboardController {
             logger.info("� Fetched {} total matches from API for user {}", allMatches.size(), username);
 
             // Filter by queueId (now available in MatchHistoryDTO)
-            List<com.tfg.tfg.model.dto.MatchHistoryDTO> rankedMatches = allMatches.stream()
-                .filter(match -> {
-                    Integer matchQueueId = match.getQueueId();
-                    if (matchQueueId == null) return false;
-                    
-                    // Filter by requested queue or both ranked queues
-                    if (queueId != null) {
-                        return matchQueueId.equals(queueId);
-                    } else {
-                        return matchQueueId == 420 || matchQueueId == 440;
-                    }
-                })
-                .limit(size)
-                .toList();
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> rankedMatches = filterRankedMatches(allMatches, queueId, size);
             
             logger.info("📊 Filtered to {} ranked matches from {} total (queueId filter: {})", 
                 rankedMatches.size(), allMatches.size(), queueId != null ? queueId : "420 or 440");
@@ -674,7 +669,7 @@ public class DashboardController {
             
         } catch (Exception e) {
             logger.error("Error fetching ranked matches for user {}: {}", username, e.getMessage());
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.status(500).body(List.of());
         }
     }
     
@@ -739,92 +734,25 @@ public class DashboardController {
             int lpTracker = currentLP;
             String divisionTracker = currentDivision;
             
-            // Create map to store calculated LP for each match
-            Map<String, Integer> lpByMatchId = new java.util.HashMap<>();
-            List<MatchEntity> newMatches = new java.util.ArrayList<>();
+            // Create processing context
+            MatchProcessingContext context = new MatchProcessingContext(
+                sortedMatches, existingMatches, summoner, currentTier, divisionTracker, lpTracker);
             
             // Process matches BACKWARDS (newest to oldest) since we're working from current LP
-            for (int i = sortedMatches.size() - 1; i >= 0; i--) {
-                com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO = sortedMatches.get(i);
-                
-                // Check if match already exists
-                MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
-                
-                // If match exists with valid LP data, use it
-                if (existing != null && existing.getLpAtMatch() != null && existing.getLpAtMatch() > 0) {
-                    int existingLP = existing.getLpAtMatch();
-                    lpByMatchId.put(matchDTO.getMatchId(), existingLP);
-                    
-                    logger.debug("📊 Match {} (existing): LP={}", 
-                        matchDTO.getMatchId().substring(Math.max(0, matchDTO.getMatchId().length() - 6)),
-                        existingLP);
-                    continue;
-                }
-                
-                // LP at the START of this match (BEFORE playing it)
-                // This is the value we want to store
-                int lpAtMatchStart = lpTracker;
-                
-                // Now figure out what LP was BEFORE this match (going backwards in time)
-                boolean won = matchDTO.getWin() != null && matchDTO.getWin();
-                // INVERTED because we're going backwards: if they won, we subtract LP
-                int lpChange = won ? -20 : +15;
-                
-                // Apply LP change going backwards
-                lpTracker += lpChange;
-                
-                // Handle division demotion if LP goes below 0
-                while (lpTracker < 0 && canDemote(currentTier, divisionTracker)) {
-                    divisionTracker = demoteDivision(divisionTracker);
-                    lpTracker += 100; // Add 100 LP from previous division
-                    logger.debug("⬇️ Demotion simulated while going backwards: now at {} {}, LP={}", 
-                        currentTier, divisionTracker, lpTracker);
-                }
-                
-                // If we can't demote and LP < 0, clamp to 0 (Iron IV case)
-                if (lpTracker < 0) {
-                    lpTracker = 0;
-                }
-                
-                // Create/update match entity
-                MatchEntity match = existing != null ? existing : new MatchEntity();
-                match.setMatchId(matchDTO.getMatchId());
-                match.setSummoner(summoner);
-                match.setChampionName(matchDTO.getChampionName());
-                match.setWin(matchDTO.getWin());
-                match.setKills(matchDTO.getKills());
-                match.setDeaths(matchDTO.getDeaths());
-                match.setAssists(matchDTO.getAssists());
-                match.setGameDuration(matchDTO.getGameDuration());
-                match.setQueueId(matchDTO.getQueueId());
-                
-                if (matchDTO.getGameTimestamp() != null) {
-                    match.setTimestamp(java.time.LocalDateTime.ofEpochSecond(
-                        matchDTO.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
-                }
-                
-                match.setLpAtMatch(lpAtMatchStart);
-                
-                logger.debug("📊 Match {} (new): Win={}, LPAtStart={}, Change={}, LPBefore={}", 
-                    matchDTO.getMatchId().substring(Math.max(0, matchDTO.getMatchId().length() - 6)),
-                    won, lpAtMatchStart, lpChange, lpTracker);
-                
-                // Store LP for DTO update
-                lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
-                
-                newMatches.add(match);
-            }
+            lpTracker = processMatchesBackwards(context);
             
             logger.info("📈 LP calculation complete: Traced back to approximately {} LP (from current {})", 
-                lpTracker, currentLP);            // Batch save
-            if (!newMatches.isEmpty()) {
-                matchRepository.saveAll(newMatches);
-                logger.info("💾 Batch saved {} new/updated matches with LP tracking", newMatches.size());
+                lpTracker, currentLP);
+            
+            // Batch save
+            if (!context.newMatches.isEmpty()) {
+                matchRepository.saveAll(context.newMatches);
+                logger.info("💾 Batch saved {} new/updated matches with LP tracking", context.newMatches.size());
             }
             
             // Update all input DTOs with calculated LP
             for (com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO : matches) {
-                Integer calculatedLP = lpByMatchId.get(matchDTO.getMatchId());
+                Integer calculatedLP = context.lpByMatchId.get(matchDTO.getMatchId());
                 if (calculatedLP != null) {
                     matchDTO.setLpAtMatch(calculatedLP);
                 }
@@ -846,10 +774,7 @@ public class DashboardController {
             return false;
         }
         // Iron IV is the lowest possible rank
-        if (tier.equals("IRON") && division.equals("IV")) {
-            return false;
-        }
-        return true;
+        return !(tier.equals("IRON") && division.equals("IV"));
     }
     
     /**
@@ -876,16 +801,16 @@ public class DashboardController {
         
         if (linkedSummonerName == null) {
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", "No linked summoner account found"
+                SUCCESS_KEY, false, 
+                MESSAGE_KEY, "No linked summoner account found"
             ));
         }
         
         Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         if (summoner == null || summoner.getPuuid() == null) {
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false, 
-                "message", "Summoner not found or missing PUUID"
+                SUCCESS_KEY, false, 
+                MESSAGE_KEY, "Summoner not found or missing PUUID"
             ));
         }
         
@@ -897,16 +822,183 @@ public class DashboardController {
             int matchCount = matches != null ? matches.size() : 0;
             
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Match history refreshed successfully",
+                SUCCESS_KEY, true,
+                MESSAGE_KEY, "Match history refreshed successfully",
                 "matchesProcessed", matchCount
             ));
         } catch (Exception e) {
             logger.error("Error refreshing matches for summoner {}: {}", linkedSummonerName, e.getMessage());
             return ResponseEntity.status(500).body(Map.of(
-                "success", false,
-                "message", "Failed to refresh match history: " + e.getMessage()
+                SUCCESS_KEY, false,
+                MESSAGE_KEY, "Failed to refresh match history: " + e.getMessage()
             ));
         }
+    }
+    
+    /**
+     * Helper method to determine queue type for logging
+     */
+    private String determineQueueTypeLog(Integer queueId) {
+        if (queueId == null) {
+            return "All Ranked";
+        }
+        return queueId == 420 ? "Solo/Duo" : "Flex";
+    }
+    
+    /**
+     * Helper method to extract the last 6 characters of match ID for logging
+     */
+    private String getMatchIdSuffix(String matchId) {
+        if (matchId == null) {
+            return "null";
+        }
+        return matchId.substring(Math.max(0, matchId.length() - 6));
+    }
+    
+    /**
+     * Helper method to build match entity from DTO
+     */
+    private MatchEntity buildMatchEntity(MatchEntity existing, com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO, 
+                                          Summoner summoner, int lpAtMatchStart) {
+        MatchEntity match = existing != null ? existing : new MatchEntity();
+        match.setMatchId(matchDTO.getMatchId());
+        match.setSummoner(summoner);
+        match.setChampionName(matchDTO.getChampionName());
+        match.setWin(matchDTO.getWin());
+        match.setKills(matchDTO.getKills());
+        match.setDeaths(matchDTO.getDeaths());
+        match.setAssists(matchDTO.getAssists());
+        match.setGameDuration(matchDTO.getGameDuration());
+        match.setQueueId(matchDTO.getQueueId());
+        
+        if (matchDTO.getGameTimestamp() != null) {
+            match.setTimestamp(java.time.LocalDateTime.ofEpochSecond(
+                matchDTO.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
+        }
+        
+        match.setLpAtMatch(lpAtMatchStart);
+        return match;
+    }
+    
+    /**
+     * Helper method to calculate LP change going backwards in time
+     */
+    private int calculateBackwardsLpChange(int lpTracker, boolean won, String currentTier, String divisionTracker) {
+        // INVERTED because we're going backwards: if they won, we subtract LP
+        int lpChange = won ? -20 : +15;
+        int newLpTracker = lpTracker + lpChange;
+        String newDivision = divisionTracker;
+        
+        // Handle division demotion if LP goes below 0
+        while (newLpTracker < 0 && canDemote(currentTier, newDivision)) {
+            newDivision = demoteDivision(newDivision);
+            newLpTracker += 100; // Add 100 LP from previous division
+            logger.debug("⬇️ Demotion simulated while going backwards: now at {} {}, LP={}", 
+                currentTier, newDivision, newLpTracker);
+        }
+        
+        // If we can't demote and LP < 0, clamp to 0 (Iron IV case)
+        if (newLpTracker < 0) {
+            newLpTracker = 0;
+        }
+        
+        return newLpTracker;
+    }
+    
+    /**
+     * Filter matches by ranked queue ID
+     */
+    private List<com.tfg.tfg.model.dto.MatchHistoryDTO> filterRankedMatches(
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches, Integer queueId, int limit) {
+        return matches.stream()
+            .filter(match -> {
+                Integer matchQueueId = match.getQueueId();
+                if (matchQueueId == null) return false;
+                
+                // Filter by requested queue or both ranked queues
+                if (queueId != null) {
+                    return matchQueueId.equals(queueId);
+                } else {
+                    return matchQueueId == 420 || matchQueueId == 440;
+                }
+            })
+            .limit(limit)
+            .toList();
+    }
+    
+    /**
+     * Helper method to check if cached matches need update from API
+     */
+    private boolean checkIfCacheNeedsUpdate(List<MatchEntity> cachedMatches, String puuid) {
+        if (cachedMatches.isEmpty()) {
+            return true;
+        }
+        
+        // Get the most recent match from database
+        MatchEntity mostRecentCached = cachedMatches.get(0);
+        String mostRecentMatchId = mostRecentCached.getMatchId();
+        
+        // Check API for the latest match
+        try {
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> latestFromApi = 
+                riotService.getMatchHistory(puuid, 0, 1);
+            
+            if (!latestFromApi.isEmpty()) {
+                String latestApiMatchId = latestFromApi.get(0).getMatchId();
+                
+                if (!latestApiMatchId.equals(mostRecentMatchId)) {
+                    logger.info("New matches detected (latest API: {} vs cached: {}), updating...", 
+                        latestApiMatchId, mostRecentMatchId);
+                    return true;
+                } else {
+                    logger.info("Cache is up to date, using database data");
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not check latest match from API, using cache: {}", e.getMessage());
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Process matches backwards in time to calculate LP progression
+     * Returns updated lpTracker after processing all matches
+     */
+    private int processMatchesBackwards(MatchProcessingContext ctx) {
+        int updatedLpTracker = ctx.lpTracker;
+        
+        for (int i = ctx.sortedMatches.size() - 1; i >= 0; i--) {
+            com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO = ctx.sortedMatches.get(i);
+            MatchEntity existing = ctx.existingMatches.get(matchDTO.getMatchId());
+            
+            // If match exists with valid LP data, use it
+            if (existing != null && existing.getLpAtMatch() != null && existing.getLpAtMatch() > 0) {
+                ctx.lpByMatchId.put(matchDTO.getMatchId(), existing.getLpAtMatch());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Match {} (existing): LP={}", 
+                        getMatchIdSuffix(matchDTO.getMatchId()), existing.getLpAtMatch());
+                }
+                continue;
+            }
+            
+            // LP at the START of this match
+            int lpAtMatchStart = updatedLpTracker;
+            boolean won = matchDTO.getWin() != null && matchDTO.getWin();
+            int lpChange = won ? -20 : +15;
+            updatedLpTracker = calculateBackwardsLpChange(updatedLpTracker, won, ctx.currentTier, ctx.divisionTracker);
+            
+            // Create/update match entity
+            MatchEntity match = buildMatchEntity(existing, matchDTO, ctx.summoner, lpAtMatchStart);
+            
+            if (logger.isDebugEnabled()) {
+                logger.debug("Match {} (new): Win={}, LPAtStart={}, Change={}, LPBefore={}", 
+                    getMatchIdSuffix(matchDTO.getMatchId()), won, lpAtMatchStart, lpChange, updatedLpTracker);
+            }
+            
+            ctx.lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
+            ctx.newMatches.add(match);
+        }
+        return updatedLpTracker;
     }
 }

@@ -25,6 +25,9 @@ import java.util.UUID;
 @Service
 public class MinioStorageService {
 
+    private static final String ALLOWED_CONTENT_TYPE = "image/png";
+    private static final String PNG_EXTENSION = ".png";
+
     @Value("${minio.endpoint:http://localhost:9000}")
     private String minioEndpoint;
 
@@ -66,10 +69,21 @@ public class MinioStorageService {
             throw new IOException("Cannot store empty file");
         }
 
+        // Validate that only PNG images are allowed
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equalsIgnoreCase(ALLOWED_CONTENT_TYPE)) {
+            throw new IOException("Invalid file type. Only PNG images are allowed. Provided: " + contentType);
+        }
+
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".") 
             ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
             : "";
+        
+        // Ensure extension is .png
+        if (!extension.equalsIgnoreCase(PNG_EXTENSION)) {
+            throw new IOException("Invalid file extension. Only .png files are allowed");
+        }
         
         String uniqueFileName = UUID.randomUUID().toString() + extension;
         String key = folder != null && !folder.isEmpty() 
@@ -77,7 +91,7 @@ public class MinioStorageService {
             : uniqueFileName;
 
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(file.getContentType());
+        metadata.setContentType(ALLOWED_CONTENT_TYPE); // Force PNG content type
         metadata.setContentLength(file.getSize());
 
         try (InputStream inputStream = file.getInputStream()) {
@@ -88,9 +102,19 @@ public class MinioStorageService {
     }
 
     public String store(InputStream inputStream, String fileName, String contentType, String folder) {
+        // Validate that only PNG images are allowed
+        if (contentType == null || !contentType.equalsIgnoreCase(ALLOWED_CONTENT_TYPE)) {
+            throw new IllegalArgumentException("Invalid file type. Only PNG images are allowed. Provided: " + contentType);
+        }
+        
         String extension = fileName.contains(".") 
             ? fileName.substring(fileName.lastIndexOf(".")) 
             : "";
+        
+        // Ensure extension is .png
+        if (!extension.equalsIgnoreCase(PNG_EXTENSION)) {
+            throw new IllegalArgumentException("Invalid file extension. Only .png files are allowed");
+        }
         
         String uniqueFileName = UUID.randomUUID().toString() + extension;
         String key = folder != null && !folder.isEmpty() 
@@ -98,7 +122,7 @@ public class MinioStorageService {
             : uniqueFileName;
 
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(contentType);
+        metadata.setContentType(ALLOWED_CONTENT_TYPE); // Force PNG content type
 
         s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, metadata));
 

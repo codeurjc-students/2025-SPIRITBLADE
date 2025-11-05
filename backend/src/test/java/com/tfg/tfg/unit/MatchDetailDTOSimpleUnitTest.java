@@ -64,6 +64,7 @@ class MatchDetailDTOSimpleUnitTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5976") // Tests intentionally kept simple and readable
     void testGetFormattedDuration_WithValidDuration() {
         MatchDetailDTO dto = new MatchDetailDTO();
         dto.setGameDuration(1865L); // 31 minutes and 5 seconds

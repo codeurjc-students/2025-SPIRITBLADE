@@ -26,6 +26,8 @@ public class FileController {
     private static final String SUCCESS_KEY = "success";
     private static final String MESSAGE_KEY = "message";
     private static final String FILE_ID_KEY = "fileId";
+    private static final String ERROR_KEY = "error";
+    private static final String FALSE_VALUE = "false";
     private static final String ALLOWED_CONTENT_TYPE = "image/png";
 
     private final MinioStorageService storageService;
@@ -48,10 +50,10 @@ public class FileController {
         try {
             // Validate file type - only PNG allowed
             String contentType = file.getContentType();
-            if (contentType == null || !ALLOWED_CONTENT_TYPE.equals(contentType.toLowerCase())) {
+            if (contentType == null || !ALLOWED_CONTENT_TYPE.equalsIgnoreCase(contentType)) {
                 Map<String, String> error = new HashMap<>();
-                error.put(SUCCESS_KEY, "false");
-                error.put("error", "Invalid file type. Only PNG images are allowed");
+                error.put(SUCCESS_KEY, FALSE_VALUE);
+                error.put(ERROR_KEY, "Invalid file type. Only PNG images are allowed");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
             }
             
@@ -66,8 +68,8 @@ public class FileController {
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
-            error.put(SUCCESS_KEY, "false");
-            error.put("error", e.getMessage());
+            error.put(SUCCESS_KEY, FALSE_VALUE);
+            error.put(ERROR_KEY, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -83,25 +85,17 @@ public class FileController {
             @PathVariable String filename) {
         
         try {
+            // Only PNG images are allowed in MinIO
+            String lowerFilename = filename.toLowerCase();
+            if (!lowerFilename.endsWith(".png")) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
+            }
+            
             String fileId = folder + "/" + filename;
             InputStream inputStream = storageService.retrieve(fileId);
             
             HttpHeaders headers = new HttpHeaders();
-            
-            // Determine content type based on file extension (case-insensitive)
-            String contentType = "application/octet-stream";
-            String lowerFilename = filename.toLowerCase();
-            if (lowerFilename.endsWith(".jpg") || lowerFilename.endsWith(".jpeg")) {
-                contentType = "image/jpeg";
-            } else if (lowerFilename.endsWith(".png")) {
-                contentType = "image/png";
-            } else if (lowerFilename.endsWith(".gif")) {
-                contentType = "image/gif";
-            } else if (lowerFilename.endsWith(".webp")) {
-                contentType = "image/webp";
-            }
-            
-            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentType(MediaType.parseMediaType(ALLOWED_CONTENT_TYPE));
             
             return ResponseEntity.ok()
                     .headers(headers)
@@ -119,24 +113,16 @@ public class FileController {
     @GetMapping("/{filename:.+}")
     public ResponseEntity<InputStreamResource> getFileFromRoot(@PathVariable String filename) {
         try {
+            // Only PNG images are allowed in MinIO
+            String lowerFilename = filename.toLowerCase();
+            if (!lowerFilename.endsWith(".png")) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
+            }
+            
             InputStream inputStream = storageService.retrieve(filename);
             
             HttpHeaders headers = new HttpHeaders();
-            
-            // Determine content type based on file extension (case-insensitive)
-            String contentType = "application/octet-stream";
-            String lowerFilename = filename.toLowerCase();
-            if (lowerFilename.endsWith(".jpg") || lowerFilename.endsWith(".jpeg")) {
-                contentType = "image/jpeg";
-            } else if (lowerFilename.endsWith(".png")) {
-                contentType = "image/png";
-            } else if (lowerFilename.endsWith(".gif")) {
-                contentType = "image/gif";
-            } else if (lowerFilename.endsWith(".webp")) {
-                contentType = "image/webp";
-            }
-            
-            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentType(MediaType.parseMediaType(ALLOWED_CONTENT_TYPE));
             
             return ResponseEntity.ok()
                     .headers(headers)
@@ -163,8 +149,8 @@ public class FileController {
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
-            error.put(SUCCESS_KEY, "false");
-            error.put("error", e.getMessage());
+            error.put(SUCCESS_KEY, FALSE_VALUE);
+            error.put(ERROR_KEY, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
