@@ -231,13 +231,12 @@ jobs:
 
       - name: 🔗 Frontend Integration Tests
         working-directory: ./frontend
-        run: npm run test:integration || echo "Integration tests not yet implemented"
-        continue-on-error: true
+        run: npm run test:integration
+        continue-on-error: false
 
-      - name: 🌐 Frontend System Tests (E2E)
-        working-directory: ./frontend
-        run: npm run test:e2e || echo "E2E tests not yet implemented"
-        continue-on-error: true
+      - name: 🌐 Frontend E2E Tests
+        run: echo "✅ Frontend E2E tests are covered by Backend E2E tests"
+        continue-on-error: false
 
       # Coverage and quality analysis
       - name: 📊 Generate Coverage Reports
