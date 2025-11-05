@@ -23,6 +23,11 @@ import java.util.Map;
 @CrossOrigin(origins = "*", allowCredentials = "false")
 public class FileController {
 
+    private static final String SUCCESS_KEY = "success";
+    private static final String MESSAGE_KEY = "message";
+    private static final String FILE_ID_KEY = "fileId";
+    private static final String ALLOWED_CONTENT_TYPE = "image/png";
+
     private final MinioStorageService storageService;
 
     public FileController(MinioStorageService storageService) {
@@ -30,7 +35,7 @@ public class FileController {
     }
 
     /**
-     * Upload a file
+     * Upload a file (only PNG images allowed)
      * @param file The file to upload
      * @param folder Optional folder to organize files
      * @return JSON response with file URL
@@ -41,18 +46,27 @@ public class FileController {
             @RequestParam(value = "folder", required = false) String folder) {
         
         try {
+            // Validate file type - only PNG allowed
+            String contentType = file.getContentType();
+            if (contentType == null || !ALLOWED_CONTENT_TYPE.equals(contentType.toLowerCase())) {
+                Map<String, String> error = new HashMap<>();
+                error.put(SUCCESS_KEY, "false");
+                error.put("error", "Invalid file type. Only PNG images are allowed");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+            
             String fileIdentifier = storageService.store(file, folder);
             String publicUrl = storageService.getPublicUrl(fileIdentifier);
             
             Map<String, String> response = new HashMap<>();
-            response.put("success", "true");
-            response.put("fileId", fileIdentifier);
+            response.put(SUCCESS_KEY, "true");
+            response.put(FILE_ID_KEY, fileIdentifier);
             response.put("url", publicUrl);
             
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
-            error.put("success", "false");
+            error.put(SUCCESS_KEY, "false");
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
@@ -143,13 +157,13 @@ public class FileController {
             storageService.delete(fileId);
             
             Map<String, String> response = new HashMap<>();
-            response.put("success", "true");
-            response.put("message", "File deleted successfully");
+            response.put(SUCCESS_KEY, "true");
+            response.put(MESSAGE_KEY, "File deleted successfully");
             
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
-            error.put("success", "false");
+            error.put(SUCCESS_KEY, "false");
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }

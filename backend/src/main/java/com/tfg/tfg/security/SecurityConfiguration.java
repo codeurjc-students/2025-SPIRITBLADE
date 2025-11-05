@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,6 +29,7 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
 	private final JwtRequestFilter jwtRequestFilter;
@@ -96,8 +98,8 @@ public class SecurityConfiguration {
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 					// Allow unauthenticated POSTs to auth endpoints (login/register)
 					.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-					// Allow unauthenticated GETs for summoner lookup
-					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
+					// Allow unauthenticated GETs for specific summoner lookup by name
+					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/name/**").permitAll()
 					// Allow public access to file serving endpoints (avatars, images, etc.)
 					.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
 					// Any other request to /api/v1/** requires authentication

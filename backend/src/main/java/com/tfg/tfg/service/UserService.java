@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.tfg.tfg.exception.UserAlreadyExistsException;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -26,11 +27,11 @@ public class UserService {
 
     public UserModel createUser(UserDTO userDTO) {
         if (userDTO == null || userDTO.getName() == null || userDTO.getPassword() == null) {
-            throw new IllegalArgumentException("Invalid user payload");
+            throw new IllegalArgumentException("User data is required. Username and password cannot be null");
         }
 
         if (userRepository.findByName(userDTO.getName()).isPresent()) {
-            throw new IllegalStateException("User already exists");
+            throw new UserAlreadyExistsException("User with username '" + userDTO.getName() + "' already exists");
         }
 
         UserModel user = new UserModel();

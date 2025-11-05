@@ -39,6 +39,7 @@ public class RiotMatchDTO {
         private String gameMode;
         private String gameType;
         private String gameVersion;
+        private Integer queueId;
         private List<ParticipantDTO> participants;
         private List<TeamDTO> teams;
 
@@ -62,6 +63,9 @@ public class RiotMatchDTO {
 
         public String getGameVersion() { return gameVersion; }
         public void setGameVersion(String gameVersion) { this.gameVersion = gameVersion; }
+
+        public Integer getQueueId() { return queueId; }
+        public void setQueueId(Integer queueId) { this.queueId = queueId; }
 
         public List<ParticipantDTO> getParticipants() { return participants; }
         public void setParticipants(List<ParticipantDTO> participants) { this.participants = participants; }

@@ -30,9 +30,10 @@ describe('UserService - Unit Tests', () => {
       // Arrange
       const mockUser: User = {
         id: 1,
-        username: 'testuser',
+        name: 'testuser',
         email: 'test@example.com',
-        role: 'USER'
+        roles: ['USER'],
+        active: true
       };
 
       // Act
@@ -80,14 +81,15 @@ describe('UserService - Unit Tests', () => {
     it('should update user profile', () => {
       // Arrange
       const updatePayload: Partial<User> = {
-        username: 'updateduser',
+        name: 'updateduser',
         email: 'updated@example.com'
       };
       const updatedUser: User = {
         id: 1,
-        username: 'updateduser',
+        name: 'updateduser',
         email: 'updated@example.com',
-        role: 'USER'
+        roles: ['USER'],
+        active: true
       };
 
       // Act
@@ -125,7 +127,7 @@ describe('UserService - Unit Tests', () => {
     it('should handle username conflict', () => {
       // Arrange
       const conflictPayload: Partial<User> = {
-        username: 'existinguser'
+        name: 'existinguser'
       };
 
       // Act
@@ -148,15 +150,17 @@ describe('UserService - Unit Tests', () => {
       const mockUsers: User[] = [
         {
           id: 1,
-          username: 'user1',
+          name: 'user1',
           email: 'user1@example.com',
-          role: 'USER'
+          roles: ['USER'],
+          active: true
         },
         {
           id: 2,
-          username: 'admin1',
+          name: 'admin1',
           email: 'admin1@example.com',
-          role: 'ADMIN'
+          roles: ['ADMIN'],
+          active: true
         }
       ];
 

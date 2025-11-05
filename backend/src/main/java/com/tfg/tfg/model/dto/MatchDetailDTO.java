@@ -9,6 +9,7 @@ public class MatchDetailDTO {
     private String gameMode;
     private String gameType;
     private String gameVersion;
+    private Integer queueId;
     
     private List<TeamDTO> teams;
     private List<ParticipantDTO> participants;
@@ -69,6 +70,14 @@ public class MatchDetailDTO {
 
     public void setGameVersion(String gameVersion) {
         this.gameVersion = gameVersion;
+    }
+
+    public Integer getQueueId() {
+        return queueId;
+    }
+
+    public void setQueueId(Integer queueId) {
+        this.queueId = queueId;
     }
 
     public List<TeamDTO> getTeams() {

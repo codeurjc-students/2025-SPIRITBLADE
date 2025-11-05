@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable } from 'rxjs';
+import { MatchHistory } from '../dto/match-history.model';
 
 export interface RankHistoryEntry {
   date: string;
@@ -30,5 +31,20 @@ export class DashboardService {
    */
   getRankHistory(): Observable<RankHistoryEntry[]> {
     return this.http.get<RankHistoryEntry[]>(`${API_URL}/dashboard/me/rank-history`, { withCredentials: true });
+  }
+
+  /**
+   * Get ranked match history for the linked summoner
+   * Returns only RANKED matches (Solo/Duo and Flex)
+   * @param page Page number
+   * @param size Number of matches per page (default: 100)
+   * @param queueId Optional queue filter (420=Solo/Duo, 440=Flex, null=All)
+   */
+  getRankedMatches(page: number = 0, size: number = 100, queueId: number | null = null): Observable<MatchHistory[]> {
+    let url = `${API_URL}/dashboard/me/ranked-matches?page=${page}&size=${size}`;
+    if (queueId !== null) {
+      url += `&queueId=${queueId}`;
+    }
+    return this.http.get<MatchHistory[]>(url, { withCredentials: true });
   }
 }

@@ -1,5 +1,8 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.exception.InvalidFileException;
+import com.tfg.tfg.exception.StorageException;
+import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.storage.MinioStorageService;
@@ -23,7 +26,7 @@ public class UserAvatarService {
         "image/png"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5MB
 
     public UserAvatarService(MinioStorageService storageService, UserModelRepository userRepository) {
         this.storageService = storageService;
@@ -35,16 +38,16 @@ public class UserAvatarService {
      * @param username The username
      * @param file The avatar image file
      * @return The public URL of the uploaded avatar
-     * @throws IOException if upload fails
-     * @throws IllegalArgumentException if file is invalid
+     * @throws StorageException if upload fails
+     * @throws InvalidFileException if file is invalid
      */
-    public String uploadAvatar(String username, MultipartFile file) throws IOException {
+    public String uploadAvatar(String username, MultipartFile file) {
         // Validate file
         validateAvatarFile(file);
 
         // Get user
         UserModel user = userRepository.findByName(username)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+            .orElseThrow(() -> new UserNotFoundException("User '" + username + "' not found"));
 
         // Delete old avatar if exists
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
@@ -52,12 +55,17 @@ public class UserAvatarService {
                 deleteAvatarByUrl(user.getAvatarUrl());
             } catch (Exception e) {
                 // Log but don't fail if old avatar deletion fails
-                System.err.println("Failed to delete old avatar: " + e.getMessage());
+                // Old avatar will be orphaned but user can still upload new one
             }
         }
 
         // Store new avatar
-        String fileId = storageService.store(file, "avatars");
+        String fileId;
+        try {
+            fileId = storageService.store(file, "avatars");
+        } catch (IOException e) {
+            throw new StorageException("Failed to upload avatar file: " + e.getMessage(), e);
+        }
         String publicUrl = storageService.getPublicUrl(fileId);
 
         // Update user with avatar URL (update both fields for compatibility)
@@ -71,14 +79,18 @@ public class UserAvatarService {
     /**
      * Delete user avatar
      * @param username The username
-     * @throws IOException if deletion fails
+     * @throws StorageException if deletion fails
      */
-    public void deleteAvatar(String username) throws IOException {
+    public void deleteAvatar(String username) {
         UserModel user = userRepository.findByName(username)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+            .orElseThrow(() -> new UserNotFoundException("User '" + username + "' not found"));
 
         if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
-            deleteAvatarByUrl(user.getAvatarUrl());
+            try {
+                deleteAvatarByUrl(user.getAvatarUrl());
+            } catch (IOException e) {
+                throw new StorageException("Failed to delete avatar file: " + e.getMessage(), e);
+            }
             user.setAvatarUrl(null);
             user.setImage(null); // Also clear image field
             userRepository.save(user);
@@ -88,32 +100,32 @@ public class UserAvatarService {
     /**
      * Validate avatar file
      * @param file The file to validate
-     * @throws IllegalArgumentException if file is invalid
+     * @throws InvalidFileException if file is invalid
      */
     private void validateAvatarFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is required");
+            throw new InvalidFileException("File is required");
         }
 
         // Check content type
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException(
-                "Invalid file type. Allowed types: " + String.join(", ", ALLOWED_CONTENT_TYPES)
+            throw new InvalidFileException(
+                "Invalid file type. Only PNG images are allowed"
             );
         }
 
         // Check file size
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException(
-                "File size exceeds maximum allowed size of " + (MAX_FILE_SIZE / 1024 / 1024) + "MB"
+            throw new InvalidFileException(
+                "File size exceeds maximum allowed size of 5MB"
             );
         }
 
         // Check filename
         String filename = file.getOriginalFilename();
         if (filename == null || filename.isEmpty()) {
-            throw new IllegalArgumentException("Filename is required");
+            throw new InvalidFileException("Filename is required");
         }
     }
 
@@ -123,8 +135,7 @@ public class UserAvatarService {
      * @throws IOException if deletion fails
      */
     private void deleteAvatarByUrl(String avatarUrl) throws IOException {
-        // Extract file identifier from URL
-        // Assuming URL format: https://localhost:443/api/v1/files/{fileId}
+        // Extract file identifier from URL (format: https://localhost:443/api/v1/files/{fileId})
         String fileId = avatarUrl.substring(avatarUrl.lastIndexOf("/files/") + 7);
         storageService.delete(fileId);
     }

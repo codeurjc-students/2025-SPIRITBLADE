@@ -2,7 +2,6 @@ package com.tfg.tfg.security.jwt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +29,7 @@ public class UserLoginService {
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
-	public ResponseEntity<AuthResponse> login(HttpServletResponse response, LoginRequest loginRequest) {
+	public ResponseEntity<AuthResponse> login(LoginRequest loginRequest) {
 		
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));

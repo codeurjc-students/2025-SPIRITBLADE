@@ -31,4 +31,44 @@ public interface MatchRepository extends JpaRepository<MatchEntity, Long> {
      * Find recent matches for a summoner with pagination support
      */
     List<MatchEntity> findBySummonerOrderByTimestampDesc(Summoner summoner);
+    
+    /**
+     * Find the most recent match for a summoner
+     */
+    MatchEntity findFirstBySummonerOrderByTimestampDesc(Summoner summoner);
+    
+    /**
+     * Find a specific match by matchId
+     */
+    MatchEntity findByMatchId(String matchId);
+    
+    /**
+     * Find multiple matches by their matchIds (for batch loading)
+     */
+    @Query("SELECT m FROM MatchEntity m WHERE m.matchId IN :matchIds")
+    List<MatchEntity> findByMatchIdIn(@Param("matchIds") List<String> matchIds);
+    
+    /**
+     * Find ranked matches by queueId (420 = Solo/Duo, 440 = Flex)
+     * Uses JOIN FETCH to avoid N+1 query problem
+     */
+    @Query("SELECT DISTINCT m FROM MatchEntity m " +
+        "LEFT JOIN FETCH m.summoner " +
+        "WHERE m.summoner = :summoner " +
+        "AND (m.queueId = 420 OR m.queueId = 440) " +
+        "ORDER BY m.timestamp DESC")
+    List<MatchEntity> findRankedMatchesBySummonerOrderByTimestampDesc(@Param("summoner") Summoner summoner);
+    
+    /**
+     * Find ranked matches for a specific queue type
+     * Uses JOIN FETCH to avoid N+1 query problem
+     */
+    @Query("SELECT DISTINCT m FROM MatchEntity m " +
+        "LEFT JOIN FETCH m.summoner " +
+        "WHERE m.summoner = :summoner " +
+        "AND m.queueId = :queueId " +
+        "ORDER BY m.timestamp DESC")
+    List<MatchEntity> findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(
+        @Param("summoner") Summoner summoner, 
+        @Param("queueId") Integer queueId);
 }

@@ -22,6 +22,8 @@ public class Summoner {
     private Long id;
 
     private String riotId;
+    
+    @Column(unique = true, nullable = false)
     private String puuid;
     
     @Column(name = "`name`")

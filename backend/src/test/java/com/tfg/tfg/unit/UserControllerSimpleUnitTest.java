@@ -375,12 +375,12 @@ class UserControllerSimpleUnitTest {
         userDTO.setName("existinguser");
         userDTO.setPassword("password123");
 
-        doThrow(new IllegalStateException("User already exists"))
+        doThrow(new com.tfg.tfg.exception.UserAlreadyExistsException("User already exists"))
             .when(userService).createUser(any(UserDTO.class));
 
-        ResponseEntity<UserDTO> response = userController.createUser(userDTO);
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        // Exception will be caught by GlobalExceptionHandler in real application
+        assertThrows(com.tfg.tfg.exception.UserAlreadyExistsException.class, 
+            () -> userController.createUser(userDTO));
         verify(userService).createUser(any(UserDTO.class));
     }
 
@@ -389,12 +389,12 @@ class UserControllerSimpleUnitTest {
         UserDTO userDTO = new UserDTO();
         userDTO.setName(null);
 
-        doThrow(new IllegalArgumentException("Invalid user payload"))
+        doThrow(new IllegalArgumentException("User data is required. Username and password cannot be null"))
             .when(userService).createUser(any(UserDTO.class));
 
-        ResponseEntity<UserDTO> response = userController.createUser(userDTO);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        // Exception will be caught by GlobalExceptionHandler in real application
+        assertThrows(IllegalArgumentException.class, 
+            () -> userController.createUser(userDTO));
         verify(userService).createUser(any(UserDTO.class));
     }
 
@@ -424,7 +424,7 @@ class UserControllerSimpleUnitTest {
     }
 
     @Test
-    void testUploadAvatarSuccess() throws Exception {
+    void testUploadAvatarSuccess() {
         // Arrange
         String username = "testuser";
         String avatarUrl = "/api/v1/files/avatars/test-avatar.png";
@@ -462,15 +462,15 @@ class UserControllerSimpleUnitTest {
     }
 
     @Test
-    void testUploadAvatarInvalidFileType() throws Exception {
+    void testUploadAvatarInvalidFileType() {
         // Arrange
         String username = "testuser";
         
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
         
-        // Mock the service to throw IllegalArgumentException for invalid file type
+        // Mock the service to throw InvalidFileException for invalid file type
         when(userAvatarService.uploadAvatar(eq(username), any()))
-            .thenThrow(new IllegalArgumentException("Invalid file type. Allowed types: image/png"));
+            .thenThrow(new com.tfg.tfg.exception.InvalidFileException("Only PNG images are allowed"));
         
         try (MockedStatic<org.springframework.security.core.context.SecurityContextHolder> mockedSecurityContextHolder = 
                 mockStatic(org.springframework.security.core.context.SecurityContextHolder.class)) {
@@ -485,24 +485,22 @@ class UserControllerSimpleUnitTest {
             when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
-            // Act
-            ResponseEntity<?> response = userController.uploadAvatar(mockFile);
-            
-            // Assert
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            // Act & Assert - Exception will be caught by GlobalExceptionHandler in real application
+            assertThrows(com.tfg.tfg.exception.InvalidFileException.class, 
+                () -> userController.uploadAvatar(mockFile));
         }
     }
 
     @Test
-    void testUploadAvatarFileTooLarge() throws Exception {
+    void testUploadAvatarFileTooLarge() {
         // Arrange
         String username = "testuser";
         
         org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
         
-        // Mock the service to throw IllegalArgumentException for file too large
+        // Mock the service to throw InvalidFileException for file too large
         when(userAvatarService.uploadAvatar(eq(username), any()))
-            .thenThrow(new IllegalArgumentException("File size exceeds maximum allowed size of 5MB"));
+            .thenThrow(new com.tfg.tfg.exception.InvalidFileException("File size exceeds maximum allowed size of 5MB"));
         
         try (MockedStatic<org.springframework.security.core.context.SecurityContextHolder> mockedSecurityContextHolder = 
                 mockStatic(org.springframework.security.core.context.SecurityContextHolder.class)) {
@@ -517,16 +515,14 @@ class UserControllerSimpleUnitTest {
             when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getName()).thenReturn(username);
             
-            // Act
-            ResponseEntity<?> response = userController.uploadAvatar(mockFile);
-            
-            // Assert
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            // Act & Assert - Exception will be caught by GlobalExceptionHandler in real application
+            assertThrows(com.tfg.tfg.exception.InvalidFileException.class, 
+                () -> userController.uploadAvatar(mockFile));
         }
     }
 
     @Test
-    void testDeleteAvatarSuccess() throws Exception {
+    void testDeleteAvatarSuccess() {
         // Arrange
         String username = "testuser";
         

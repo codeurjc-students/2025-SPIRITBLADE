@@ -87,7 +87,7 @@ public class MinioStorageService {
         return key;
     }
 
-    public String store(InputStream inputStream, String fileName, String contentType, String folder) throws IOException {
+    public String store(InputStream inputStream, String fileName, String contentType, String folder) {
         String extension = fileName.contains(".") 
             ? fileName.substring(fileName.lastIndexOf(".")) 
             : "";

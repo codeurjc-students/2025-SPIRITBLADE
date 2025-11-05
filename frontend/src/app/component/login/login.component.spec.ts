@@ -74,7 +74,12 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should login successfully and redirect', (done) => {
       // Arrange
-      const mockResponse = { token: 'mock-jwt-token' };
+      const mockResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
       mockAuthService.login.and.returnValue(of(mockResponse));
 
       // Act
@@ -185,7 +190,12 @@ describe('LoginComponent - Unit Tests', () => {
     it('should register successfully and auto-login', (done) => {
       // Arrange
       const mockRegisterResponse = { id: 1, username: 'newuser' };
-      const mockLoginResponse = { token: 'mock-jwt-token' };
+      const mockLoginResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
       
       mockAuthService.register.and.returnValue(of(mockRegisterResponse));
       mockAuthService.login.and.returnValue(of(mockLoginResponse));

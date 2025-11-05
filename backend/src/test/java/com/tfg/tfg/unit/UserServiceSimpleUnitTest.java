@@ -81,7 +81,7 @@ class UserServiceSimpleUnitTest {
         UserModel existingUser = new UserModel("existinguser", "password", "USER");
         when(userRepository.findByName("existinguser")).thenReturn(Optional.of(existingUser));
 
-        assertThrows(IllegalStateException.class, () -> userService.createUser(userDTO));
+        assertThrows(com.tfg.tfg.exception.UserAlreadyExistsException.class, () -> userService.createUser(userDTO));
         verify(userRepository).findByName("existinguser");
         verify(userRepository, never()).save(any(UserModel.class));
     }

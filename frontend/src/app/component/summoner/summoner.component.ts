@@ -121,6 +121,7 @@ export class SummonerComponent implements OnInit {
 				this.hasMoreMatches = matches.length === this.matchPageSize;
 				this.currentMatchPage = page;
 				this.loadingMatches = false;
+				console.log(`Loaded match history for summoner ${name}:`, this.matchHistory);
 			},
 			error: err => {
 				console.debug('Error loading match history:', err);
@@ -228,6 +229,7 @@ export class SummonerComponent implements OnInit {
 			next: details => {
 				this.matchDetails.set(matchId, details);
 				this.loadingMatchDetails.delete(matchId);
+				console.log(`Loaded details for match ${matchId}:`, details);
 			},
 			error: err => {
 				console.debug('Error loading match details:', err);

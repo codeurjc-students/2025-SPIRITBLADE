@@ -36,6 +36,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
+    private static final String SUCCESS_KEY = "success";
+    private static final String MESSAGE_KEY = "message";
+    private static final String REGION_KEY = "region";
+    private static final String USER_NOT_FOUND_MSG = "User not found";
+
     private final UserModelRepository userRepository;
     private final UserService userService;
     private final RiotService riotService;
@@ -95,6 +100,7 @@ public class UserController {
      * @param id User ID
      * @return User data
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return userRepository.findById(id)
@@ -126,17 +132,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        try {
-            userService.createUser(userDTO);
-            return userRepository.findByName(userDTO.getName())
-                .map(UserMapper::toDTO)
-                .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        // Exceptions are handled by GlobalExceptionHandler
+        userService.createUser(userDTO);
+        return userRepository.findByName(userDTO.getName())
+            .map(UserMapper::toDTO)
+            .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
     /**
@@ -220,6 +221,31 @@ public class UserController {
      * 
      * @return Current user data with avatar URL
      */
+    @PutMapping("/me")
+    public ResponseEntity<UserDTO> updateMyProfile(@RequestBody UserDTO userDTO) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String username = auth.getName();
+        
+        return userRepository.findByName(username)
+            .map(user -> {
+                // Update fields
+                if (userDTO.getEmail() != null) {
+                    user.setEmail(userDTO.getEmail());
+                }
+                if (userDTO.getAvatarUrl() != null) {
+                    user.setAvatarUrl(userDTO.getAvatarUrl());
+                }
+                
+                UserModel updatedUser = userRepository.save(user);
+                return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -261,12 +287,12 @@ public class UserController {
 
         String username = auth.getName();
         String summonerName = request.get("summonerName");
-        String region = request.get("region");
+        String region = request.get(REGION_KEY);
 
         if (summonerName == null || summonerName.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", "Summoner name is required");
+            error.put(SUCCESS_KEY, false);
+            error.put(MESSAGE_KEY, "Summoner name is required");
             return ResponseEntity.badRequest().body(error);
         }
 
@@ -280,14 +306,14 @@ public class UserController {
             
             if (summoner == null) {
                 Map<String, Object> error = new HashMap<>();
-                error.put("success", false);
-                error.put("message", "Summoner not found");
+                error.put(SUCCESS_KEY, false);
+                error.put(MESSAGE_KEY, "Summoner not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
             }
             
             // Update user with linked summoner info
             UserModel user = userRepository.findByName(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
             
             user.setLinkedSummonerPuuid(summoner.getPuuid());
             user.setLinkedSummonerName(summoner.getName());
@@ -295,21 +321,21 @@ public class UserController {
             userRepository.save(user);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Account linked successfully");
+            response.put(SUCCESS_KEY, true);
+            response.put(MESSAGE_KEY, "Account linked successfully");
             response.put("linkedSummoner", Map.of(
                 "name", summoner.getName(),
                 "level", summoner.getLevel(),
                 "profileIcon", summoner.getProfileIconId(),
-                "region", region
+                REGION_KEY, region
             ));
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", "Failed to link account: " + e.getMessage());
+            error.put(SUCCESS_KEY, false);
+            error.put(MESSAGE_KEY, "Failed to link account: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
@@ -330,7 +356,7 @@ public class UserController {
         
         try {
             UserModel user = userRepository.findByName(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
             
             user.setLinkedSummonerPuuid(null);
             user.setLinkedSummonerName(null);
@@ -338,15 +364,15 @@ public class UserController {
             userRepository.save(user);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Account unlinked successfully");
+            response.put(SUCCESS_KEY, true);
+            response.put(MESSAGE_KEY, "Account unlinked successfully");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", "Failed to unlink account: " + e.getMessage());
+            error.put(SUCCESS_KEY, false);
+            error.put(MESSAGE_KEY, "Failed to unlink account: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -367,14 +393,14 @@ public class UserController {
         
         try {
             UserModel user = userRepository.findByName(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
             
             Map<String, Object> response = new HashMap<>();
             
             if (user.getLinkedSummonerPuuid() != null) {
                 response.put("linked", true);
                 response.put("summonerName", user.getLinkedSummonerName());
-                response.put("region", user.getLinkedSummonerRegion());
+                response.put(REGION_KEY, user.getLinkedSummonerRegion());
                 response.put("puuid", user.getLinkedSummonerPuuid());
             } else {
                 response.put("linked", false);
@@ -402,28 +428,15 @@ public class UserController {
 
         String username = auth.getName();
 
-        try {
-            String avatarUrl = userAvatarService.uploadAvatar(username, file);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Avatar uploaded successfully");
-            response.put("avatarUrl", avatarUrl);
+        // Exceptions are handled by GlobalExceptionHandler
+        String avatarUrl = userAvatarService.uploadAvatar(username, file);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put(SUCCESS_KEY, true);
+        response.put(MESSAGE_KEY, "Avatar uploaded successfully");
+        response.put("avatarUrl", avatarUrl);
 
-            return ResponseEntity.ok(response);
-
-        } catch (IllegalArgumentException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", "Failed to upload avatar: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -440,20 +453,13 @@ public class UserController {
 
         String username = auth.getName();
 
-        try {
-            userAvatarService.deleteAvatar(username);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Avatar deleted successfully");
+        // Exceptions are handled by GlobalExceptionHandler
+        userAvatarService.deleteAvatar(username);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put(SUCCESS_KEY, true);
+        response.put(MESSAGE_KEY, "Avatar deleted successfully");
 
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("message", "Failed to delete avatar: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.ok(response);
     }
 }

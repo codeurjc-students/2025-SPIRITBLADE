@@ -1,13 +1,40 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AdminComponent } from './admin.component';
+import { AdminService } from '../../service/admin.service';
+import { of } from 'rxjs';
 
 describe('AdminComponent - Unit Tests', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
+  let mockAdminService: jasmine.SpyObj<AdminService>;
 
   beforeEach(async () => {
+    mockAdminService = jasmine.createSpyObj('AdminService', [
+      'getUsers',
+      'getUserById',
+      'createUser',
+      'updateUser',
+      'deleteUser',
+      'toggleUserActive'
+    ]);
+
+    // Setup default mock responses
+    mockAdminService.getUsers.and.returnValue(of({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: 10,
+      number: 0,
+      first: true,
+      last: true,
+      empty: true
+    }));
+
     await TestBed.configureTestingModule({
-      imports: [AdminComponent]
+      imports: [AdminComponent],
+      providers: [
+        { provide: AdminService, useValue: mockAdminService }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminComponent);

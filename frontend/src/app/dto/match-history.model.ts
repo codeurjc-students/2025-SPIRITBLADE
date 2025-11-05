@@ -8,4 +8,6 @@ export interface MatchHistory {
   assists?: number;
   gameDuration?: number;
   gameTimestamp?: number;
+  lpAtMatch?: number; // Approximate LP at this match
+  queueId?: number; // 420=Solo/Duo, 440=Flex, etc.
 }

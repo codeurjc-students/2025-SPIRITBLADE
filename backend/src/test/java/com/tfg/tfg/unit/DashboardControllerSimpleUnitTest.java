@@ -24,11 +24,13 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.RankHistoryDTO;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.MatchEntity;
+import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.MatchRepository;
+import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.RiotService;
 
-import org.springframework.data.domain.PageRequest;
 import java.time.LocalDateTime;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +46,12 @@ class DashboardControllerSimpleUnitTest {
     private MatchRepository matchRepository;
 
     @Mock
+    private UserModelRepository userRepository;
+    
+    @Mock
+    private DataDragonService dataDragonService;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock
@@ -53,19 +61,23 @@ class DashboardControllerSimpleUnitTest {
 
     @BeforeEach
     void setUp() {
-        dashboardController = new DashboardController(summonerRepository, riotService, matchRepository);
+        dashboardController = new DashboardController(summonerRepository, riotService, matchRepository, userRepository,dataDragonService);
     }
 
     @Test
     void testMyStatsWithNoSummoners() {
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
-
+        // No linked summoner for authenticated user
+        UserModel user = new UserModel();
+        user.setName("testuser");
+        user.setLinkedSummonerName(null); // No linked account
+        
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
             when(authentication.isAuthenticated()).thenReturn(true);
             when(authentication.getPrincipal()).thenReturn("testuser");
             when(authentication.getName()).thenReturn("testuser");
+            when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
 
             ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
 
@@ -77,11 +89,16 @@ class DashboardControllerSimpleUnitTest {
             assertEquals("Unknown", result.get("mainRole"));
             assertNull(result.get("favoriteChampion"));
             assertEquals("testuser", result.get("username"));
+            assertNull(result.get("linkedSummoner"));
         }
     }
 
     @Test
     void testMyStatsWithSummoner() {
+        UserModel user = new UserModel();
+        user.setName("testuser");
+        user.setLinkedSummonerName("TestSummoner");
+        
         Summoner summoner = new Summoner();
         summoner.setId(1L);
         summoner.setName("TestSummoner");
@@ -89,7 +106,8 @@ class DashboardControllerSimpleUnitTest {
         summoner.setRank("II");
         summoner.setPuuid("test-puuid");
 
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
+        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(summoner));
         when(riotService.getTopChampionMasteries("test-puuid", 1)).thenReturn(List.of());
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
@@ -105,10 +123,12 @@ class DashboardControllerSimpleUnitTest {
             Map<String, Object> result = response.getBody();
             assertNotNull(result);
             assertEquals("Gold II", result.get("currentRank"));
-            assertEquals(42, result.get("lp7days"));
-            assertEquals("Mid Lane", result.get("mainRole"));
+            // lpGainedThisWeek is calculated from match history, expect null when no matches
+            assertNull(result.get("lpGainedThisWeek"));
+            assertEquals("Unknown", result.get("mainRole")); // No matches to calculate role
             assertNull(result.get("favoriteChampion")); // No masteries returned
             assertEquals("testuser", result.get("username"));
+            assertEquals("TestSummoner", result.get("linkedSummoner"));
         }
     }
 
@@ -120,8 +140,7 @@ class DashboardControllerSimpleUnitTest {
         summoner.setTier(null);
         summoner.setRank(null);
 
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
-
+        // No linked summoner for guest user
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -134,49 +153,13 @@ class DashboardControllerSimpleUnitTest {
             assertNotNull(result);
             assertEquals("Unranked", result.get("currentRank"));
             assertEquals("Guest", result.get("username"));
+            assertNull(result.get("linkedSummoner"));
         }
     }
 
     @Test
-    void testMyFavoritesWithNoSummoners() {
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
-
-        ResponseEntity<List<SummonerDTO>> response = dashboardController.myFavorites();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<SummonerDTO> result = response.getBody();
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void testMyFavoritesWithMultipleSummoners() {
-        Summoner summoner1 = new Summoner();
-        summoner1.setId(1L);
-        summoner1.setName("Summoner1");
-        summoner1.setRiotId("riot1");
-        summoner1.setTier("Gold");
-        summoner1.setRank("II");
-
-        Summoner summoner2 = new Summoner();
-        summoner2.setId(2L);
-        summoner2.setName("Summoner2");
-        summoner2.setRiotId("riot2");
-        summoner2.setTier("Silver");
-        summoner2.setRank("I");
-
-        Summoner summoner3 = new Summoner();
-        summoner3.setId(3L);
-        summoner3.setName("Summoner3");
-        summoner3.setRiotId("riot3");
-        summoner3.setTier("Bronze");
-        summoner3.setRank("III");
-
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner1));
-        when(summonerRepository.findTopByIdNotOrderByLastSearchedAtDesc(1L, PageRequest.of(0, 2)))
-            .thenReturn(List.of(summoner2, summoner3));
-        when(riotService.getDataDragonService()).thenReturn(mock(com.tfg.tfg.service.DataDragonService.class));
-
+    void testMyFavoritesWithNoAuthenticatedUser() {
+        // Guest user should see empty favorites
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -187,24 +170,33 @@ class DashboardControllerSimpleUnitTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             List<SummonerDTO> result = response.getBody();
             assertNotNull(result);
-            assertEquals(2, result.size()); // Should return max 2 favorites
+            assertTrue(result.isEmpty());
         }
     }
 
     @Test
     void testMyFavoritesWithAuthenticatedUser() {
-        Summoner ownSummoner = new Summoner();
-        ownSummoner.setId(1L);
-        ownSummoner.setName("testuser");
+        UserModel user = new UserModel();
+        user.setId(1L);
+        user.setName("testuser");
 
-        Summoner otherSummoner = new Summoner();
-        otherSummoner.setId(2L);
-        otherSummoner.setName("OtherSummoner");
+        Summoner favSummoner1 = new Summoner();
+        favSummoner1.setId(2L);
+        favSummoner1.setName("FavoriteSummoner1");
+        favSummoner1.setRiotId("riot1");
+        favSummoner1.setTier("Gold");
+        favSummoner1.setRank("II");
 
-        when(summonerRepository.findLinkedSummonerByUsername("testuser"))
-            .thenReturn(Optional.of(ownSummoner));
-        when(summonerRepository.findTopByIdNotOrderByLastSearchedAtDesc(1L, PageRequest.of(0, 2)))
-            .thenReturn(List.of(otherSummoner));
+        Summoner favSummoner2 = new Summoner();
+        favSummoner2.setId(3L);
+        favSummoner2.setName("FavoriteSummoner2");
+        favSummoner2.setRiotId("riot2");
+        favSummoner2.setTier("Silver");
+        favSummoner2.setRank("I");
+
+        user.setFavoriteSummoners(List.of(favSummoner1, favSummoner2));
+
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
         when(riotService.getDataDragonService()).thenReturn(mock(com.tfg.tfg.service.DataDragonService.class));
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
@@ -219,19 +211,12 @@ class DashboardControllerSimpleUnitTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             List<SummonerDTO> result = response.getBody();
             assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals("OtherSummoner", result.get(0).getName());
+            assertEquals(2, result.size());
         }
     }
 
     @Test
     void testMyStatsWithSecurityException() {
-        Summoner summoner = new Summoner();
-        summoner.setId(1L);
-        summoner.setName("TestSummoner");
-
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
-
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenThrow(new RuntimeException("Security error"));
 
@@ -247,6 +232,10 @@ class DashboardControllerSimpleUnitTest {
 
     @Test
     void testMyStatsWithFavoriteChampion() {
+        UserModel user = new UserModel();
+        user.setName("testuser");
+        user.setLinkedSummonerName("TestSummoner");
+        
         Summoner summoner = new Summoner();
         summoner.setId(1L);
         summoner.setName("TestSummoner");
@@ -260,13 +249,15 @@ class DashboardControllerSimpleUnitTest {
         mastery.setChampionLevel(7);
         mastery.setChampionPoints(500000);
 
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
+        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(summoner));
         when(riotService.getTopChampionMasteries("test-puuid", 1)).thenReturn(List.of(mastery));
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
             when(authentication.isAuthenticated()).thenReturn(true);
+            when(authentication.getPrincipal()).thenReturn("testuser");
             when(authentication.getName()).thenReturn("testuser");
 
             ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
@@ -276,13 +267,13 @@ class DashboardControllerSimpleUnitTest {
             assertNotNull(result);
             assertEquals("Gold II", result.get("currentRank"));
             assertEquals("Ahri", result.get("favoriteChampion"));
+            assertEquals("TestSummoner", result.get("linkedSummoner"));
         }
     }
 
     @Test
     void testMyRankHistoryWithNoSummoner() {
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
-
+        // No linked summoner for guest user
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -300,6 +291,10 @@ class DashboardControllerSimpleUnitTest {
     @Test
     void testMyRankHistoryWithCumulativeWinsLosses() {
         // Arrange
+        UserModel user = new UserModel();
+        user.setName("testuser");
+        user.setLinkedSummonerName("TestSummoner");
+        
         Summoner summoner = new Summoner();
         summoner.setId(1L);
         summoner.setName("TestSummoner");
@@ -314,13 +309,16 @@ class DashboardControllerSimpleUnitTest {
 
         List<MatchEntity> rankedMatches = List.of(match1, match2, match3, match4, match5);
 
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
+        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(summoner));
         when(matchRepository.findRankedMatchesBySummoner(summoner, "RANKED")).thenReturn(rankedMatches);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(false);
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(authentication.getPrincipal()).thenReturn("testuser");
+            when(authentication.getName()).thenReturn("testuser");
 
             // Act
             ResponseEntity<List<RankHistoryDTO>> response = dashboardController.myRankHistory();
@@ -360,24 +358,13 @@ class DashboardControllerSimpleUnitTest {
     }
 
     @Test
-    void testMyRankHistoryWithFallbackSummoner() {
-        // Arrange - Test the fallback scenario when no linked account
-        Summoner fallbackSummoner = new Summoner();
-        fallbackSummoner.setId(1L);
-        fallbackSummoner.setName("FallbackPlayer");
-        fallbackSummoner.setPuuid("fallback-puuid");
-
-        MatchEntity match = createRankedMatch(1L, fallbackSummoner, LocalDateTime.now(), "PLATINUM", "IV", 75, true);
-
-        // Mock the fallback behavior
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(fallbackSummoner));
-        when(matchRepository.findRankedMatchesBySummoner(fallbackSummoner, "RANKED"))
-            .thenReturn(List.of(match));
-
+    void testMyRankHistoryWithNoLinkedAccount() {
+        // Test that no data is shown when user has no linked account
+        // Previously used fallback, now returns empty list
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(false); // Not authenticated - uses fallback
+            when(authentication.isAuthenticated()).thenReturn(false); // Not authenticated - no linked account
 
             // Act
             ResponseEntity<List<RankHistoryDTO>> response = dashboardController.myRankHistory();
@@ -386,12 +373,7 @@ class DashboardControllerSimpleUnitTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             List<RankHistoryDTO> result = response.getBody();
             assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals("PLATINUM", result.get(0).getTier());
-            assertEquals("IV", result.get(0).getRank());
-            assertEquals(75, result.get(0).getLeaguePoints());
-            assertEquals(1, result.get(0).getWins());
-            assertEquals(0, result.get(0).getLosses());
+            assertTrue(result.isEmpty(), "Should return empty list when no linked account");
         }
     }
 
@@ -441,13 +423,20 @@ class DashboardControllerSimpleUnitTest {
 
         List<MatchEntity> rankedMatches = List.of(match1, match2, match3);
 
-        when(summonerRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(summoner));
+        UserModel user = new UserModel();
+        user.setName("testuser");
+        user.setLinkedSummonerName("TestSummoner");
+        
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
+        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(summoner));
         when(matchRepository.findRankedMatchesBySummoner(summoner, "RANKED")).thenReturn(rankedMatches);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContextHolder = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.isAuthenticated()).thenReturn(false);
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(authentication.getPrincipal()).thenReturn("testuser");
+            when(authentication.getName()).thenReturn("testuser");
 
             // Act
             ResponseEntity<List<RankHistoryDTO>> response = dashboardController.myRankHistory();

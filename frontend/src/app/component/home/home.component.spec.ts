@@ -214,7 +214,7 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should handle error when loading recent searches', () => {
       // Arrange
-      const consoleSpy = spyOn(console, 'error');
+      const consoleSpy = spyOn(console, 'debug');
       mockSummonerService.getRecentSearches.and.returnValue(throwError(() => new Error('API Error')));
 
       // Act
@@ -405,7 +405,7 @@ describe('HomeComponent - Unit Tests', () => {
       // Arrange
       const error = new Error('Service unavailable');
       mockSummonerService.getRecentSearches.and.returnValue(throwError(() => error));
-      const consoleSpy = spyOn(console, 'error');
+      const consoleSpy = spyOn(console, 'debug');
 
       // Act
       component.loadRecentSearches();

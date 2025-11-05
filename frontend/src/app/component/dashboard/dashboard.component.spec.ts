@@ -15,7 +15,8 @@ describe('DashboardComponent - Unit Tests', () => {
     mockDashboardService = jasmine.createSpyObj('DashboardService', [
       'getPersonalStats',
       'getFavoritesOverview',
-      'getRankHistory'
+      'getRankHistory',
+      'getRankedMatches'
     ]);
 
     mockUserService = jasmine.createSpyObj('UserService', [
@@ -25,6 +26,17 @@ describe('DashboardComponent - Unit Tests', () => {
       'unlinkSummoner',
       'uploadAvatar'
     ]);
+
+    // Set default return values for all mocks to prevent errors during ngOnInit
+    mockDashboardService.getPersonalStats.and.returnValue(of({} as any));
+    mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
+    mockDashboardService.getRankHistory.and.returnValue(of([]));
+    mockDashboardService.getRankedMatches.and.returnValue(of([]));
+    mockUserService.getProfile.and.returnValue(of({} as any));
+    mockUserService.getLinkedSummoner.and.returnValue(of({} as any));
+    mockUserService.linkSummoner.and.returnValue(of({} as any));
+    mockUserService.unlinkSummoner.and.returnValue(of({} as any));
+    mockUserService.uploadAvatar.and.returnValue(of({ success: true, message: '' }));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -220,11 +232,11 @@ describe('DashboardComponent - Unit Tests', () => {
         region: 'EUW',
         puuid: 'test-puuid'
       };
-      const mockRankHistory: RankHistoryEntry[] = [
-        { date: '2025-01-01', tier: 'GOLD', rank: 'II', leaguePoints: 50, wins: 10, losses: 5 }
+      const mockMatches = [
+        { matchId: 'match1', queueId: 420, participantPuuid: 'test-puuid' }
       ];
       mockUserService.getLinkedSummoner.and.returnValue(of(mockLinkedResponse));
-      mockDashboardService.getRankHistory.and.returnValue(of(mockRankHistory));
+      mockDashboardService.getRankedMatches.and.returnValue(of(mockMatches));
 
       // Act
       component.loadLinkedSummoner();
@@ -235,10 +247,10 @@ describe('DashboardComponent - Unit Tests', () => {
         region: 'EUW',
         puuid: 'test-puuid'
       });
-      expect(mockDashboardService.getRankHistory).toHaveBeenCalled();
+      expect(mockDashboardService.getRankedMatches).toHaveBeenCalled();
     });
 
-    it('should not load rank history if no linked account', () => {
+    it('should not load ranked matches if no linked account', () => {
       // Arrange
       mockUserService.getLinkedSummoner.and.returnValue(of({ linked: false }));
 
@@ -247,8 +259,7 @@ describe('DashboardComponent - Unit Tests', () => {
 
       // Assert
       expect(component.linkedSummoner).toBeNull();
-      expect(component.rankHistory).toEqual([]);
-      expect(mockDashboardService.getRankHistory).not.toHaveBeenCalled();
+      expect(mockDashboardService.getRankedMatches).not.toHaveBeenCalled();
     });
 
     it('should link summoner account successfully', () => {
@@ -260,7 +271,7 @@ describe('DashboardComponent - Unit Tests', () => {
         summonerName: 'NewPlayer', 
         region: 'EUW' 
       }));
-      mockDashboardService.getRankHistory.and.returnValue(of([]));
+      mockDashboardService.getRankedMatches.and.returnValue(of([]));
       
       component.summonerName = 'NewPlayer';
       component.selectedRegion = 'EUW';
@@ -310,26 +321,36 @@ describe('DashboardComponent - Unit Tests', () => {
   });
 
   describe('Rank History Chart', () => {
-    it('should load rank history when linked account exists', () => {
+    it('should load ranked matches when linked account exists', () => {
       // Arrange
-      const mockRankHistory: RankHistoryEntry[] = [
-        { date: '2025-01-01', tier: 'GOLD', rank: 'III', leaguePoints: 30, wins: 5, losses: 3 },
-        { date: '2025-01-02', tier: 'GOLD', rank: 'II', leaguePoints: 50, wins: 10, losses: 5 }
+      component.linkedSummoner = { 
+        name: 'TestPlayer', 
+        region: 'EUW', 
+        puuid: 'test-puuid' 
+      };
+      const mockMatches = [
+        { matchId: 'match1', queueId: 420, participantPuuid: 'test-puuid' },
+        { matchId: 'match2', queueId: 420, participantPuuid: 'test-puuid' }
       ];
-      mockDashboardService.getRankHistory.and.returnValue(of(mockRankHistory));
+      mockDashboardService.getRankedMatches.and.returnValue(of(mockMatches));
 
       // Act
       component.loadRankHistory();
 
       // Assert
       expect(component.chartLoading).toBeFalse();
-      expect(component.rankHistory).toEqual(mockRankHistory);
+      expect(component.rankedMatches).toEqual(mockMatches);
     });
 
     it('should handle rank history error', () => {
       // Arrange
-      mockDashboardService.getRankHistory.and.returnValue(
-        throwError(() => new Error('Failed to load rank history'))
+      component.linkedSummoner = { 
+        name: 'TestPlayer', 
+        region: 'EUW', 
+        puuid: 'test-puuid' 
+      };
+      mockDashboardService.getRankedMatches.and.returnValue(
+        throwError(() => new Error('Failed to load ranked matches'))
       );
 
       // Act
@@ -337,7 +358,7 @@ describe('DashboardComponent - Unit Tests', () => {
 
       // Assert
       expect(component.chartLoading).toBeFalse();
-      expect(component.chartError).toBe('No se pudo cargar el historial de LP');
+      expect(component.chartError).toBe('No se pudo cargar el historial de partidas ranked');
     });
   });
 });

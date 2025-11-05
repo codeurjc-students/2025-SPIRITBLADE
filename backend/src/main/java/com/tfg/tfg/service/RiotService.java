@@ -7,6 +7,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import com.tfg.tfg.exception.RiotApiException;
+import com.tfg.tfg.exception.SummonerNotFoundException;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotAccountDTO;
@@ -181,38 +183,50 @@ public class RiotService {
         } catch (HttpClientErrorException.NotFound e) {
             // Summoner not found in Riot API
             logger.warn("Summoner not found in Riot API: {}", riotId);
-            return null;
+            throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
         } catch (HttpClientErrorException e) {
             // API error (rate limit, etc.), try database fallback
-            logger.error("Riot API error for summoner {}: {}", riotId, e.getMessage());
+            logger.error("Riot API error for summoner {}: {} (Status: {})", riotId, e.getMessage(), e.getStatusCode().value());
             Optional<Summoner> found = summonerRepository.findByName(riotId);
             if (found.isPresent()) {
                 logger.info("Returning cached data for summoner: {}", riotId);
                 return mapSummonerEntityToDTO(found.get());
             }
-            return null;
+            throw new RiotApiException("Riot API is currently unavailable. Status: " + e.getStatusCode(), e.getStatusCode().value());
         } catch (Exception e) {
             // If API fails unexpectedly, try to get from database
             logger.error("Unexpected error fetching summoner {}: {}", riotId, e.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             Optional<Summoner> found = summonerRepository.findByName(riotId);
-            return found.map(this::mapSummonerEntityToDTO).orElse(null);
+            if (found.isPresent()) {
+                return mapSummonerEntityToDTO(found.get());
+            }
+            throw new RiotApiException("Unexpected error while fetching summoner data: " + e.getMessage(), 500);
         }
     }
     
     /**
      * Saves summoner data to database for caching
+     * Uses PUUID as the unique identifier to prevent duplicates
      */
     private void saveSummonerToDatabase(SummonerDTO dto) {
         try {
-            Optional<Summoner> existing = summonerRepository.findByName(dto.getName());
+            if (dto.getPuuid() == null || dto.getPuuid().isEmpty()) {
+                logger.warn("Cannot save summoner without PUUID: {}", dto.getName());
+                return;
+            }
+            
+            // Search by PUUID (unique identifier) instead of name
+            Optional<Summoner> existing = summonerRepository.findByPuuid(dto.getPuuid());
             Summoner summoner;
             
             if (existing.isPresent()) {
                 summoner = existing.get();
+                logger.debug("Updating existing summoner with PUUID: {}", dto.getPuuid());
             } else {
                 // Use mapper to create entity from DTO (keeps mapping centralised)
                 summoner = SummonerMapper.toEntity(dto);
+                logger.debug("Creating new summoner with PUUID: {}", dto.getPuuid());
             }
             
             // Update fields from DTO on existing entity (only fields we care to persist)
@@ -340,7 +354,7 @@ public class RiotService {
     private void saveMatchToDatabase(RiotMatchDTO riotMatch, String puuid) {
         try {
             // Find the summoner
-            Optional<Summoner> summonerOpt = summonerRepository.findByName(puuid);
+            Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
             if (summonerOpt.isEmpty()) {
                 logger.debug("Summoner not found for PUUID {}, skipping match cache", puuid);
                 return;
@@ -383,6 +397,7 @@ public class RiotService {
             matchEntity.setLane(participant.getTeamPosition());   // Using teamPosition as lane
             matchEntity.setGameDuration(riotMatch.getInfo().getGameDuration());
             matchEntity.setGameMode(riotMatch.getInfo().getGameMode());
+            matchEntity.setQueueId(riotMatch.getInfo().getQueueId());  // Save queueId for filtering
             matchEntity.setTotalDamageDealt(participant.getTotalDamageDealtToChampions());
             matchEntity.setGoldEarned(participant.getGoldEarned());
             matchEntity.setChampLevel(participant.getChampLevel());
@@ -422,7 +437,9 @@ public class RiotService {
         dto.setAssists(match.getAssists());
         dto.setGameDuration(match.getGameDuration());
         dto.setGameTimestamp(match.getTimestamp().atZone(java.time.ZoneId.systemDefault())
-            .toInstant().toEpochMilli());
+            .toInstant().getEpochSecond());
+        dto.setQueueId(match.getQueueId());
+        dto.setLpAtMatch(match.getLpAtMatch());  // Include saved LP for historical tracking
         
         // Enrich with champion icon from DataDragon
         if (match.getChampionId() != null) {
@@ -517,8 +534,8 @@ public class RiotService {
      */
     private boolean isCacheFresh(String puuid) {
         try {
-            // Get the most recent cached match from database
-            Optional<Summoner> summonerOpt = summonerRepository.findByName(puuid);
+            // Get the summoner by PUUID from database
+            Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
             if (summonerOpt.isEmpty()) {
                 logger.debug("No summoner found in DB for PUUID {}, cache not fresh", puuid);
                 return false; // No cache exists
@@ -560,7 +577,7 @@ public class RiotService {
             
             // Compare: if IDs match, cache is fresh
             boolean isFresh = mostRecentCachedMatchId.equals(mostRecentApiMatchId);
-            logger.info("Cache freshness check: {}", isFresh ? "FRESH" : "OUTDATED");
+            logger.info("Cache freshness check: {}", isFresh ? "FRESH ✅" : "OUTDATED ⚠️");
             return isFresh;
             
         } catch (Exception e) {
@@ -579,7 +596,7 @@ public class RiotService {
      * @return List of cached match DTOs
      */
     private List<MatchHistoryDTO> getCachedMatches(String puuid, int start, int count) {
-        Optional<Summoner> summonerOpt = summonerRepository.findByName(puuid);
+        Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
         if (summonerOpt.isEmpty()) {
             return Collections.emptyList();
         }
@@ -611,18 +628,64 @@ public class RiotService {
      * @return Array of match IDs
      */
     private String[] fetchMatchIdsFromAPI(String puuid, int start, int count) {
-        logger.info("Cache insufficient, calling Riot API for match IDs");
-        ResponseEntity<String[]> matchIdsResponse = restTemplate.exchange(
-            MATCH_IDS_BY_PUUID_URL,
-            HttpMethod.GET,
-            null,
-            String[].class,
-            puuid,
-            start,
-            count,
-            apiKey
-        );
-        return matchIdsResponse.getBody();
+        logger.info("Cache insufficient, calling Riot API for match IDs: start={}, count={}", start, count);
+
+        // Riot may limit the number of IDs returned in a single call (or ignore large `count` values).
+        // To be robust, page through results in batches until we have `count` IDs or Riot returns no more.
+        final int MAX_BATCH = 50; // safe per-call batch size (Riot commonly allows up to 100)
+        List<String> accumulated = new ArrayList<>();
+
+        try {
+            while (accumulated.size() < count) {
+                int toFetch = Math.min(count - accumulated.size(), MAX_BATCH);
+                int currentStart = start + accumulated.size();
+
+                logger.debug("Requesting match IDs from Riot: start={}, count={}", currentStart, toFetch);
+                ResponseEntity<String[]> matchIdsResponse = restTemplate.exchange(
+                    MATCH_IDS_BY_PUUID_URL,
+                    HttpMethod.GET,
+                    null,
+                    String[].class,
+                    puuid,
+                    currentStart,
+                    toFetch,
+                    apiKey
+                );
+
+                String[] ids = matchIdsResponse.getBody();
+                boolean shouldStop = false;
+
+                if (ids == null || ids.length == 0) {
+                    logger.debug("Riot returned no more match IDs (start={})", currentStart);
+                    shouldStop = true;
+                } else {
+                    // Add returned IDs, but avoid duplicates just in case
+                    for (String id : ids) {
+                        if (id != null && !accumulated.contains(id)) {
+                            accumulated.add(id);
+                        }
+                    }
+
+                    // If Riot returned fewer than requested in this batch, assume no more results
+                    if (ids.length < toFetch) {
+                        logger.debug("Riot returned fewer IDs ({}) than requested ({}) in this batch, stopping.", ids.length, toFetch);
+                        shouldStop = true;
+                    }
+                }
+
+                if (shouldStop) {
+                    break;
+                }
+            }
+        } catch (HttpClientErrorException hce) {
+            logger.warn("Riot API error while fetching match IDs for PUUID {}: {}", puuid, hce.getMessage());
+        } catch (Exception e) {
+            logger.warn("Unexpected error while fetching match IDs for PUUID {}: {}", puuid, e.getMessage());
+            logger.debug(STACKTRACE_LOG_MESSAGE, e);
+        }
+
+        // Return an empty array when no IDs could be fetched to keep return type stable
+        return accumulated.isEmpty() ? new String[0] : accumulated.toArray(new String[0]);
     }
     
     /**
@@ -698,6 +761,7 @@ public class RiotService {
         dto.setGameMode(riotMatch.getInfo().getGameMode());
         dto.setGameType(riotMatch.getInfo().getGameType());
         dto.setGameVersion(riotMatch.getInfo().getGameVersion());
+        dto.setQueueId(riotMatch.getInfo().getQueueId());
         
         // Map all participants
         List<com.tfg.tfg.model.dto.ParticipantDTO> participants = new ArrayList<>();
@@ -842,7 +906,9 @@ public class RiotService {
         dto.setDeaths(participant.getDeaths());
         dto.setAssists(participant.getAssists());
         dto.setGameDuration(riotMatch.getInfo().getGameDuration());
-        dto.setGameTimestamp(riotMatch.getInfo().getGameEndTimestamp());
+        Long gameEndTimestamp = riotMatch.getInfo().getGameEndTimestamp();
+        dto.setGameTimestamp(gameEndTimestamp != null ? gameEndTimestamp / 1000 : null);
+        dto.setQueueId(riotMatch.getInfo().getQueueId());
         
         return dto;
     }

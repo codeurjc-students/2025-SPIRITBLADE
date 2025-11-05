@@ -38,6 +38,7 @@ public class MatchEntity {
     private String lane;
     private Long gameDuration;
     private String gameMode;
+    private Integer queueId;  // Queue ID (420=Ranked Solo, 440=Ranked Flex)
     private Integer totalDamageDealt;
     private Integer goldEarned;
     private Integer champLevel;
@@ -174,6 +175,14 @@ public class MatchEntity {
 
     public void setGameMode(String gameMode) {
         this.gameMode = gameMode;
+    }
+
+    public Integer getQueueId() {
+        return queueId;
+    }
+
+    public void setQueueId(Integer queueId) {
+        this.queueId = queueId;
     }
 
     public Integer getTotalDamageDealt() {

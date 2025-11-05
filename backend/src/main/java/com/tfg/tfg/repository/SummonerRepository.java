@@ -13,6 +13,8 @@ import com.tfg.tfg.model.entity.Summoner;
 @Repository
 public interface SummonerRepository extends JpaRepository<Summoner, Long> {
     Optional<Summoner> findByName(String name);
+    Optional<Summoner> findByNameIgnoreCase(String name);
+    Optional<Summoner> findByPuuid(String puuid);
     List<Summoner> findTop10ByOrderByLastSearchedAtDesc();
     
     /**

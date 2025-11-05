@@ -17,20 +17,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +63,7 @@ class LoginRestControllerSimpleUnitTest {
         AuthResponse expectedResponse = new AuthResponse(AuthResponse.Status.SUCCESS, "Login successful");
         ResponseEntity<AuthResponse> expectedResponseEntity = ResponseEntity.ok(expectedResponse);
 
-        when(userLoginService.login(httpServletResponse, loginRequest)).thenReturn(expectedResponseEntity);
+        when(userLoginService.login(loginRequest)).thenReturn(expectedResponseEntity);
 
         // When
         ResponseEntity<AuthResponse> result = loginRestController.login(loginRequest, httpServletResponse);
@@ -76,7 +72,7 @@ class LoginRestControllerSimpleUnitTest {
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(expectedResponse, result.getBody());
-        verify(userLoginService).login(httpServletResponse, loginRequest);
+        verify(userLoginService).login(loginRequest);
     }
 
     @Test

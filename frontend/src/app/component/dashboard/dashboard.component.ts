@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardService, RankHistoryEntry } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
+import { MatchHistory } from '../../dto/match-history.model';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { API_URL } from '../../service/api.config';
 
@@ -30,6 +31,15 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	favoritesLoading = false;
 	favoritesError: string | null = null;
 	error: string | null = null;
+	
+	// Match history data
+	allMatches: MatchHistory[] = [];
+	rankedMatches: MatchHistory[] = [];
+	matchesLoading = false;
+	matchesError: string | null = null;
+	
+	// Queue filter (420 = Solo/Duo, 440 = Flex, null = All)
+	selectedQueue: number | null = 420; // Default to Solo/Duo
 	
 	// Chart data
 	rankHistory: RankHistoryEntry[] = [];
@@ -103,33 +113,48 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	/**
-	 * Load rank history for LP chart
+	 * Load match history for the linked summoner and filter ranked matches
 	 */
 	loadRankHistory() {
+		if (!this.linkedSummoner || !this.linkedSummoner.name) {
+			return;
+		}
+
 		this.chartLoading = true;
 		this.chartError = null;
+		this.matchesLoading = true;
 		
-		this.dashboardService.getRankHistory().subscribe({
-			next: (history) => {
-				this.rankHistory = history;
+		this.dashboardService.getRankedMatches(0, 30, this.selectedQueue).subscribe({
+			next: (matches) => {
+				this.rankedMatches = matches;
+				this.allMatches = matches;
+				this.matchesLoading = false;
 				this.chartLoading = false;
-				
-				// Initialize chart after data is loaded
-				setTimeout(() => this.initializeLPChart(), 100);
+				this.initializeLPChart();
+				console.log('✅ Loaded ranked match history:', matches);
 			},
 			error: (err) => {
-				console.error('Failed to load rank history', err);
-				this.chartError = 'No se pudo cargar el historial de LP';
+				console.error('Failed to load ranked match history', err);
+				this.chartError = 'No se pudo cargar el historial de partidas ranked';
+				this.matchesLoading = false;
 				this.chartLoading = false;
 			}
 		});
 	}
 
 	/**
-	 * Initialize the LP progression chart
+	 * Change queue filter and reload matches
+	 */
+	onQueueChange(queueId: number | null) {
+		this.selectedQueue = queueId;
+		this.loadRankHistory();
+	}
+
+	/**
+	 * Initialize the LP progression chart using match history
 	 */
 	private initializeLPChart() {
-		if (!this.lpChartCanvas || this.rankHistory.length === 0) {
+		if (!this.lpChartCanvas || this.rankedMatches.length === 0) {
 			return;
 		}
 
@@ -143,20 +168,69 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			return;
 		}
 
-		// Prepare data
-		const labels = this.rankHistory.map(entry => {
-			const date = new Date(entry.date);
+		// Sort matches by timestamp (oldest first for progression)
+		const sortedMatches = [...this.rankedMatches].sort((a, b) => {
+			return (a.gameTimestamp || 0) - (b.gameTimestamp || 0);
+		});
+
+		// Prepare data from matches
+		const labels = sortedMatches.map(match => {
+			const date = new Date((match.gameTimestamp || 0) * 1000); // Convert from seconds to milliseconds
+			if (isNaN(date.getTime())) {
+				return 'Unknown';
+			}
 			return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
 		});
 
-		const lpData = this.rankHistory.map(entry => {
-			// Convert tier and rank to total LP for visualization
-			return this.calculateTotalLP(entry.tier, entry.rank, entry.leaguePoints);
+		// Calculate win/loss streak for visual context
+		let wins = 0;
+		let losses = 0;
+		const winrateData = sortedMatches.map(match => {
+			if (match.win) {
+				wins++;
+			} else {
+				losses++;
+			}
+			const total = wins + losses;
+			return total > 0 ? (wins / total) * 100 : 0;
 		});
 
-		const winrateData = this.rankHistory.map(entry => {
-			const total = entry.wins + entry.losses;
-			return total > 0 ? (entry.wins / total) * 100 : 0;
+		// Create LP data from match history
+		// Convert relative LP (0-100 per division) to cumulative LP for smooth visualization
+		let cumulativeLP = 0;
+		const lpData = sortedMatches.map((match, index) => {
+			if (index === 0) {
+				// First match: use its LP as baseline
+				cumulativeLP = match.lpAtMatch || 0;
+				return cumulativeLP;
+			}
+			
+			const prevMatch = sortedMatches[index - 1];
+			const prevLP = prevMatch.lpAtMatch || 0;
+			const currentLP = match.lpAtMatch || 0;
+			
+			// Calculate the raw LP change
+			let lpChange = currentLP - prevLP;
+			
+			// Detect division changes by checking for large jumps (>50 LP difference)
+			// This happens when someone gets promoted or demoted between divisions
+			if (Math.abs(lpChange) > 50) {
+				// Division change detected
+				if (lpChange < 0) {
+					// Negative large jump: Demotion (e.g., 5 LP -> 95 LP going backwards in time)
+					// or Promotion being undone when going forward
+					// Adjust by adding 100 to make it continuous
+					lpChange += 100;
+				} else {
+					// Positive large jump: Promotion (e.g., 95 LP -> 5 LP going forward)
+					// or Demotion being undone when going backwards
+					// Adjust by subtracting 100 to make it continuous
+					lpChange -= 100;
+				}
+			}
+			
+			cumulativeLP += lpChange;
+			return cumulativeLP;
 		});
 
 		const config: ChartConfiguration = {
@@ -165,8 +239,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				labels: labels,
 				datasets: [
 					{
-						label: 'League Points',
-						data: lpData,
+						label: 'Win Rate (%)',
+						data: winrateData,
 						borderColor: 'rgb(75, 192, 192)',
 						backgroundColor: 'rgba(75, 192, 192, 0.2)',
 						tension: 0.3,
@@ -174,13 +248,15 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						yAxisID: 'y'
 					},
 					{
-						label: 'Win Rate (%)',
-						data: winrateData,
-						borderColor: 'rgb(255, 99, 132)',
-						backgroundColor: 'rgba(255, 99, 132, 0.2)',
+						label: 'LP',
+						data: lpData,
+						borderColor: 'rgb(255, 205, 86)',
+						backgroundColor: 'rgba(255, 205, 86, 0.1)',
 						tension: 0.3,
 						fill: false,
-						yAxisID: 'y1'
+						yAxisID: 'y1',
+						pointRadius: 4,
+						pointHoverRadius: 6
 					}
 				]
 			},
@@ -194,7 +270,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				plugins: {
 					title: {
 						display: true,
-						text: 'LP Progression & Win Rate',
+						text: 'Match History & Win Rate Progression',
 						color: '#e0e0e0',
 						font: {
 							size: 16,
@@ -203,46 +279,52 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					},
 					legend: {
 						display: true,
-						position: 'top',
 						labels: {
 							color: '#e0e0e0',
-							usePointStyle: true,
-							padding: 15
+							font: {
+								size: 12
+							}
 						}
 					},
 					tooltip: {
 						callbacks: {
-							label: (context: any) => {
-								const label = context.dataset?.label || '';
-								const parsed: any = context.parsed;
-								let valueNum = 0;
-								if (typeof parsed === 'number') {
-									valueNum = parsed as number;
-								} else if (parsed && typeof parsed === 'object' && typeof parsed.y === 'number') {
-									valueNum = parsed.y as number;
-								}
-
-								if (context.datasetIndex === 1) {
-									return `${label}: ${valueNum.toFixed(1)}%`;
-								}
-
-								return `${label}: ${Math.round(valueNum)} LP`;
+							title: (context) => {
+								const index = context[0].dataIndex;
+								const match = sortedMatches[index];
+								const date = new Date((match.gameTimestamp || 0) * 1000);
+								return date.toLocaleString('es-ES');
 							},
-							afterLabel: (context: any) => {
+							label: (context) => {
 								const index = context.dataIndex;
-								const entry = this.rankHistory?.[index];
-								if (!entry) return '';
-								return `${entry.tier} ${entry.rank} - ${entry.wins}W ${entry.losses}L`;
+								const match = sortedMatches[index];
+								
+								if (context.datasetIndex === 0) {
+									// Win rate dataset
+									return `Win Rate: ${(context.parsed.y || 0).toFixed(1)}%`;
+								} else {
+									// LP dataset - show ORIGINAL LP (0-100), not cumulative
+									const result = match.win ? 'Victoria' : 'Derrota';
+									const kda = `${match.kills}/${match.deaths}/${match.assists}`;
+									const originalLP = match.lpAtMatch || 0; // Original LP in current division
+									return [
+										`${result} - ${match.championName}`,
+										`KDA: ${kda}`,
+										`LP: ${originalLP}`, // Show original LP, not cumulative
+										`Duración: ${Math.floor((match.gameDuration || 0) / 60)}m`
+									];
+								}
 							}
 						}
 					}
 				},
 				scales: {
-					x: {
+					y: {
+						type: 'linear',
 						display: true,
+						position: 'left',
 						title: {
 							display: true,
-							text: 'Date',
+							text: 'Win Rate (%)',
 							color: '#e0e0e0'
 						},
 						ticks: {
@@ -250,23 +332,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						},
 						grid: {
 							color: 'rgba(255, 255, 255, 0.1)'
-						}
-					},
-					y: {
-						type: 'linear',
-						display: true,
-						position: 'left',
-						title: {
-							display: true,
-							text: 'League Points',
-							color: 'rgb(75, 192, 192)'
 						},
-						ticks: {
-							color: 'rgb(75, 192, 192)'
-						},
-						grid: {
-							color: 'rgba(75, 192, 192, 0.2)'
-						}
+						min: 0,
+						max: 100
 					},
 					y1: {
 						type: 'linear',
@@ -274,55 +342,44 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						position: 'right',
 						title: {
 							display: true,
-							text: 'Win Rate (%)',
-							color: 'rgb(255, 99, 132)'
+							text: 'LP Progression',
+							color: '#e0e0e0'
 						},
 						ticks: {
-							color: 'rgb(255, 99, 132)',
-							callback: (value: any) => `${value}%`
+							color: '#b0b0b0'
 						},
 						grid: {
-							drawOnChartArea: false,
+							drawOnChartArea: false
+						}
+						// Let the scale be automatic based on data (cumulative LP)
+					},
+					x: {
+						ticks: {
+							color: '#b0b0b0',
+							maxRotation: 45,
+							minRotation: 45
 						},
-						min: 0,
-						max: 100
+						grid: {
+							color: 'rgba(255, 255, 255, 0.05)'
+						}
 					}
 				}
 			}
 		};
 
 		this.lpChart = new Chart(ctx, config);
+		console.log('✅ Chart initialized with', sortedMatches.length, 'matches');
 	}
 
 	/**
 	 * Calculate total LP for a given tier, rank, and LP
 	 * This helps visualize progression across divisions
+	 * Returns LP in range 0-100 (actual League Points per division)
 	 */
 	private calculateTotalLP(tier: string, rank: string, lp: number): number {
-		const tierValues: { [key: string]: number } = {
-			'IRON': 0,
-			'BRONZE': 400,
-			'SILVER': 800,
-			'GOLD': 1200,
-			'PLATINUM': 1600,
-			'EMERALD': 2000,
-			'DIAMOND': 2400,
-			'MASTER': 2800,
-			'GRANDMASTER': 3200,
-			'CHALLENGER': 3600
-		};
-
-		const rankValues: { [key: string]: number } = {
-			'IV': 0,
-			'III': 100,
-			'II': 200,
-			'I': 300
-		};
-
-		const tierLP = tierValues[tier.toUpperCase()] || 0;
-		const rankLP = rankValues[rank.toUpperCase()] || 0;
-
-		return tierLP + rankLP + lp;
+		// Simply return the actual LP value (0-100)
+		// The tier/rank info is shown in the tooltip
+		return Math.min(Math.max(lp, 0), 100);
 	}
 
 	/**
@@ -396,12 +453,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.linkLoading = false;
 				if (res.success) {
 					this.linkSuccess = res.message || 'Cuenta vinculada correctamente';
+					// Reload personal stats (current rank, LP, main role, fav champion)
+					this.refresh();
 					// Reload linked summoner (which will also load rank history)
 					this.loadLinkedSummoner();
 					// Close modal after 2 seconds
 					setTimeout(() => {
 						this.closeLinkModal();
-					}, 2000);
+					}, 1000);
 				} else {
 					this.linkError = res.message || 'Error al vincular la cuenta';
 				}
@@ -429,10 +488,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					this.linkedSummoner = null;
 					// Clear rank history and chart
 					this.rankHistory = [];
+					this.rankedMatches = [];
+					this.allMatches = [];
 					if (this.lpChart) {
 						this.lpChart.destroy();
 						this.lpChart = null;
 					}
+					// Refresh stats to show "Unranked" state
+					this.refresh();
 					alert('Cuenta desvinculada correctamente');
 				}
 			},

@@ -38,7 +38,7 @@ public class LoginRestController {
 			@RequestBody LoginRequest loginRequest,
 			HttpServletResponse response) {
 		
-		return userLoginService.login(response, loginRequest);
+		return userLoginService.login(loginRequest);
 	}
 
 	@PostMapping("/refresh")

@@ -10,6 +10,8 @@ public class MatchHistoryDTO {
     private Integer assists;
     private Long gameDuration; // in seconds
     private Long gameTimestamp;
+    private Integer lpAtMatch; // Approximate LP at this match (calculated)
+    private Integer queueId; // 420=Solo/Duo, 440=Flex, etc.
 
     public MatchHistoryDTO() {}
 
@@ -97,6 +99,22 @@ public class MatchHistoryDTO {
 
     public void setGameTimestamp(Long gameTimestamp) {
         this.gameTimestamp = gameTimestamp;
+    }
+
+    public Integer getLpAtMatch() {
+        return lpAtMatch;
+    }
+
+    public void setLpAtMatch(Integer lpAtMatch) {
+        this.lpAtMatch = lpAtMatch;
+    }
+
+    public Integer getQueueId() {
+        return queueId;
+    }
+
+    public void setQueueId(Integer queueId) {
+        this.queueId = queueId;
     }
 
     public String getKda() {

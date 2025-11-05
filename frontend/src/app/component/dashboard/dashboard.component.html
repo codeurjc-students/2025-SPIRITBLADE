@@ -79,18 +79,34 @@
 		
 		<!-- LP Progression Chart - Only shown when account is linked -->
 		<div class="chart-container" *ngIf="linkedSummoner">
-			<h3>LP Progression Over Time</h3>
+			<div class="chart-header">
+				<h3>Match History & Win Rate Progression</h3>
+				<div class="queue-toggle">
+					<button 
+						class="toggle-btn" 
+						[class.active]="selectedQueue === 420"
+						(click)="onQueueChange(420)">
+						Solo/Duo
+					</button>
+					<button 
+						class="toggle-btn" 
+						[class.active]="selectedQueue === 440"
+						(click)="onQueueChange(440)">
+						Flex
+					</button>
+				</div>
+			</div>
 			<div *ngIf="chartLoading" class="chart-loading">
-				<p>Loading rank history...</p>
+				<p>Loading match history...</p>
 			</div>
 			<div *ngIf="chartError" class="chart-error">
 				<p>{{ chartError }}</p>
 			</div>
-			<div *ngIf="!chartLoading && !chartError && rankHistory.length > 0" class="chart-wrapper">
+			<div class="chart-wrapper" [style.display]="rankedMatches.length > 0 ? 'block' : 'none'">
 				<canvas #lpChartCanvas></canvas>
 			</div>
-			<div *ngIf="!chartLoading && !chartError && rankHistory.length === 0" class="chart-empty">
-				<p>No rank history available. Play some ranked games to see your progression!</p>
+			<div *ngIf="!chartLoading && !chartError && rankedMatches.length === 0" class="chart-empty">
+				<p>No ranked matches available. Play some ranked games to see your progression!</p>
 			</div>
 		</div>
 

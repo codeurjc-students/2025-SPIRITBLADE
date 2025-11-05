@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,16 +15,27 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
+import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")
 public class DashboardController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     private static final String UNRANKED = "Unranked";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final String DEFAULT_TIER = "UNRANKED";
@@ -36,24 +46,34 @@ public class DashboardController {
     private final SummonerRepository summonerRepository;
     private final RiotService riotService;
     private final MatchRepository matchRepository;
+    private final UserModelRepository userRepository;
+    private final com.tfg.tfg.service.DataDragonService dataDragonService;
 
     public DashboardController(SummonerRepository summonerRepository, 
                               RiotService riotService,
-                              MatchRepository matchRepository) {
+                              MatchRepository matchRepository,
+                              UserModelRepository userRepository,
+                              com.tfg.tfg.service.DataDragonService dataDragonService) {
         this.summonerRepository = summonerRepository;
         this.riotService = riotService;
         this.matchRepository = matchRepository;
+        this.userRepository = userRepository;
+        this.dataDragonService = dataDragonService;
     }
 
     @GetMapping("/me/stats")
     public ResponseEntity<Map<String, Object>> myStats() {
         Map<String, Object> result = new HashMap<>();
-        // Use optimized query instead of fetching all summoners
-        Summoner summoner = summonerRepository.findFirstByOrderByIdAsc().orElse(null);
-
+        
         // Resolve authenticated username and linked summoner
         String username = resolveUsername();
         String linkedSummonerName = resolveLinkedSummonerName(username);
+        
+        // Only use linked summoner data, do NOT fallback to DataInitializer
+        Summoner summoner = null;
+        if (linkedSummonerName != null) {
+            summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        }
 
         // Populate stats based on summoner data
         populateSummonerStats(result, summoner);
@@ -80,7 +100,7 @@ public class DashboardController {
     }
     
     /**
-     * Finds the summoner linked to the authenticated user using optimized DB query
+     * Finds the summoner name linked to the authenticated user from UserModel
      */
     private String resolveLinkedSummonerName(String username) {
         if ("Guest".equals(username)) {
@@ -88,9 +108,9 @@ public class DashboardController {
         }
         
         try {
-            // Use optimized query instead of in-memory filtering
-            return summonerRepository.findLinkedSummonerByUsername(username)
-                .map(Summoner::getName)
+            // Get the user and return their linked summoner name
+            return userRepository.findByName(username)
+                .map(UserModel::getLinkedSummonerName)
                 .orElse(null);
         } catch (Exception ex) {
             // ignore and return null
@@ -104,8 +124,8 @@ public class DashboardController {
     private void populateSummonerStats(Map<String, Object> result, Summoner summoner) {
         if (summoner != null) {
             result.put("currentRank", formatRank(summoner));
-            result.put("lp7days", 42);
-            result.put("mainRole", "Mid Lane");
+            result.put("lp7days", calculateLPGainedLast7Days(summoner));
+            result.put("mainRole", calculateMainRole(summoner));
             result.put("favoriteChampion", getFavoriteChampion(summoner));
         } else {
             result.put("currentRank", UNRANKED);
@@ -142,38 +162,187 @@ public class DashboardController {
         }
         return null;
     }
+    
+    /**
+     * Calculates LP gained in the last 7 days based on match history
+     */
+    private int calculateLPGainedLast7Days(Summoner summoner) {
+        try {
+            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+            
+            // Get matches from last 7 days sorted by timestamp
+            List<MatchEntity> recentMatches = matchRepository.findBySummonerOrderByTimestampDesc(summoner)
+                    .stream()
+                    .filter(m -> m.getTimestamp() != null && m.getTimestamp().isAfter(sevenDaysAgo))
+                    .filter(m -> m.getLpAtMatch() != null)
+                    .sorted((a, b) -> a.getTimestamp().compareTo(b.getTimestamp())) // Oldest first
+                    .toList();
+            
+            if (recentMatches.isEmpty()) {
+                return 0;
+            }
+            
+            // Calculate LP difference between first match and current LP
+            Integer firstMatchLP = recentMatches.get(0).getLpAtMatch();
+            Integer currentLP = summoner.getLp();
+            
+            if (firstMatchLP == null || currentLP == null) {
+                return 0;
+            }
+            
+            // Calculate the net LP gain/loss
+            int lpDifference = currentLP - firstMatchLP;
+            
+            return lpDifference;
+        } catch (Exception e) {
+            // If calculation fails, return 0
+            return 0;
+        }
+    }
+    
+    /**
+     * Calculates the main role/lane based on match history
+     */
+    private String calculateMainRole(Summoner summoner) {
+        try {
+            // Get recent matches to analyze roles
+            List<MatchEntity> recentMatches = matchRepository.findBySummonerOrderByTimestampDesc(summoner)
+                    .stream()
+                    .limit(20) // Analyze last 20 matches
+                    .filter(m -> m.getLane() != null && !m.getLane().isEmpty())
+                    .toList();
+            
+            if (recentMatches.isEmpty()) {
+                return "Unknown";
+            }
+            
+            // Count occurrences of each lane
+            Map<String, Long> laneCounts = recentMatches.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                        MatchEntity::getLane,
+                        java.util.stream.Collectors.counting()
+                    ));
+            
+            // Find the most played lane
+            String mainLane = laneCounts.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("Unknown");
+            
+            // Format lane name nicely
+            return formatLaneName(mainLane);
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
+    
+    /**
+     * Formats Riot API lane names to user-friendly names
+     */
+    private String formatLaneName(String lane) {
+        if (lane == null || lane.isEmpty()) {
+            return "Unknown";
+        }
+        
+        return switch (lane.toUpperCase()) {
+            case "TOP" -> "Top Lane";
+            case "JUNGLE" -> "Jungle";
+            case "MIDDLE", "MID" -> "Mid Lane";
+            case "BOTTOM", "BOT" -> "Bot Lane";
+            case "UTILITY", "SUPPORT" -> "Support";
+            default -> lane; // Return as-is if unknown
+        };
+    }
 
     @GetMapping("/me/favorites")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<SummonerDTO>> myFavorites() {
-        // Development stub: return up to two favorite summoners for the "own" summoner.
-        // Reuse resolveUsername() and resolveLinkedSummonerName() instead of duplicating auth logic
+        // Return favorite summoners for the authenticated user
         String username = resolveUsername();
-        String linkedSummonerName = resolveLinkedSummonerName(username);
         
-        // Find the own summoner using optimized query
-        Summoner own = null;
-        if (linkedSummonerName != null) {
-            own = summonerRepository.findLinkedSummonerByUsername(linkedSummonerName).orElse(null);
+        if ("Guest".equals(username)) {
+            return ResponseEntity.ok(List.of());
         }
         
-        // Fallback: if no own resolved, use the first summoner
-        if (own == null) {
-            own = summonerRepository.findFirstByOrderByIdAsc().orElse(null);
-        }
+        // Get user and their favorite summoners
+        UserModel user = userRepository.findByName(username).orElse(null);
         
-        if (own == null) {
+        if (user == null) {
             return ResponseEntity.ok(List.of());
         }
 
-        // Get top 2 summoners excluding the own summoner using optimized query
-        Summoner finalOwn = own;
-        List<SummonerDTO> list = summonerRepository
-                .findTopByIdNotOrderByLastSearchedAtDesc(finalOwn.getId(), PageRequest.of(0, 2))
+        // Get user's favorite summoners
+        List<SummonerDTO> favorites = user.getFavoriteSummoners()
                 .stream()
                 .map(s -> SummonerMapper.toDTO(s, riotService.getDataDragonService()))
                 .toList();
 
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(favorites);
+    }
+
+    /**
+     * Add a summoner to user's favorites
+     */
+    @PostMapping("/me/favorites/{summonerName}")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> addFavorite(@PathVariable String summonerName) {
+        String username = resolveUsername();
+        
+        if ("Guest".equals(username)) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "User not authenticated"));
+        }
+        
+        UserModel user = userRepository.findByName(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "User not found"));
+        }
+        
+        // Find summoner by name
+        Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+        if (summoner == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Summoner not found"));
+        }
+        
+        // Check if it's the user's own linked summoner
+        if (summonerName.equalsIgnoreCase(user.getLinkedSummonerName())) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Cannot add your own linked account as favorite"));
+        }
+        
+        // Add to favorites
+        user.addFavoriteSummoner(summoner);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(Map.of("success", true, "message", "Summoner added to favorites"));
+    }
+
+    /**
+     * Remove a summoner from user's favorites
+     */
+    @DeleteMapping("/me/favorites/{summonerName}")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> removeFavorite(@PathVariable String summonerName) {
+        String username = resolveUsername();
+        
+        if ("Guest".equals(username)) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "User not authenticated"));
+        }
+        
+        UserModel user = userRepository.findByName(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "User not found"));
+        }
+        
+        // Find summoner by name
+        Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+        if (summoner == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Summoner not found"));
+        }
+        
+        // Remove from favorites
+        user.removeFavoriteSummoner(summoner);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(Map.of("success", true, "message", "Summoner removed from favorites"));
     }
 
     /**
@@ -187,15 +356,13 @@ public class DashboardController {
         String username = resolveUsername();
         String linkedSummonerName = resolveLinkedSummonerName(username);
         
-        Summoner summoner = null;
-        if (linkedSummonerName != null) {
-            summoner = summonerRepository.findLinkedSummonerByUsername(linkedSummonerName).orElse(null);
+        // ONLY show rank history if user has a linked summoner
+        // Do NOT fallback to DataInitializer summoners
+        if (linkedSummonerName == null) {
+            return ResponseEntity.ok(List.of());
         }
         
-        // Fallback to first summoner if no linked account
-        if (summoner == null) {
-            summoner = summonerRepository.findFirstByOrderByIdAsc().orElse(null);
-        }
+        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         
         if (summoner == null) {
             return ResponseEntity.ok(List.of());
@@ -382,5 +549,364 @@ public class DashboardController {
         }
         
         return isWin ? lpGain : -lpLoss;
+    }
+    
+    /**
+     * Get ranked match history for the linked summoner
+     * Returns only RANKED_SOLO_5x5 and RANKED_FLEX_SR matches
+     */
+    @GetMapping("/me/ranked-matches")
+    public ResponseEntity<List<com.tfg.tfg.model.dto.MatchHistoryDTO>> getRankedMatches(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false) Integer queueId) {
+        
+        String username = resolveUsername();
+        String linkedSummonerName = resolveLinkedSummonerName(username);
+        
+        if (linkedSummonerName == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        
+        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        if (summoner == null || summoner.getPuuid() == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        
+        try {
+            // STRATEGY: Check database first to avoid API calls
+            List<MatchEntity> cachedRankedMatches;
+            if (queueId != null) {
+                // Filter by specific queue (420=Solo/Duo or 440=Flex)
+                cachedRankedMatches = matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
+            } else {
+                // Get all ranked matches (both queues)
+                cachedRankedMatches = matchRepository.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
+            }
+            
+            String queueTypeLog = queueId != null ? (queueId == 420 ? "Solo/Duo" : "Flex") : "All Ranked";
+            logger.info("💾 Found {} cached ranked matches ({}) in database for user {}", 
+                cachedRankedMatches.size(), queueTypeLog, username);
+            
+            // Check if we need to update from API
+            boolean needsUpdate = false;
+            
+            if (cachedRankedMatches.isEmpty()) {
+                logger.info("📥 No cached matches, fetching from API");
+                needsUpdate = true;
+            } else {
+                // Get the most recent match from database
+                MatchEntity mostRecentCached = cachedRankedMatches.get(0);
+                String mostRecentMatchId = mostRecentCached.getMatchId();
+                
+                // Check API for the latest match to see if there are new matches
+                try {
+                    List<com.tfg.tfg.model.dto.MatchHistoryDTO> latestFromApi = 
+                        riotService.getMatchHistory(summoner.getPuuid(), 0, 1);
+                    
+                    if (!latestFromApi.isEmpty()) {
+                        String latestApiMatchId = latestFromApi.get(0).getMatchId();
+                        
+                        if (!latestApiMatchId.equals(mostRecentMatchId)) {
+                            logger.info("� New matches detected (latest API: {} vs cached: {}), updating...", 
+                                latestApiMatchId, mostRecentMatchId);
+                            needsUpdate = true;
+                        } else {
+                            logger.info("✅ Cache is up to date, using database data");
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.warn("⚠️ Could not check latest match from API, using cache: {}", e.getMessage());
+                }
+            }
+            
+            // If cache is valid, return from database
+            if (!needsUpdate && cachedRankedMatches.size() >= size) {
+                List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = cachedRankedMatches.stream()
+                    .skip(page * size)
+                    .limit(size)
+                    .map(this::convertMatchEntityToDTO)
+                    .toList();
+                
+                // LP is already saved in database, no need to calculate
+                
+                logger.info("📊 Returning {} ranked matches from cache", result.size());
+                return ResponseEntity.ok(result);
+            }
+            
+            // Otherwise, fetch from API and update database
+            logger.info("📥 Fetching fresh data from Riot API...");
+            int start = page * size;
+            
+            // Fetch more matches to ensure we get enough ranked ones (API returns all types)
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> allMatches = 
+                riotService.getMatchHistory(summoner.getPuuid(), start, size);
+
+            logger.info("� Fetched {} total matches from API for user {}", allMatches.size(), username);
+
+            // Filter by queueId (now available in MatchHistoryDTO)
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> rankedMatches = allMatches.stream()
+                .filter(match -> {
+                    Integer matchQueueId = match.getQueueId();
+                    if (matchQueueId == null) return false;
+                    
+                    // Filter by requested queue or both ranked queues
+                    if (queueId != null) {
+                        return matchQueueId.equals(queueId);
+                    } else {
+                        return matchQueueId == 420 || matchQueueId == 440;
+                    }
+                })
+                .limit(size)
+                .toList();
+            
+            logger.info("📊 Filtered to {} ranked matches from {} total (queueId filter: {})", 
+                rankedMatches.size(), allMatches.size(), queueId != null ? queueId : "420 or 440");
+            
+            // Save all matches to database for future caching (batch operation)
+            // LP is calculated and saved inside saveMatchesToDatabase
+            saveMatchesToDatabase(summoner, rankedMatches);
+            
+            logger.info("📊 Returning {} ranked matches (fetched from API)", rankedMatches.size());
+            
+            // LP already calculated and saved in database, return matches as-is
+            return ResponseEntity.ok(rankedMatches.stream().limit(size).toList());
+            
+        } catch (Exception e) {
+            logger.error("Error fetching ranked matches for user {}: {}", username, e.getMessage());
+            return ResponseEntity.ok(List.of());
+        }
+    }
+    
+    /**
+     * Convert MatchEntity to MatchHistoryDTO
+     */
+    private com.tfg.tfg.model.dto.MatchHistoryDTO convertMatchEntityToDTO(MatchEntity match) {
+        com.tfg.tfg.model.dto.MatchHistoryDTO dto = new com.tfg.tfg.model.dto.MatchHistoryDTO();
+        dto.setMatchId(match.getMatchId());
+        dto.setChampionName(match.getChampionName());
+        dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(match.getChampionId() != null ? match.getChampionId().longValue() : null));
+        dto.setWin(match.isWin());
+        dto.setKills(match.getKills());
+        dto.setDeaths(match.getDeaths());
+        dto.setAssists(match.getAssists());
+        dto.setGameDuration(match.getGameDuration());
+        // Convert LocalDateTime (UTC) to epoch seconds
+        dto.setGameTimestamp(match.getTimestamp() != null ? match.getTimestamp().toEpochSecond(java.time.ZoneOffset.UTC) : null);
+        dto.setQueueId(match.getQueueId());
+        dto.setLpAtMatch(match.getLpAtMatch());  // Include saved LP
+        return dto;
+    }
+    
+    /**
+     * Save multiple matches to database in batch (optimized)
+     * Calculates and saves LP at match time for accurate historical tracking
+     * Also updates the input DTOs with calculated LP values
+     */
+    private void saveMatchesToDatabase(Summoner summoner, List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches) {
+        if (matches.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // Batch check which matches already exist
+            List<String> matchIds = matches.stream()
+                .map(com.tfg.tfg.model.dto.MatchHistoryDTO::getMatchId)
+                .toList();
+            
+            Map<String, MatchEntity> existingMatches = matchRepository.findByMatchIdIn(matchIds)
+                .stream()
+                .collect(java.util.stream.Collectors.toMap(MatchEntity::getMatchId, m -> m));
+            
+            logger.debug("💾 Batch saving: {} matches, {} already exist", matches.size(), existingMatches.size());
+            
+            // Sort matches by timestamp (oldest first) for LP calculation
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> sortedMatches = new java.util.ArrayList<>(matches);
+            sortedMatches.sort((a, b) -> Long.compare(
+                a.getGameTimestamp() != null ? a.getGameTimestamp() : 0,
+                b.getGameTimestamp() != null ? b.getGameTimestamp() : 0
+            ));
+            
+            // Calculate LP progression starting from current LP and working backwards
+            String currentTier = summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER;
+            String currentDivision = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
+            int currentLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
+            
+            logger.info("🎯 Starting LP calculation - Current LP: {}, Tier: {}, Division: {}, Matches: {}", 
+                currentLP, currentTier, currentDivision, sortedMatches.size());
+            
+            // Track LP and division as we go BACKWARDS in time
+            int lpTracker = currentLP;
+            String divisionTracker = currentDivision;
+            
+            // Create map to store calculated LP for each match
+            Map<String, Integer> lpByMatchId = new java.util.HashMap<>();
+            List<MatchEntity> newMatches = new java.util.ArrayList<>();
+            
+            // Process matches BACKWARDS (newest to oldest) since we're working from current LP
+            for (int i = sortedMatches.size() - 1; i >= 0; i--) {
+                com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO = sortedMatches.get(i);
+                
+                // Check if match already exists
+                MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
+                
+                // If match exists with valid LP data, use it
+                if (existing != null && existing.getLpAtMatch() != null && existing.getLpAtMatch() > 0) {
+                    int existingLP = existing.getLpAtMatch();
+                    lpByMatchId.put(matchDTO.getMatchId(), existingLP);
+                    
+                    logger.debug("📊 Match {} (existing): LP={}", 
+                        matchDTO.getMatchId().substring(Math.max(0, matchDTO.getMatchId().length() - 6)),
+                        existingLP);
+                    continue;
+                }
+                
+                // LP at the START of this match (BEFORE playing it)
+                // This is the value we want to store
+                int lpAtMatchStart = lpTracker;
+                
+                // Now figure out what LP was BEFORE this match (going backwards in time)
+                boolean won = matchDTO.getWin() != null && matchDTO.getWin();
+                // INVERTED because we're going backwards: if they won, we subtract LP
+                int lpChange = won ? -20 : +15;
+                
+                // Apply LP change going backwards
+                lpTracker += lpChange;
+                
+                // Handle division demotion if LP goes below 0
+                while (lpTracker < 0 && canDemote(currentTier, divisionTracker)) {
+                    divisionTracker = demoteDivision(divisionTracker);
+                    lpTracker += 100; // Add 100 LP from previous division
+                    logger.debug("⬇️ Demotion simulated while going backwards: now at {} {}, LP={}", 
+                        currentTier, divisionTracker, lpTracker);
+                }
+                
+                // If we can't demote and LP < 0, clamp to 0 (Iron IV case)
+                if (lpTracker < 0) {
+                    lpTracker = 0;
+                }
+                
+                // Create/update match entity
+                MatchEntity match = existing != null ? existing : new MatchEntity();
+                match.setMatchId(matchDTO.getMatchId());
+                match.setSummoner(summoner);
+                match.setChampionName(matchDTO.getChampionName());
+                match.setWin(matchDTO.getWin());
+                match.setKills(matchDTO.getKills());
+                match.setDeaths(matchDTO.getDeaths());
+                match.setAssists(matchDTO.getAssists());
+                match.setGameDuration(matchDTO.getGameDuration());
+                match.setQueueId(matchDTO.getQueueId());
+                
+                if (matchDTO.getGameTimestamp() != null) {
+                    match.setTimestamp(java.time.LocalDateTime.ofEpochSecond(
+                        matchDTO.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
+                }
+                
+                match.setLpAtMatch(lpAtMatchStart);
+                
+                logger.debug("📊 Match {} (new): Win={}, LPAtStart={}, Change={}, LPBefore={}", 
+                    matchDTO.getMatchId().substring(Math.max(0, matchDTO.getMatchId().length() - 6)),
+                    won, lpAtMatchStart, lpChange, lpTracker);
+                
+                // Store LP for DTO update
+                lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
+                
+                newMatches.add(match);
+            }
+            
+            logger.info("📈 LP calculation complete: Traced back to approximately {} LP (from current {})", 
+                lpTracker, currentLP);            // Batch save
+            if (!newMatches.isEmpty()) {
+                matchRepository.saveAll(newMatches);
+                logger.info("💾 Batch saved {} new/updated matches with LP tracking", newMatches.size());
+            }
+            
+            // Update all input DTOs with calculated LP
+            for (com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO : matches) {
+                Integer calculatedLP = lpByMatchId.get(matchDTO.getMatchId());
+                if (calculatedLP != null) {
+                    matchDTO.setLpAtMatch(calculatedLP);
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not batch save matches to database: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Check if a summoner can be demoted from their current division
+     * Master/Grandmaster/Challenger don't have divisions, so they can't demote via division system
+     * Iron IV is the lowest division, can't demote
+     */
+    private boolean canDemote(String tier, String division) {
+        // Master+ don't have divisions
+        if (tier.equals("MASTER") || tier.equals("GRANDMASTER") || tier.equals("CHALLENGER")) {
+            return false;
+        }
+        // Iron IV is the lowest possible rank
+        if (tier.equals("IRON") && division.equals("IV")) {
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Demote to the previous division within the same tier
+     * I -> II -> III -> IV
+     */
+    private String demoteDivision(String currentDivision) {
+        return switch (currentDivision) {
+            case "I" -> "II";
+            case "II" -> "III";
+            case "III", "IV" -> "IV"; // Can't demote past IV
+            default -> currentDivision;
+        };
+    }
+    
+    /**
+     * Refresh match history for the linked summoner
+     * Fetches recent ranked matches from Riot API and saves them to database
+     */
+    @PostMapping("/me/refresh-matches")
+    public ResponseEntity<Map<String, Object>> refreshMatches() {
+        String username = resolveUsername();
+        String linkedSummonerName = resolveLinkedSummonerName(username);
+        
+        if (linkedSummonerName == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false, 
+                "message", "No linked summoner account found"
+            ));
+        }
+        
+        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        if (summoner == null || summoner.getPuuid() == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false, 
+                "message", "Summoner not found or missing PUUID"
+            ));
+        }
+        
+        try {
+            // Fetch recent matches from Riot API - this will cache them automatically
+            List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = riotService.getMatchHistory(summoner.getPuuid(), 0, 30);
+            
+            // Count how many were actually saved/cached
+            int matchCount = matches != null ? matches.size() : 0;
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Match history refreshed successfully",
+                "matchesProcessed", matchCount
+            ));
+        } catch (Exception e) {
+            logger.error("Error refreshing matches for summoner {}: {}", linkedSummonerName, e.getMessage());
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Failed to refresh match history: " + e.getMessage()
+            ));
+        }
     }
 }

@@ -28,11 +28,17 @@ describe('AuthService - Unit Tests', () => {
     it('should login successfully', () => {
       // Arrange
       const mockPayload = { username: 'testuser', password: 'testpass' };
-      const mockResponse = { token: 'mock-jwt-token', username: 'testuser', role: 'USER' };
+      const mockResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
 
       // Act
       service.login(mockPayload).subscribe(response => {
-        expect(response).toEqual(mockResponse);
+        expect(response.status).toBe('success');
+        expect(response.accessToken).toBe('mock-jwt-token');
         expect(service.isAuthenticated()).toBeTrue();
       });
 
@@ -40,7 +46,6 @@ describe('AuthService - Unit Tests', () => {
       const req = httpMock.expectOne(`${API_URL}/auth/login`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(mockPayload);
-      expect(req.request.withCredentials).toBeTrue();
       
       req.flush(mockResponse);
     });
@@ -95,14 +100,14 @@ describe('AuthService - Unit Tests', () => {
       // Act
       service.register(mockPayload).subscribe(response => {
         expect(response).toEqual(mockResponse);
-        expect(service.isAuthenticated()).toBeTrue();
+        // Register doesn't change auth state, user must login separately
+        expect(service.isAuthenticated()).toBeFalse();
       });
 
       // Assert
       const req = httpMock.expectOne(`${API_URL}/auth/register`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(mockPayload);
-      expect(req.request.withCredentials).toBeTrue();
       
       req.flush(mockResponse);
     });
@@ -135,7 +140,7 @@ describe('AuthService - Unit Tests', () => {
       // Arrange
       service.login({ username: 'test', password: 'test' }).subscribe();
       let loginReq = httpMock.expectOne(`${API_URL}/auth/login`);
-      loginReq.flush({ token: 'token' });
+      loginReq.flush({ status: 'success', accessToken: 'token', refreshToken: 'refresh' });
       
       expect(service.isAuthenticated()).toBeTrue();
 
@@ -144,27 +149,22 @@ describe('AuthService - Unit Tests', () => {
 
       // Assert
       expect(service.isAuthenticated()).toBeFalse();
-      
-      const logoutReq = httpMock.expectOne(`${API_URL}/auth/logout`);
-      expect(logoutReq.request.method).toBe('POST');
-      expect(logoutReq.request.withCredentials).toBeTrue();
-      logoutReq.flush({});
+      expect(localStorage.getItem('accessToken')).toBeNull();
+      expect(localStorage.getItem('refreshToken')).toBeNull();
     });
 
-    it('should clear auth state even if server logout fails', () => {
+    it('should clear auth state and current user on logout', () => {
       // Arrange
       service.login({ username: 'test', password: 'test' }).subscribe();
       let loginReq = httpMock.expectOne(`${API_URL}/auth/login`);
-      loginReq.flush({ token: 'token' });
+      loginReq.flush({ status: 'success', accessToken: 'token', refreshToken: 'refresh' });
 
       // Act
       service.logout();
 
       // Assert
       expect(service.isAuthenticated()).toBeFalse();
-      
-      const logoutReq = httpMock.expectOne(`${API_URL}/auth/logout`);
-      logoutReq.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+      expect(service.getCurrentUser()).toBeNull();
     });
   });
 
@@ -175,6 +175,9 @@ describe('AuthService - Unit Tests', () => {
         username: 'testuser', 
         roles: ['USER', 'ADMIN'] 
       };
+
+      // Store a token first
+      localStorage.setItem('accessToken', 'test-token');
 
       // Act
       service.checkSession().subscribe(isValid => {
@@ -189,7 +192,6 @@ describe('AuthService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/auth/me`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
@@ -214,6 +216,7 @@ describe('AuthService - Unit Tests', () => {
         roles: ['USER', 'ADMIN'] 
       };
 
+      localStorage.setItem('accessToken', 'test-token');
       service.checkSession().subscribe();
       const req = httpMock.expectOne(`${API_URL}/auth/me`);
       req.flush(mockResponse);
@@ -229,6 +232,7 @@ describe('AuthService - Unit Tests', () => {
         roles: ['USER'] 
       };
 
+      localStorage.setItem('accessToken', 'test-token');
       service.checkSession().subscribe();
       const req = httpMock.expectOne(`${API_URL}/auth/me`);
       req.flush(mockResponse);
@@ -268,6 +272,7 @@ describe('AuthService - Unit Tests', () => {
         roles: ['USER'] 
       };
 
+      localStorage.setItem('accessToken', 'test-token');
       service.checkSession().subscribe();
       const req = httpMock.expectOne(`${API_URL}/auth/me`);
       req.flush(mockResponse);

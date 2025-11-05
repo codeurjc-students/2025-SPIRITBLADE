@@ -72,4 +72,19 @@ export class AdminService {
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`${this.usersUrl}/${userId}`, { withCredentials: true });
   }
+
+  /**
+   * Set user active status (deprecated - use toggleUserActive instead).
+   * @deprecated Use toggleUserActive() instead
+   */
+  setUserActive(userId: number, active: boolean): Observable<any> {
+    return this.http.patch<any>(`${API_URL}/admin/users/${userId}`, { active }, { withCredentials: true });
+  }
+
+  /**
+   * Get system statistics.
+   */
+  getSystemStats(): Observable<any> {
+    return this.http.get<any>(`${API_URL}/admin/stats`, { withCredentials: true });
+  }
 }
