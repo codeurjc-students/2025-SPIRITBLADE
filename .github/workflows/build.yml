@@ -238,8 +238,8 @@ jobs:
         run: echo "✅ Frontend E2E tests are covered by Backend E2E tests"
         continue-on-error: false
 
-      # Coverage and quality analysis
-      - name: 📊 Generate Coverage Reports
+      # Coverage report generation (without re-running tests)
+      - name: 📊 Generate Backend Coverage Report
         working-directory: ./backend
         run: mvn jacoco:report -B
 

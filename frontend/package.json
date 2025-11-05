@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
-    "test:integration": "ng test --include='**/*.integration.spec.ts' --watch=false --browsers=ChromeHeadless",
+  "test:integration": "ng test --include='**/*integration.spec.ts' --watch=false --browsers=ChromeHeadless",
     "test:e2e": "ng e2e"
   },
   "private": true,
