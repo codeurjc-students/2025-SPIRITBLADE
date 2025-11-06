@@ -117,24 +117,24 @@ describe('HomeComponent - Unit Tests', () => {
   describe('Search Functionality', () => {
     it('should navigate to summoner page with valid search query', () => {
       // Arrange
-      component.searchQuery = 'TestSummoner';
+      component.searchQuery = 'TestSummoner#EUW';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#EUW']);
     });
 
     it('should trim whitespace from search query before navigation', () => {
       // Arrange
-      component.searchQuery = '  TestSummoner  ';
+      component.searchQuery = '  TestSummoner#EUW  ';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#EUW']);
     });
 
     it('should not navigate with empty search query', () => {
@@ -161,24 +161,24 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should handle special characters in search query', () => {
       // Arrange
-      component.searchQuery = 'Test@Summoner#123';
+      component.searchQuery = 'Test@Summoner#EUW';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Test@Summoner#123']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Test@Summoner#EUW']);
     });
 
     it('should handle long search queries', () => {
       // Arrange
-      component.searchQuery = 'A'.repeat(100); // Very long name
+      component.searchQuery = 'A'.repeat(100) + '#EUW'; // Very long name with region
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'A'.repeat(100)]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'A'.repeat(100) + '#EUW']);
     });
   });
 
@@ -281,7 +281,7 @@ describe('HomeComponent - Unit Tests', () => {
     it('should handle router navigation errors gracefully', () => {
       // Arrange
       mockRouter.navigate.and.returnValue(Promise.reject('Navigation failed'));
-      component.searchQuery = 'TestSummoner';
+      component.searchQuery = 'TestSummoner#EUW';
 
       // Act & Assert
       expect(() => component.onSearch()).not.toThrow();
@@ -367,7 +367,7 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should allow multiple search operations', () => {
       // Arrange
-      const queries = ['Summoner1', 'Summoner2', 'Summoner3'];
+      const queries = ['Summoner1#EUW', 'Summoner2#EUW', 'Summoner3#EUW'];
 
       // Act & Assert
       queries.forEach(query => {

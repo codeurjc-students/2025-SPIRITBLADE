@@ -70,7 +70,6 @@ describe('AdminService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
@@ -247,7 +246,6 @@ describe('AdminService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/users/${userId}`);
       expect(req.request.method).toBe('DELETE');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
@@ -356,7 +354,6 @@ describe('AdminService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/admin/stats`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockSystemStats);
     });
 

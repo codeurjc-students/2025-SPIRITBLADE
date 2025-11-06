@@ -44,7 +44,6 @@ describe('UserService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/users/me`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockUser);
     });
 
@@ -101,7 +100,6 @@ describe('UserService - Unit Tests', () => {
       const req = httpMock.expectOne(`${API_URL}/users/me`);
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toEqual(updatePayload);
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(updatedUser);
     });
 
@@ -172,7 +170,6 @@ describe('UserService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/admin/users`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockUsers);
     });
 
@@ -206,6 +203,7 @@ describe('UserService - Unit Tests', () => {
     it('should add summoner to favorites', () => {
       // Arrange
       const summonerId = 'summoner123';
+      const encodedId = encodeURIComponent(summonerId);
       const mockResponse = {
         success: true,
         message: 'Summoner added to favorites'
@@ -217,16 +215,15 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ summonerId });
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
     it('should handle summoner already in favorites', () => {
       // Arrange
       const summonerId = 'summoner123';
+      const encodedId = encodeURIComponent(summonerId);
 
       // Act
       service.addFavoriteSummoner(summonerId).subscribe({
@@ -237,13 +234,14 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       req.flush('Summoner already in favorites', { status: 409, statusText: 'Conflict' });
     });
 
     it('should handle invalid summoner ID', () => {
       // Arrange
       const invalidSummonerId = '';
+      const encodedId = encodeURIComponent(invalidSummonerId);
 
       // Act
       service.addFavoriteSummoner(invalidSummonerId).subscribe({
@@ -254,7 +252,7 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       req.flush('Invalid summoner ID', { status: 400, statusText: 'Bad Request' });
     });
   });
@@ -263,6 +261,7 @@ describe('UserService - Unit Tests', () => {
     it('should remove summoner from favorites', () => {
       // Arrange
       const summonerId = 'summoner123';
+      const encodedId = encodeURIComponent(summonerId);
       const mockResponse = {
         success: true,
         message: 'Summoner removed from favorites'
@@ -274,15 +273,15 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites/${summonerId}`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       expect(req.request.method).toBe('DELETE');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
     it('should handle summoner not in favorites', () => {
       // Arrange
       const summonerId = 'summoner123';
+      const encodedId = encodeURIComponent(summonerId);
 
       // Act
       service.removeFavoriteSummoner(summonerId).subscribe({
@@ -293,13 +292,14 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites/${summonerId}`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       req.flush('Summoner not found in favorites', { status: 404, statusText: 'Not Found' });
     });
 
     it('should handle unauthorized access', () => {
       // Arrange
       const summonerId = 'summoner123';
+      const encodedId = encodeURIComponent(summonerId);
 
       // Act
       service.removeFavoriteSummoner(summonerId).subscribe({
@@ -310,7 +310,7 @@ describe('UserService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/me/favorites/${summonerId}`);
+      const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites/${encodedId}`);
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
     });
   });

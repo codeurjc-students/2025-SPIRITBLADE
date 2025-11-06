@@ -191,7 +191,7 @@ describe('DashboardComponent - Unit Tests', () => {
       component.uploadAvatar(largeFile);
 
       // Assert
-      expect(component.avatarError).toBe('El archivo es demasiado grande. Máximo 5MB.');
+      expect(component.avatarError).toBe('The file is too large. Maximum 5MB.');
       expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
     });
 
@@ -203,7 +203,7 @@ describe('DashboardComponent - Unit Tests', () => {
       component.uploadAvatar(invalidFile);
 
       // Assert
-      expect(component.avatarError).toBe('Por favor selecciona solo archivos PNG.');
+      expect(component.avatarError).toBe('Please select a PNG file.');
       expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
     });
 
@@ -268,12 +268,12 @@ describe('DashboardComponent - Unit Tests', () => {
       mockUserService.linkSummoner.and.returnValue(of(mockLinkResponse));
       mockUserService.getLinkedSummoner.and.returnValue(of({ 
         linked: true, 
-        summonerName: 'NewPlayer', 
+        summonerName: 'NewPlayer#EUW', 
         region: 'EUW' 
       }));
       mockDashboardService.getRankedMatches.and.returnValue(of([]));
       
-      component.summonerName = 'NewPlayer';
+      component.summonerName = 'NewPlayer#EUW';
       component.selectedRegion = 'EUW';
 
       // Act
@@ -281,7 +281,7 @@ describe('DashboardComponent - Unit Tests', () => {
 
       // Assert
       expect(component.linkSuccess).toBe('Account linked');
-      expect(mockUserService.linkSummoner).toHaveBeenCalledWith('NewPlayer', 'EUW');
+      expect(mockUserService.linkSummoner).toHaveBeenCalledWith('NewPlayer#EUW', 'EUW');
     });
 
     it('should handle link summoner error', () => {
@@ -289,7 +289,7 @@ describe('DashboardComponent - Unit Tests', () => {
       mockUserService.linkSummoner.and.returnValue(
         throwError(() => ({ error: { message: 'Summoner not found' } }))
       );
-      component.summonerName = 'InvalidPlayer';
+      component.summonerName = 'InvalidPlayer#EUW';
       component.selectedRegion = 'EUW';
 
       // Act
