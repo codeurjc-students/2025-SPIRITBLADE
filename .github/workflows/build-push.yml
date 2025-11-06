@@ -64,3 +64,7 @@ jobs:
             docker tag ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
           fi
+
+      - name: 🔓 Logout from DockerHub
+        if: always()
+        run: docker logout
