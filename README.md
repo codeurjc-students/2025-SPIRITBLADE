@@ -114,6 +114,17 @@ Las siguientes versiones incluirán funcionalidades avanzadas para enriquecer la
 
 ## 🚀 Inicio Rápido
 
+### 🔐 Credenciales de Desarrollo
+
+**⚠️ Para demos y desarrollo local:**
+
+- **Admin:** `admin` / `admin`
+- **Usuario:** `user` / `pass`
+
+📖 **[Ver guía completa de credenciales](CREDENTIALS.md)** - Incluye gestión de roles, configuración de producción y seguridad.
+
+---
+
 ### Ejecutar con Docker (Recomendado)
 
 ```bash

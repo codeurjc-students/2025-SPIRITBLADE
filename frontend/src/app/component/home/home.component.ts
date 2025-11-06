@@ -18,6 +18,7 @@ export class HomeComponent implements OnInit {
   searchQuery = '';
   recentSearches: Summoner[] = [];
   loadingRecentSearches = false;
+  searchError: string | null = null;
 
   constructor(
     private router: Router,
@@ -43,9 +44,38 @@ export class HomeComponent implements OnInit {
   }
 
   onSearch() {
-    if (this.searchQuery && this.searchQuery.trim()) {
-      this.router.navigate(['/summoner', this.searchQuery.trim()]);
+    this.searchError = null;
+    
+    if (!this.searchQuery || !this.searchQuery.trim()) {
+      this.searchError = 'Please enter a summoner name';
+      return;
     }
+
+    const input = this.searchQuery.trim();
+    
+    // Validate format: nombre#región
+    if (!input.includes('#')) {
+      this.searchError = 'Please use format: name#region (e.g., jae9104#EUW)';
+      return;
+    }
+    
+    const parts = input.split('#');
+    const summonerName = parts[0].trim();
+    const region = parts[1].trim().toUpperCase();
+    
+    // Validate region (only EUW supported for now)
+    if (region !== 'EUW') {
+      this.searchError = 'Currently only EUW region is supported';
+      return;
+    }
+
+    if (!summonerName) {
+      this.searchError = 'Please enter a valid summoner name';
+      return;
+    }
+
+    // Navigate with the full Riot ID
+    this.router.navigate(['/summoner', input]);
   }
 
   searchSummoner(summoner: Summoner) {

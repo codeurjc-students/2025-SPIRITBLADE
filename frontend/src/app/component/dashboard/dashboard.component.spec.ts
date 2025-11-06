@@ -195,7 +195,7 @@ describe('DashboardComponent - Unit Tests', () => {
       expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
     });
 
-    it('should reject non-PNG/JPG files', () => {
+    it('should reject non-PNG files', () => {
       // Arrange
       const invalidFile = new File(['test'], 'test.gif', { type: 'image/gif' });
 
@@ -203,7 +203,7 @@ describe('DashboardComponent - Unit Tests', () => {
       component.uploadAvatar(invalidFile);
 
       // Assert
-      expect(component.avatarError).toBe('Por favor selecciona solo archivos PNG o JPG.');
+      expect(component.avatarError).toBe('Por favor selecciona solo archivos PNG.');
       expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
     });
 

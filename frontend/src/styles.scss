@@ -766,15 +766,16 @@ footer {
   border: none;
   border-radius: 0.5rem;
   color: white;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-normal);
   font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 .edit-avatar-btn:hover, .link-account-btn:hover, .add-favorite-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
 .edit-avatar-btn {
@@ -831,27 +832,49 @@ footer {
   border: 1px solid var(--surface-border);
   border-radius: 0.75rem;
   transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .favorite-card:hover {
   background: rgba(124, 58, 237, 0.08);
   transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.favorite-card .summoner-name {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.favorite-card .summoner-name:hover {
+  color: var(--primary);
+}
+
+.favorite-card .summoner-rank {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0 auto 0 1rem;
 }
 
 .remove-btn {
-  padding: 0.25rem 0.75rem;
-  background: var(--danger);
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--danger), #b91c1c);
   border: none;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
 .remove-btn:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 .chart-placeholder {

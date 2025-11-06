@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.MatchRepository;
-import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 
 import jakarta.annotation.PostConstruct;
@@ -19,29 +17,47 @@ public class DataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
     private static final String ADMIN_USERNAME = "admin";
     private static final String USER_USERNAME = "user";
+    private static final String DEFAULT_ADMIN_PASSWORD = "admin";
+    private static final String DEFAULT_USER_PASSWORD = "pass";
     
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserModelRepository userRepository, 
-                          PasswordEncoder passwordEncoder,
-                          SummonerRepository summonerRepo,
-                          MatchRepository matchRepository) {
+                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @PostConstruct
     public void init() {
-        // Generate secure default passwords for development (should be externalized in production)
+        // Get active Spring profile (production, development, etc.)
+        String profile = System.getProperty("spring.profiles.active", "development");
+        boolean isProduction = "production".equalsIgnoreCase(profile);
+        
+        // Use environment variables in production, fixed passwords in development
         String adminPassword = System.getenv("ADMIN_DEFAULT_PASSWORD");
         if (adminPassword == null) {
-            adminPassword = generateSecurePassword(ADMIN_USERNAME);
+            if (isProduction) {
+                adminPassword = generateSecurePassword(ADMIN_USERNAME);
+                logger.warn("Production mode detected but ADMIN_DEFAULT_PASSWORD not set! Using generated password.");
+            } else {
+                // Fixed password for development/demo
+                adminPassword = DEFAULT_ADMIN_PASSWORD;
+                logger.info("Development mode: Using default password for admin user");
+            }
         }
         
         String userPassword = System.getenv("USER_DEFAULT_PASSWORD");
         if (userPassword == null) {
-            userPassword = generateSecurePassword(USER_USERNAME);
+            if (isProduction) {
+                userPassword = generateSecurePassword(USER_USERNAME);
+                logger.warn("Production mode detected but USER_DEFAULT_PASSWORD not set! Using generated password.");
+            } else {
+                // Fixed password for development/demo
+                userPassword = DEFAULT_USER_PASSWORD;
+                logger.info("Development mode: Using default password for regular user");
+            }
         }
         
         // Create admin user if not exists
@@ -49,7 +65,11 @@ public class DataInitializer {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
             userRepository.save(admin);
-            logger.info("Created default admin user: {} / [password from env or generated]", ADMIN_USERNAME);
+            if (isProduction) {
+                logger.info("Created default admin user: {} / [password from environment]", ADMIN_USERNAME);
+            } else {
+                logger.info("Created default admin user: {} / Password: {}", ADMIN_USERNAME, adminPassword);
+            }
         }
 
         // Create regular user if not exists
@@ -58,7 +78,11 @@ public class DataInitializer {
             user.setEmail("user@example.com");
             user.setActive(true);
             userRepository.save(user);
-            logger.info("Created default user: {} / [password from env or generated]", USER_USERNAME);
+            if (isProduction) {
+                logger.info("Created default user: {} / [password from environment]", USER_USERNAME);
+            } else {
+                logger.info("Created default user: {} / Password: {}", USER_USERNAME, userPassword);
+            }
         }
 
     }

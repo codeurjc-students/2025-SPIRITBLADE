@@ -37,23 +37,27 @@ export class UserService {
   private http = inject(HttpClient);
 
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${API_URL}/users/me`, { withCredentials: true });
+    return this.http.get<User>(`${API_URL}/users/me`);
   }
 
   updateProfile(payload: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${API_URL}/users/me`, payload, { withCredentials: true });
+    return this.http.put<User>(`${API_URL}/users/me`, payload);
   }
 
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${API_URL}/admin/users`, { withCredentials: true });
+    return this.http.get<User[]>(`${API_URL}/admin/users`);
   }
 
-  addFavoriteSummoner(summonerId: string): Observable<any> {
-    return this.http.post(`${API_URL}/users/me/favorites`, { summonerId }, { withCredentials: true });
+  addFavoriteSummoner(summonerName: string): Observable<any> {
+    // Encode the summoner name to handle special characters like #
+    const encodedName = encodeURIComponent(summonerName);
+    return this.http.post(`${API_URL}/dashboard/me/favorites/${encodedName}`, {});
   }
 
-  removeFavoriteSummoner(summonerId: string): Observable<any> {
-    return this.http.delete(`${API_URL}/users/me/favorites/${summonerId}`, { withCredentials: true });
+  removeFavoriteSummoner(summonerName: string): Observable<any> {
+    // Encode the summoner name to handle special characters like #
+    const encodedName = encodeURIComponent(summonerName);
+    return this.http.delete(`${API_URL}/dashboard/me/favorites/${encodedName}`);
   }
 
   /**
@@ -64,7 +68,7 @@ export class UserService {
    */
   linkSummoner(summonerName: string, region: string): Observable<LinkSummonerResponse> {
     const payload: LinkSummonerRequest = { summonerName, region };
-    return this.http.post<LinkSummonerResponse>(`${API_URL}/users/link-summoner`, payload, { withCredentials: true });
+    return this.http.post<LinkSummonerResponse>(`${API_URL}/users/link-summoner`, payload);
   }
 
   /**
@@ -72,7 +76,7 @@ export class UserService {
    * @returns Observable with the unlink result
    */
   unlinkSummoner(): Observable<UnlinkSummonerResponse> {
-    return this.http.post<UnlinkSummonerResponse>(`${API_URL}/users/unlink-summoner`, {}, { withCredentials: true });
+    return this.http.post<UnlinkSummonerResponse>(`${API_URL}/users/unlink-summoner`, {});
   }
 
   /**
@@ -80,7 +84,7 @@ export class UserService {
    * @returns Observable with linked summoner information
    */
   getLinkedSummoner(): Observable<LinkedSummonerResponse> {
-    return this.http.get<LinkedSummonerResponse>(`${API_URL}/users/linked-summoner`, { withCredentials: true });
+    return this.http.get<LinkedSummonerResponse>(`${API_URL}/users/linked-summoner`);
   }
 
   /**
@@ -93,8 +97,7 @@ export class UserService {
     formData.append('file', file);
     return this.http.post<{ success: boolean; message: string; avatarUrl?: string }>(
       `${API_URL}/users/avatar`, 
-      formData, 
-      { withCredentials: true }
+      formData
     );
   }
 
@@ -104,8 +107,7 @@ export class UserService {
    */
   deleteAvatar(): Observable<{ success: boolean; message: string }> {
     return this.http.delete<{ success: boolean; message: string }>(
-      `${API_URL}/users/avatar`, 
-      { withCredentials: true }
+      `${API_URL}/users/avatar`
     );
   }
 }

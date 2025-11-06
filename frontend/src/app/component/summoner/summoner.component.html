@@ -4,13 +4,17 @@
 		<div class="search-box">
 			<input 
 				type="text" 
-				placeholder="Enter Riot ID (e.g. Player#EUW)..." 
+				placeholder="e.g., jae9104#EUW" 
 				class="search-input"
 				[(ngModel)]="searchQuery"
 				(keyup.enter)="onSearch()">
 			<button class="search-btn" (click)="onSearch()">Search</button>
 		</div>
 	</section>
+
+	<div *ngIf="error" class="search-error" style="margin-bottom: 30px;">
+			{{ error }}
+	</div>
 
 	<section class="summoner-header">
 	<div class="summoner-info">
@@ -24,7 +28,6 @@
 	</div>
 	<div class="summoner-details">
 	<div *ngIf="loading">Loading summoner...</div>
-	<div *ngIf="error" class="error">{{ error }}</div>
 	<div *ngIf="!loading && summoner">
 		<h1>{{ summoner.name }}</h1>
 		<p class="summoner-level">Level {{ summoner.level }}</p>

@@ -22,6 +22,9 @@ import com.tfg.tfg.repository.UserModelRepository;
 @RequestMapping("/api/v1/admin")
 public class AdminController {
 
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_USER = "USER";
+
     private final UserModelRepository userRepository;
 
     public AdminController(UserModelRepository userRepository) {
@@ -56,6 +59,66 @@ public class AdminController {
         if (!userRepository.existsById(id)) return ResponseEntity.notFound().build();
         userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Promote a user to ADMIN role.
+     * 
+     * @param id User ID to promote
+     * @return Success response
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/users/{id}/promote")
+    public ResponseEntity<UserDTO> promoteToAdmin(@PathVariable Long id) {
+        var opt = userRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserModel user = opt.get();
+        List<String> roles = user.getRols();
+        if (roles == null) {
+            roles = new java.util.ArrayList<>();
+        } else {
+            roles = new java.util.ArrayList<>(roles); // Make mutable
+        }
+        
+        // Add ADMIN role if not present
+        if (!roles.contains(ROLE_ADMIN)) {
+            roles.add(ROLE_ADMIN);
+            user.setRols(roles);
+            userRepository.save(user);
+        }
+        
+        return ResponseEntity.ok(UserMapper.toDTO(user));
+    }
+
+    /**
+     * Demote a user from ADMIN role (keep USER role).
+     * 
+     * @param id User ID to demote
+     * @return Success response
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/users/{id}/demote")
+    public ResponseEntity<UserDTO> demoteFromAdmin(@PathVariable Long id) {
+        var opt = userRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserModel user = opt.get();
+        List<String> roles = user.getRols();
+        if (roles != null) {
+            roles = new java.util.ArrayList<>(roles); // Make mutable
+            roles.remove(ROLE_ADMIN);
+            
+            // Ensure at least USER role remains
+            if (roles.isEmpty()) {
+                roles.add(ROLE_USER);
+            }
+            
+            user.setRols(roles);
+            userRepository.save(user);
+        }
+        
+        return ResponseEntity.ok(UserMapper.toDTO(user));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

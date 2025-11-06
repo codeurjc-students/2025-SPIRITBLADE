@@ -329,10 +329,27 @@ public class DashboardController {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
         }
         
-        // Find summoner by name
+        // First try to find summoner in database
         Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+        
+        // If not in database, try to fetch from Riot API
         if (summoner == null) {
-            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
+            logger.info("Summoner {} not in database, fetching from Riot API", summonerName);
+            try {
+                SummonerDTO summonerDTO = riotService.getSummonerByName(summonerName);
+                if (summonerDTO == null) {
+                    return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
+                }
+                
+                // After API call, summoner should be saved to DB, retrieve it
+                summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+                if (summoner == null) {
+                    return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found in database after API fetch"));
+                }
+            } catch (Exception e) {
+                logger.error("Error fetching summoner from Riot API: {}", e.getMessage());
+                return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found: " + e.getMessage()));
+            }
         }
         
         // Check if it's the user's own linked summoner

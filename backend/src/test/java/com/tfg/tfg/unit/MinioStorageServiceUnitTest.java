@@ -62,7 +62,8 @@ class MinioStorageServiceUnitTest {
         String originalFilename = "test-image.png";
         String contentType = "image/png";
         long fileSize = 1024L;
-        byte[] content = "test content".getBytes();
+        // PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
+        byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00};
         InputStream inputStream = new ByteArrayInputStream(content);
 
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -87,7 +88,8 @@ class MinioStorageServiceUnitTest {
         String originalFilename = "document.png";
         String contentType = "image/png";
         long fileSize = 2048L;
-        byte[] content = "png content".getBytes();
+        // PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
+        byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00};
         InputStream inputStream = new ByteArrayInputStream(content);
 
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -110,11 +112,14 @@ class MinioStorageServiceUnitTest {
     void testStore_MultipartFile_EmptyFolder_Success() throws IOException {
         // Given
         String originalFilename = "file.png";
+        // PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
+        byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00};
+        
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
         when(multipartFile.getContentType()).thenReturn("image/png");
         when(multipartFile.getSize()).thenReturn(100L);
-        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream(content));
 
         // When
         String storedKey = minioStorageService.store(multipartFile, "");
@@ -155,7 +160,7 @@ class MinioStorageServiceUnitTest {
             minioStorageService.store(multipartFile, "docs");
         });
         
-        assertTrue(exception.getMessage().contains("Invalid file extension"));
+        assertTrue(exception.getMessage().contains("Filename is required"));
         verify(s3Client, never()).putObject(any(PutObjectRequest.class));
     }
 

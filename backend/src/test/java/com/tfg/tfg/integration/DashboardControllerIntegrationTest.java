@@ -50,6 +50,15 @@ import static org.mockito.Mockito.*;
 @Transactional
 class DashboardControllerIntegrationTest {
 
+    private static final String TEST_PLAYER = "TestPlayer";
+    private static final String STATS_URL = "/api/v1/dashboard/me/stats";
+    private static final String RANK_HISTORY_URL = "/api/v1/dashboard/me/rank-history";
+    private static final String RANKED_MATCHES_URL = "/api/v1/dashboard/me/ranked-matches";
+    private static final String JSON_LP_7_DAYS = "$.lp7days";
+    private static final String JSON_MAIN_ROLE = "$.mainRole";
+    private static final String JSON_SUCCESS = "$.success";
+    private static final String JSON_MESSAGE = "$.message";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -77,7 +86,7 @@ class DashboardControllerIntegrationTest {
 
         // Create summoner WITH realistic data
         testSummoner = new Summoner();
-        testSummoner.setName("TestPlayer");
+        testSummoner.setName(TEST_PLAYER);
         testSummoner.setPuuid("test-puuid-12345");
         testSummoner.setTier("GOLD");
         testSummoner.setRank("III");
@@ -101,11 +110,11 @@ class DashboardControllerIntegrationTest {
             match.setKills(6 + i);
             match.setDeaths(4);
             match.setAssists(8 + i);
-            match.setGameDuration(1850L + i * 50L);
+            match.setGameDuration(1850L + (long) i * 50L);
             match.setQueueId(420); // Ranked Solo/Duo
             match.setGameMode("RANKED");
             match.setLane(getLane(i)); // Varied lanes
-            match.setTimestamp(now.minusDays(i % 7).minusHours(i * 2));
+            match.setTimestamp(now.minusDays(i % 7).minusHours((long) i * 2));
             match.setLpAtMatch(70 + i); // LP progression
             match.setTierAtMatch("GOLD");
             match.setRankAtMatch("III");
@@ -127,7 +136,7 @@ class DashboardControllerIntegrationTest {
             match.setQueueId(420);
             match.setGameMode("RANKED");
             match.setLane("MIDDLE"); // Consistent lane for main role
-            match.setTimestamp(now.minusDays(7 + (i - 15)));
+            match.setTimestamp(now.minusDays(7 + (long) (i - 15)));
             match.setLpAtMatch(55 + (i - 15) * 2);
             match.setTierAtMatch("GOLD");
             match.setRankAtMatch("IV");
@@ -138,7 +147,7 @@ class DashboardControllerIntegrationTest {
         testUser = new UserModel("testplayer", "password123", "USER");
         testUser.setEmail("testplayer@example.com");
         testUser.setActive(true);
-        testUser.setLinkedSummonerName("TestPlayer");
+        testUser.setLinkedSummonerName(TEST_PLAYER);
         testUser = userRepository.save(testUser);
 
         // Mock RiotService to return champion mastery
@@ -170,7 +179,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetPersonalStats_WithLinkedSummoner_ExecutesAllPrivateMethods() {
+    void testGetPersonalStatsWithLinkedSummonerExecutesAllPrivateMethods() {
         // This test triggers:
         // - populateSummonerStats()
         // - formatRank()
@@ -180,13 +189,13 @@ class DashboardControllerIntegrationTest {
         // - getFavoriteChampion()
         
         try {
-            mockMvc.perform(get("/api/v1/dashboard/me/stats"))
+            mockMvc.perform(get(STATS_URL))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.currentRank", equalTo("GOLD III")))
-                    .andExpect(jsonPath("$.lp7days", greaterThan(0))) // Should have LP gain
-                    .andExpect(jsonPath("$.mainRole", not(equalTo("Unknown")))) // Should detect Mid Lane
+                    .andExpect(jsonPath(JSON_LP_7_DAYS, greaterThan(0))) // Should have LP gain
+                    .andExpect(jsonPath(JSON_MAIN_ROLE, not(equalTo("Unknown")))) // Should detect Mid Lane
                     .andExpect(jsonPath("$.favoriteChampion", equalTo("Ahri"))) // Mocked
-                    .andExpect(jsonPath("$.linkedSummoner", equalTo("TestPlayer")))
+                    .andExpect(jsonPath("$.linkedSummoner", equalTo(TEST_PLAYER)))
                     .andExpect(jsonPath("$.username", equalTo("testplayer")));
         } catch (Exception e) {
             // If test fails, still counts as executing the methods
@@ -195,20 +204,20 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetPersonalStats_CalculatesLP7Days() throws Exception {
+    void testGetPersonalStatsCalculatesLp7Days() throws Exception {
         // Specifically test calculateLPGainedLast7Days logic
-        mockMvc.perform(get("/api/v1/dashboard/me/stats"))
+        mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lp7days", greaterThanOrEqualTo(5))); // Real calculation from matches
+                .andExpect(jsonPath(JSON_LP_7_DAYS, greaterThanOrEqualTo(5))); // Real calculation from matches
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetPersonalStats_CalculatesMainRole() throws Exception {
+    void testGetPersonalStatsCalculatesMainRole() throws Exception {
         // Specifically test calculateMainRole and formatLaneName logic
-        mockMvc.perform(get("/api/v1/dashboard/me/stats"))
+        mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mainRole", anyOf(
+                .andExpect(jsonPath(JSON_MAIN_ROLE, anyOf(
                     equalTo("Mid Lane"),
                     equalTo("Top Lane"),
                     equalTo("Jungle"),
@@ -218,13 +227,13 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankHistory_WithLinkedSummoner_ExecutesLPProgressionLogic() throws Exception {
+    void testGetRankHistoryWithLinkedSummonerExecutesLpProgressionLogic() throws Exception {
         // This test triggers:
         // - calculateLPProgression()
         // - buildProgressionFromRealData() OR buildProgressionFromCalculation()
         // - calculateLPChange()
         
-        mockMvc.perform(get("/api/v1/dashboard/me/rank-history"))
+        mockMvc.perform(get(RANK_HISTORY_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))))
                 .andExpect(jsonPath("$[0].tier", notNullValue()))
@@ -237,7 +246,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankedMatches_ExecutesSaveMatchesToDatabase() throws Exception {
+    void testGetRankedMatchesExecutesSaveMatchesToDatabase() throws Exception {
         // This test triggers:
         // - saveMatchesToDatabase()
         // - addApproximateLPToMatches()
@@ -245,7 +254,7 @@ class DashboardControllerIntegrationTest {
         // - demoteDivision()
         // - canDemote()
         
-        mockMvc.perform(get("/api/v1/dashboard/me/ranked-matches")
+        mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "0")
                 .param("size", "20"))
                 .andExpect(status().isOk())
@@ -257,8 +266,8 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankedMatches_WithQueueFilter() throws Exception {
-        mockMvc.perform(get("/api/v1/dashboard/me/ranked-matches")
+    void testGetRankedMatchesWithQueueFilter() throws Exception {
+        mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("queueId", "420")
                 .param("size", "10"))
                 .andExpect(status().isOk())
@@ -268,7 +277,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetFavorites_EmptyList() throws Exception {
+    void testGetFavoritesEmptyList() throws Exception {
         mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -276,7 +285,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavorite_Success() throws Exception {
+    void testAddFavoriteSuccess() throws Exception {
         // Create another summoner
         Summoner favorite = new Summoner();
         favorite.setName("ProPlayer");
@@ -288,31 +297,31 @@ class DashboardControllerIntegrationTest {
 
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/ProPlayer"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", equalTo(true)))
-                .andExpect(jsonPath("$.message", containsString("added to favorites")));
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
+                .andExpect(jsonPath(JSON_MESSAGE, containsString("added to favorites")));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavorite_CannotAddOwnAccount() throws Exception {
-        mockMvc.perform(post("/api/v1/dashboard/me/favorites/TestPlayer"))
+    void testAddFavoriteCannotAddOwnAccount() throws Exception {
+        mockMvc.perform(post("/api/v1/dashboard/me/favorites/" + TEST_PLAYER))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success", equalTo(false)))
-                .andExpect(jsonPath("$.message", containsString("Cannot add your own linked account")));
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(false)))
+                .andExpect(jsonPath(JSON_MESSAGE, containsString("Cannot add your own linked account")));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavorite_SummonerNotFound() throws Exception {
+    void testAddFavoriteSummonerNotFound() throws Exception {
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/NonExistent"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success", equalTo(false)))
-                .andExpect(jsonPath("$.message", containsString("not found")));
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(false)))
+                .andExpect(jsonPath(JSON_MESSAGE, containsString("not found")));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testRemoveFavorite_Success() throws Exception {
+    void testRemoveFavoriteSuccess() throws Exception {
         // Add favorite first
         Summoner favorite = new Summoner();
         favorite.setName("ToRemove");
@@ -324,82 +333,82 @@ class DashboardControllerIntegrationTest {
 
         mockMvc.perform(delete("/api/v1/dashboard/me/favorites/ToRemove"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", equalTo(true)))
-                .andExpect(jsonPath("$.message", containsString("removed from favorites")));
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
+                .andExpect(jsonPath(JSON_MESSAGE, containsString("removed from favorites")));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testRemoveFavorite_NotFound() throws Exception {
+    void testRemoveFavoriteNotFound() throws Exception {
         mockMvc.perform(delete("/api/v1/dashboard/me/favorites/NotInFavorites"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(username = "guestuser", roles = "USER")
-    void testGetPersonalStats_WithoutLinkedSummoner_ReturnsDefaults() throws Exception {
+    void testGetPersonalStatsWithoutLinkedSummonerReturnsDefaults() throws Exception {
         // Create user without linked summoner
         UserModel guest = new UserModel("guestuser", "pass", "USER");
         guest.setEmail("guest@example.com");
         userRepository.save(guest);
 
-        mockMvc.perform(get("/api/v1/dashboard/me/stats"))
+        mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentRank", equalTo("Unranked")))
-                .andExpect(jsonPath("$.lp7days", equalTo(0)))
-                .andExpect(jsonPath("$.mainRole", equalTo("Unknown")))
+                .andExpect(jsonPath(JSON_LP_7_DAYS, equalTo(0)))
+                .andExpect(jsonPath(JSON_MAIN_ROLE, equalTo("Unknown")))
                 .andExpect(jsonPath("$.favoriteChampion", nullValue()));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testRefreshMatches_Success() throws Exception {
+    void testRefreshMatchesSuccess() throws Exception {
         mockMvc.perform(post("/api/v1/dashboard/me/refresh-matches"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", equalTo(true)));
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)));
     }
 
     @Test
-    void testGetPersonalStats_Unauthorized() throws Exception {
-        mockMvc.perform(get("/api/v1/dashboard/me/stats"))
+    void testGetPersonalStatsUnauthorized() throws Exception {
+        mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankHistory_CalculatesLPChangeForDifferentTiers() throws Exception {
+    void testGetRankHistoryCalculatesLpChangeForDifferentTiers() throws Exception {
         // Test that calculateLPChange handles different tier logic
         // Update summoner to different tiers
         testSummoner.setTier("IRON");
         summonerRepository.save(testSummoner);
 
-        mockMvc.perform(get("/api/v1/dashboard/me/rank-history"))
+        mockMvc.perform(get(RANK_HISTORY_URL))
                 .andExpect(status().isOk());
 
         testSummoner.setTier("DIAMOND");
         summonerRepository.save(testSummoner);
 
-        mockMvc.perform(get("/api/v1/dashboard/me/rank-history"))
+        mockMvc.perform(get(RANK_HISTORY_URL))
                 .andExpect(status().isOk());
 
         testSummoner.setTier("MASTER");
         summonerRepository.save(testSummoner);
 
-        mockMvc.perform(get("/api/v1/dashboard/me/rank-history"))
+        mockMvc.perform(get(RANK_HISTORY_URL))
                 .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankedMatches_Pagination() throws Exception {
+    void testGetRankedMatchesPagination() throws Exception {
         // Test pagination logic
-        mockMvc.perform(get("/api/v1/dashboard/me/ranked-matches")
+        mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "0")
                 .param("size", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(lessThanOrEqualTo(5))));
 
-        mockMvc.perform(get("/api/v1/dashboard/me/ranked-matches")
+        mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "1")
                 .param("size", "5"))
                 .andExpect(status().isOk());
@@ -407,7 +416,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetFavorites_AfterAddingMultiple() throws Exception {
+    void testGetFavoritesAfterAddingMultiple() throws Exception {
         // Add multiple favorites
         for (int i = 0; i < 3; i++) {
             Summoner fav = new Summoner();

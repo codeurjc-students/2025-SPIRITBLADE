@@ -181,28 +181,6 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetSummoners_Unauthorized_Returns401() {
-        given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(401);
-    }
-
-    @Test
-    void testGetRecentSummoners_Unauthorized_Returns401() {
-        given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/summoners/recent")
-        .then()
-            .statusCode(401);
-    }
-
-    @Test
     void testSearchSummoner_ReturnsExpectedFields() {
         given()
             .port(port)

@@ -6,12 +6,11 @@ import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.util.PngFileValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Service for managing user profile images (avatars)
@@ -21,10 +20,6 @@ public class UserAvatarService {
 
     private final MinioStorageService storageService;
     private final UserModelRepository userRepository;
-
-    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
-        "image/png"
-    );
 
     private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5MB
 
@@ -107,14 +102,6 @@ public class UserAvatarService {
             throw new InvalidFileException("File is required");
         }
 
-        // Check content type
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new InvalidFileException(
-                "Invalid file type. Only PNG images are allowed"
-            );
-        }
-
         // Check file size
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new InvalidFileException(
@@ -122,10 +109,11 @@ public class UserAvatarService {
             );
         }
 
-        // Check filename
-        String filename = file.getOriginalFilename();
-        if (filename == null || filename.isEmpty()) {
-            throw new InvalidFileException("Filename is required");
+        // Use centralized PNG validator for type and extension checks
+        try {
+            PngFileValidator.validatePngFile(file);
+        } catch (IllegalArgumentException | IOException e) {
+            throw new InvalidFileException(e.getMessage());
         }
     }
 

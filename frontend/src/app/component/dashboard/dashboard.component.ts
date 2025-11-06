@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DashboardService, RankHistoryEntry } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
 import { MatchHistory } from '../../dto/match-history.model';
@@ -13,7 +14,7 @@ Chart.register(...registerables);
 @Component({
 	selector: 'app-dashboard',
 	standalone: true,
-	imports: [CommonModule, FormsModule],
+	imports: [CommonModule, FormsModule, RouterLink],
 	templateUrl: './dashboard.component.html',
 	styleUrls: ['./dashboard.component.scss']
 })
@@ -440,7 +441,30 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 */
 	submitLinkAccount() {
 		if (!this.summonerName.trim()) {
-			this.linkError = 'Por favor, introduce un nombre de invocador';
+			this.linkError = 'Please enter a summoner name';
+			return;
+		}
+
+		const input = this.summonerName.trim();
+		
+		// Validate format: nombre#región
+		if (!input.includes('#')) {
+			this.linkError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			return;
+		}
+		
+		const parts = input.split('#');
+		const name = parts[0].trim();
+		const region = parts[1].trim().toUpperCase();
+		
+		// Validate region (only EUW supported for now)
+		if (region !== 'EUW') {
+			this.linkError = 'Currently, only EUW region is supported';
+			return;
+		}
+
+		if (!name) {
+			this.linkError = 'Please enter a valid summoner name';
 			return;
 		}
 
@@ -448,11 +472,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.linkError = null;
 		this.linkSuccess = null;
 
-		this.userService.linkSummoner(this.summonerName.trim(), this.selectedRegion).subscribe({
+		// Send the full Riot ID to the backend
+		this.userService.linkSummoner(input, region).subscribe({
 			next: (res) => {
 				this.linkLoading = false;
 				if (res.success) {
-					this.linkSuccess = res.message || 'Cuenta vinculada correctamente';
+					this.linkSuccess = res.message || 'Account linked successfully';
 					// Reload personal stats (current rank, LP, main role, fav champion)
 					this.refresh();
 					// Reload linked summoner (which will also load rank history)
@@ -462,12 +487,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						this.closeLinkModal();
 					}, 1000);
 				} else {
-					this.linkError = res.message || 'Error al vincular la cuenta';
+					this.linkError = res.message || 'Error linking account. Please check the summoner name.';
 				}
 			},
 			error: (err) => {
 				this.linkLoading = false;
-				this.linkError = err.error?.message || 'Error al vincular la cuenta. Verifica el nombre del invocador.';
+				this.linkError = err.error?.message || 'Error linking account. Please check the summoner name.';
 			}
 		});
 	}
@@ -530,15 +555,15 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		// Validate file size (max 5MB)
 		const maxSize = 5 * 1024 * 1024; // 5MB
 		if (file.size > maxSize) {
-			this.avatarError = 'El archivo es demasiado grande. Máximo 5MB.';
+			this.avatarError = 'The file is too large. Maximum 5MB.';
 			setTimeout(() => this.avatarError = null, 3000);
 			return;
 		}
 
-		// Validate file type (only PNG and JPG)
-		const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+		// Validate file type (only PNG)
+		const allowedTypes = ['image/png'];
 		if (!allowedTypes.includes(file.type.toLowerCase())) {
-			this.avatarError = 'Por favor selecciona solo archivos PNG o JPG.';
+			this.avatarError = 'Please select a PNG file.';
 			setTimeout(() => this.avatarError = null, 3000);
 			return;
 		}
@@ -566,12 +591,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					}
 				} else {
 					console.error('Upload succeeded but no avatarUrl in response:', res);
-					this.avatarError = 'Avatar subido pero URL no disponible';
+					this.avatarError = 'Avatar uploaded but URL not available';
 				}
 			},
 			error: (err) => {
 				this.avatarUploading = false;
-				this.avatarError = err.error?.message || 'Error al subir la imagen';
+				this.avatarError = err.error?.message || 'Error uploading image';
 				console.error('Avatar upload error:', err);
 				setTimeout(() => this.avatarError = null, 3000);
 			}
@@ -617,7 +642,128 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 */
 	onAvatarError(event: any) {
 		console.error('Failed to load avatar image:', this.avatarUrl, event);
-		this.avatarError = 'No se pudo cargar la imagen del avatar';
+		this.avatarError = 'Failed to load avatar image';
 		setTimeout(() => this.avatarError = null, 3000);
+	}
+
+	// ============================================
+	// FAVORITE SUMMONERS MANAGEMENT
+	// ============================================
+
+	showAddFavoriteModal = false;
+	addFavoriteName = '';
+	addFavoriteLoading = false;
+	addFavoriteError: string | null = null;
+
+	/**
+	 * Open modal to add a new favorite summoner
+	 */
+	openAddFavoriteModal() {
+		this.showAddFavoriteModal = true;
+		this.addFavoriteName = '';
+		this.addFavoriteError = null;
+	}
+
+	/**
+	 * Close add favorite modal
+	 */
+	closeAddFavoriteModal() {
+		this.showAddFavoriteModal = false;
+		this.addFavoriteName = '';
+		this.addFavoriteError = null;
+	}
+
+	/**
+	 * Add a summoner to favorites
+	 */
+	addFavorite() {
+		if (!this.addFavoriteName || this.addFavoriteName.trim() === '') {
+			this.addFavoriteError = 'Please enter a summoner name';
+			return;
+		}
+
+		const input = this.addFavoriteName.trim();
+		
+		// Validate format: nombre#región
+		if (!input.includes('#')) {
+			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			return;
+		}
+		
+		const parts = input.split('#');
+		const summonerName = parts[0].trim();
+		const region = parts[1].trim().toUpperCase();
+		
+		// Validate region (only EUW supported for now)
+		if (region !== 'EUW') {
+			this.addFavoriteError = 'Currently only EUW region is supported';
+			return;
+		}
+
+		if (!summonerName) {
+			this.addFavoriteError = 'Please enter a valid summoner name';
+			return;
+		}
+
+		this.addFavoriteLoading = true;
+		this.addFavoriteError = null;
+
+		// Send the full Riot ID (name#region) to the backend
+		const riotId = `${summonerName}#${region}`;
+		this.userService.addFavoriteSummoner(riotId).subscribe({
+			next: (response) => {
+				console.log('Summoner added to favorites:', response);
+				this.addFavoriteLoading = false;
+				this.closeAddFavoriteModal();
+				// Reload favorites list
+				this.loadFavorites();
+			},
+			error: (err) => {
+				console.error('Failed to add favorite:', err);
+				this.addFavoriteError = err.error?.message || 'Failed to add summoner to favorites';
+				this.addFavoriteLoading = false;
+			}
+		});
+	}
+
+	/**
+	 * Remove a summoner from favorites
+	 */
+	removeFavorite(summonerName: string) {
+		if (!confirm(`Are you sure you want to remove ${summonerName} from your favorites?`)) {
+			return;
+		}
+
+		this.userService.removeFavoriteSummoner(summonerName).subscribe({
+			next: (response) => {
+				console.log('Summoner removed from favorites:', response);
+				// Reload favorites list
+				this.loadFavorites();
+			},
+			error: (err) => {
+				console.error('Failed to remove favorite:', err);
+				this.favoritesError = err.error?.message || 'Failed to remove summoner from favorites';
+				setTimeout(() => this.favoritesError = null, 3000);
+			}
+		});
+	}
+
+	/**
+	 * Load favorites list from backend
+	 */
+	loadFavorites() {
+		this.favoritesLoading = true;
+		this.favoritesError = null;
+		this.dashboardService.getFavoritesOverview().subscribe({
+			next: (res) => {
+				this.favorites = res || [];
+				this.favoritesLoading = false;
+			},
+			error: (err: any) => {
+				console.error('Failed to load favorites', err);
+				this.favoritesError = 'Failed to load favorites.';
+				this.favoritesLoading = false;
+			}
+		});
 	}
 }

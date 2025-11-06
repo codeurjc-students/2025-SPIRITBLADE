@@ -33,6 +33,21 @@ import static org.mockito.Mockito.*;
 @AutoConfigureMockMvc
 class FileControllerIntegrationTest {
 
+    private static final String TEST_IMAGE_PNG = "test-image.png";
+    private static final String TEST_IMAGE_12345 = "12345-test-image.png";
+    private static final String TEST_IMAGE_CONTENT = "test image content";
+    private static final String EMPTY_IMAGE_12345 = "12345-empty.png";
+    private static final String AVATAR_12345 = "avatars/12345-avatar.png";
+    private static final String AVATARS_FOLDER = "avatars";
+    private static final String UPLOAD_URL = "/api/v1/files/upload";
+    private static final String JSON_SUCCESS = "$.success";
+    private static final String JSON_FILE_ID = "$.fileId";
+    private static final String JSON_ERROR = "$.error";
+    private static final String TRUE = "true";
+    private static final String FALSE = "false";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String IMAGE_PNG = "image/png";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -57,27 +72,27 @@ class FileControllerIntegrationTest {
         // Mock file upload
         MockMultipartFile file = new MockMultipartFile(
             "file",
-            "test-image.png",
+            TEST_IMAGE_PNG,
             MediaType.IMAGE_PNG_VALUE,
-            "test image content".getBytes()
+            TEST_IMAGE_CONTENT.getBytes()
         );
 
         // Mock storage service behavior
-        when(storageService.store(any(), isNull())).thenReturn("12345-test-image.png");
-        when(storageService.getPublicUrl("12345-test-image.png")).thenReturn("http://localhost:9000/bucket/12345-test-image.png");
+        when(storageService.store(any(), isNull())).thenReturn(TEST_IMAGE_12345);
+        when(storageService.getPublicUrl(TEST_IMAGE_12345)).thenReturn("http://localhost:9000/bucket/" + TEST_IMAGE_12345);
 
         // Perform request
-        mockMvc.perform(multipart("/api/v1/files/upload")
+        mockMvc.perform(multipart(UPLOAD_URL)
                 .file(file))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("true")))
-                .andExpect(jsonPath("$.fileId", is("12345-test-image.png")))
-                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/12345-test-image.png")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
+                .andExpect(jsonPath(JSON_FILE_ID, is(TEST_IMAGE_12345)))
+                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/" + TEST_IMAGE_12345)));
 
         // Verify interactions
         verify(storageService).store(any(), isNull());
-        verify(storageService).getPublicUrl("12345-test-image.png");
+        verify(storageService).getPublicUrl(TEST_IMAGE_12345);
     }
 
     @Test
@@ -92,22 +107,22 @@ class FileControllerIntegrationTest {
         );
 
         // Mock storage service behavior
-        when(storageService.store(any(), eq("avatars"))).thenReturn("avatars/12345-avatar.png");
-        when(storageService.getPublicUrl("avatars/12345-avatar.png")).thenReturn("http://localhost:9000/bucket/avatars/12345-avatar.png");
+        when(storageService.store(any(), eq(AVATARS_FOLDER))).thenReturn(AVATAR_12345);
+        when(storageService.getPublicUrl(AVATAR_12345)).thenReturn("http://localhost:9000/bucket/" + AVATAR_12345);
 
         // Perform request
-        mockMvc.perform(multipart("/api/v1/files/upload")
+        mockMvc.perform(multipart(UPLOAD_URL)
                 .file(file)
-                .param("folder", "avatars"))
+                .param("folder", AVATARS_FOLDER))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("true")))
-                .andExpect(jsonPath("$.fileId", is("avatars/12345-avatar.png")))
-                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/avatars/12345-avatar.png")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
+                .andExpect(jsonPath(JSON_FILE_ID, is(AVATAR_12345)))
+                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/" + AVATAR_12345)));
 
         // Verify interactions
-        verify(storageService).store(any(), eq("avatars"));
-        verify(storageService).getPublicUrl("avatars/12345-avatar.png");
+        verify(storageService).store(any(), eq(AVATARS_FOLDER));
+        verify(storageService).getPublicUrl(AVATAR_12345);
     }
 
     @Test
@@ -122,12 +137,12 @@ class FileControllerIntegrationTest {
         );
 
         // Perform request - should be rejected
-        mockMvc.perform(multipart("/api/v1/files/upload")
+        mockMvc.perform(multipart(UPLOAD_URL)
                 .file(file))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("false")))
-                .andExpect(jsonPath("$.error", is("Invalid file type. Only PNG images are allowed")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(FALSE)))
+                .andExpect(jsonPath(JSON_ERROR, is("Invalid file type. Only PNG images are allowed")));
 
         // No storage interactions should happen
     }
@@ -138,28 +153,28 @@ class FileControllerIntegrationTest {
         // Mock file upload
         MockMultipartFile file = new MockMultipartFile(
             "file",
-            "test-image.png",
+            TEST_IMAGE_PNG,
             MediaType.IMAGE_PNG_VALUE,
-            "test image content".getBytes()
+            TEST_IMAGE_CONTENT.getBytes()
         );
 
         // Mock storage service throwing exception
         when(storageService.store(any(), isNull())).thenThrow(new java.io.IOException("Storage error"));
 
         // Perform request
-        mockMvc.perform(multipart("/api/v1/files/upload")
+        mockMvc.perform(multipart(UPLOAD_URL)
                 .file(file))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("false")))
-                .andExpect(jsonPath("$.error", is("Storage error")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(FALSE)))
+                .andExpect(jsonPath(JSON_ERROR, is("Storage error")));
 
         // Verify interactions
         verify(storageService).store(any(), isNull());
     }
 
     @Test
-    void testGetFileWithFolderSuccess_PNG() throws Exception {
+    void testGetFileWithFolderSuccessPng() throws Exception {
         // Mock file retrieval
         byte[] fileContent = "test png image content".getBytes();
         InputStream inputStream = new ByteArrayInputStream(fileContent);
@@ -169,7 +184,7 @@ class FileControllerIntegrationTest {
         // Perform request
         mockMvc.perform(get("/api/v1/files/avatars/test-image.png"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", containsString("image/png")))
+                .andExpect(header().string(CONTENT_TYPE, containsString(IMAGE_PNG)))
                 .andExpect(content().bytes(fileContent));
 
         // Verify interactions
@@ -191,21 +206,21 @@ class FileControllerIntegrationTest {
     }
 
     @Test
-    void testGetFileFromRootSuccess_PNG() throws Exception {
+    void testGetFileFromRootSuccessPng() throws Exception {
         // Mock file retrieval from root
         byte[] fileContent = "test png image content".getBytes();
         InputStream inputStream = new ByteArrayInputStream(fileContent);
 
-        when(storageService.retrieve("test-image.png")).thenReturn(inputStream);
+        when(storageService.retrieve(TEST_IMAGE_PNG)).thenReturn(inputStream);
 
         // Perform request
-        mockMvc.perform(get("/api/v1/files/test-image.png"))
+        mockMvc.perform(get("/api/v1/files/" + TEST_IMAGE_PNG))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", containsString("image/png")))
+                .andExpect(header().string(CONTENT_TYPE, containsString(IMAGE_PNG)))
                 .andExpect(content().bytes(fileContent));
 
         // Verify interactions
-        verify(storageService).retrieve("test-image.png");
+        verify(storageService).retrieve(TEST_IMAGE_PNG);
     }
 
     @Test
@@ -226,34 +241,34 @@ class FileControllerIntegrationTest {
     @WithMockUser
     void testDeleteFileSuccess() throws Exception {
         // Mock successful deletion
-        doNothing().when(storageService).delete("12345-test-image.png");
+        doNothing().when(storageService).delete(TEST_IMAGE_12345);
 
         // Perform request
-        mockMvc.perform(delete("/api/v1/files/12345-test-image.png"))
+        mockMvc.perform(delete("/api/v1/files/" + TEST_IMAGE_12345))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("true")))
+                .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
                 .andExpect(jsonPath("$.message", is("File deleted successfully")));
 
         // Verify interactions
-        verify(storageService).delete("12345-test-image.png");
+        verify(storageService).delete(TEST_IMAGE_12345);
     }
 
     @Test
     @WithMockUser
     void testDeleteFileFailure() throws Exception {
         // Mock storage service throwing exception
-        doThrow(new java.io.IOException("Delete error")).when(storageService).delete("test-image.png");
+        doThrow(new java.io.IOException("Delete error")).when(storageService).delete(TEST_IMAGE_PNG);
 
         // Perform request
-        mockMvc.perform(delete("/api/v1/files/test-image.png"))
+        mockMvc.perform(delete("/api/v1/files/" + TEST_IMAGE_PNG))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("false")))
-                .andExpect(jsonPath("$.error", is("Delete error")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(FALSE)))
+                .andExpect(jsonPath(JSON_ERROR, is("Delete error")));
 
         // Verify interactions
-        verify(storageService).delete("test-image.png");
+        verify(storageService).delete(TEST_IMAGE_PNG);
     }
 
     @Test
@@ -266,7 +281,7 @@ class FileControllerIntegrationTest {
         mockMvc.perform(delete("/api/v1/files/avatars-12345-avatar.jpg"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("true")))
+                .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
                 .andExpect(jsonPath("$.message", is("File deleted successfully")));
 
         // Verify interactions
@@ -285,20 +300,20 @@ class FileControllerIntegrationTest {
         );
 
         // Mock storage service behavior
-        when(storageService.store(any(), isNull())).thenReturn("12345-empty.png");
-        when(storageService.getPublicUrl("12345-empty.png")).thenReturn("http://localhost:9000/bucket/12345-empty.png");
+        when(storageService.store(any(), isNull())).thenReturn(EMPTY_IMAGE_12345);
+        when(storageService.getPublicUrl(EMPTY_IMAGE_12345)).thenReturn("http://localhost:9000/bucket/" + EMPTY_IMAGE_12345);
 
         // Perform request
-        mockMvc.perform(multipart("/api/v1/files/upload")
+        mockMvc.perform(multipart(UPLOAD_URL)
                 .file(emptyFile))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success", is("true")))
-                .andExpect(jsonPath("$.fileId", is("12345-empty.png")));
+                .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
+                .andExpect(jsonPath(JSON_FILE_ID, is(EMPTY_IMAGE_12345)));
 
         // Verify interactions
         verify(storageService).store(any(), isNull());
-        verify(storageService).getPublicUrl("12345-empty.png");
+        verify(storageService).getPublicUrl(EMPTY_IMAGE_12345);
     }
 
     @Test
@@ -312,7 +327,7 @@ class FileControllerIntegrationTest {
         // Perform request - should still recognize as PNG
         mockMvc.perform(get("/api/v1/files/test-image.PNG"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", containsString("image/png")));
+                .andExpect(header().string(CONTENT_TYPE, containsString(IMAGE_PNG)));
 
         verify(storageService).retrieve("test-image.PNG");
     }

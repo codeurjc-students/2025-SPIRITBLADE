@@ -8,7 +8,7 @@
     <div class="search-box">
       <input 
         type="text" 
-        placeholder="Enter summoner name..." 
+        placeholder="e.g., jae9104#EUW"
         class="search-input"
         [(ngModel)]="searchQuery"
         (keyup.enter)="onSearch()">
@@ -16,10 +16,14 @@
     </div>
   </section>
 
+  <div *ngIf="searchError" class="search-error">
+      {{ searchError }}
+  </div>
+
   <section class="recent-searches" *ngIf="!loadingRecentSearches && recentSearches.length > 0">
     <h3>Recent Searches</h3>
     <div class="summoner-list">
-      <div 
+      <button 
         class="summoner-card" 
         *ngFor="let summoner of recentSearches"
         (click)="searchSummoner(summoner)">
@@ -37,7 +41,7 @@
           <span class="rank-tier">{{ summoner.tier || 'Unranked' }}</span>
           <span class="rank-division" *ngIf="summoner.rank">{{ summoner.rank }}</span>
         </div>
-      </div>
+      </button>
     </div>
   </section>
   

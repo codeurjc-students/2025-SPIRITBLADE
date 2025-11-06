@@ -40,6 +40,8 @@
   border: 1px solid rgba(124, 58, 237, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
+  min-width: 0; // Allow content to shrink below content size
+  overflow: hidden; // Prevent content overflow
   
   &:hover {
     background: rgba(124, 58, 237, 0.2);
@@ -77,6 +79,7 @@
   flex-direction: column;
   gap: 0.25rem;
   min-width: 0; // Allow text truncation
+  overflow: hidden; // Prevent overflow
 }
 
 .summoner-name {
@@ -86,6 +89,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%; // Ensure it doesn't exceed parent width
 }
 
 .summoner-level {
@@ -121,4 +125,25 @@
   padding: 3rem;
   color: #94a3b8;
   font-size: 1.1rem;
+}
+
+/* Search hint and error styles */
+.search-hint {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.search-error {
+  padding: 0.75rem 1rem;
+  margin: 1rem auto 0;
+  max-width: 600px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  text-align: center;
 }

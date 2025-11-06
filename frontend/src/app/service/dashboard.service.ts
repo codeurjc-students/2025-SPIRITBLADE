@@ -18,11 +18,11 @@ export class DashboardService {
   private http = inject(HttpClient);
 
   getPersonalStats(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/me/stats`, { withCredentials: true });
+    return this.http.get(`${API_URL}/dashboard/me/stats`);
   }
 
   getFavoritesOverview(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/me/favorites`, { withCredentials: true });
+    return this.http.get(`${API_URL}/dashboard/me/favorites`);
   }
 
   /**
@@ -30,7 +30,7 @@ export class DashboardService {
    * Returns historical data of LP changes over time
    */
   getRankHistory(): Observable<RankHistoryEntry[]> {
-    return this.http.get<RankHistoryEntry[]>(`${API_URL}/dashboard/me/rank-history`, { withCredentials: true });
+    return this.http.get<RankHistoryEntry[]>(`${API_URL}/dashboard/me/rank-history`);
   }
 
   /**
@@ -45,6 +45,6 @@ export class DashboardService {
     if (queueId !== null) {
       url += `&queueId=${queueId}`;
     }
-    return this.http.get<MatchHistory[]>(url, { withCredentials: true });
+    return this.http.get<MatchHistory[]>(url);
   }
 }

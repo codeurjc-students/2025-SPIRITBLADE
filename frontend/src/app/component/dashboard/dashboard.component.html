@@ -42,17 +42,45 @@
 
 	<section class="favorites">
 		<h2>Favorite Summoners</h2>
-		<div *ngIf="favoritesLoading">Cargando favoritos...</div>
+		<div *ngIf="favoritesLoading">Loading favorites...</div>
 		<div *ngIf="favoritesError" class="error">{{ favoritesError }}</div>
 		<div class="favorites-list" *ngIf="!favoritesLoading && !favoritesError">
 			<div class="favorite-card" *ngFor="let f of favorites">
-				<span class="summoner-name">{{ f.name }}</span>
+				<a [routerLink]="['/summoner', f.name]" class="summoner-name">{{ f.name }}</a>
 				<span class="summoner-rank">{{ f.tier || 'Unranked' }} {{ f.rank || '' }}</span>
-				<button class="remove-btn">Remove</button>
+				<button class="remove-btn" (click)="removeFavorite(f.name)">Remove</button>
 			</div>
-			<button class="add-favorite-btn">+ Add Favorite</button>
+			<button class="add-favorite-btn" (click)="openAddFavoriteModal()">+ Add Favorite</button>
 		</div>
 	</section>
+
+	<!-- Add Favorite Modal -->
+	<div class="modal-overlay" *ngIf="showAddFavoriteModal" (click)="closeAddFavoriteModal()" (keydown.escape)="closeAddFavoriteModal()">
+		<div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+			<h3>Add Favorite Summoner</h3>
+			<div class="form-group">
+				<label for="favoriteName">Summoner:</label>
+				<input 
+					type="text" 
+					id="favoriteName" 
+					[(ngModel)]="addFavoriteName" 
+					[disabled]="addFavoriteLoading">
+				<small style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+					Enter the summoner name followed by #EUW (currently only EUW region is supported)
+				</small>
+			</div>
+			<div class="error" *ngIf="addFavoriteError">{{ addFavoriteError }}</div>
+			<div class="modal-actions">
+				<button 
+					class="btn-primary" 
+					(click)="addFavorite()" 
+					[disabled]="addFavoriteLoading || !addFavoriteName">
+					{{ addFavoriteLoading ? 'Adding...' : 'Add Favorite' }}
+				</button>
+				<button class="btn-secondary" (click)="closeAddFavoriteModal()" [disabled]="addFavoriteLoading">Cancel</button>
+			</div>
+		</div>
+	</div>
 
 	<section class="personal-stats">
 		<h2>Your Performance</h2>
@@ -118,8 +146,8 @@
 </main>
 
 <!-- Link Account Modal -->
-<div class="modal-overlay" *ngIf="showLinkModal" (click)="closeLinkModal()">
-	<div class="modal-content" (click)="$event.stopPropagation()">
+<div class="modal-overlay" *ngIf="showLinkModal" (click)="closeLinkModal()" (keydown.escape)="closeLinkModal()">
+	<div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>Link League of Legends Account</h2>
 			<button class="close-btn" (click)="closeLinkModal()">&times;</button>
@@ -127,23 +155,16 @@
 		
 		<div class="modal-body">
 			<div class="form-group">
-				<label for="summonerName">Summoner Name</label>
+				<label for="summonerName">Summoner Name#Region</label>
 				<input 
 					type="text" 
 					id="summonerName" 
 					[(ngModel)]="summonerName" 
-					placeholder="Enter your summoner name"
+					placeholder="e.g., jae9104#EUW"
 					[disabled]="linkLoading"
 				/>
-			</div>
-			
-			<div class="form-group">
-				<label for="region">Region</label>
-				<select id="region" [(ngModel)]="selectedRegion" disabled>
-					<option value="EUW">EUW - Europe West</option>
-				</select>
 				<small style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
-					Currently only EUW region is supported
+					Enter your summoner name followed by #EUW (currently only EUW region is supported)
 				</small>
 			</div>
 			
