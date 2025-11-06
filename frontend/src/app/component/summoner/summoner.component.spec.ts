@@ -15,11 +15,20 @@ describe('SummonerComponent - Unit Tests', () => {
 
   beforeEach(async () => {
     // Create spy objects
-    mockSummonerService = jasmine.createSpyObj('SummonerService', ['getByName']);
+    mockSummonerService = jasmine.createSpyObj('SummonerService', [
+      'getByName',
+      'getTopChampions',
+      'getRecentMatches'
+    ]);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockActivatedRoute = {
       paramMap: of(new Map([['name', 'TestSummoner']]))
     };
+
+    // Set default return values for all service methods
+    mockSummonerService.getByName.and.returnValue(of({} as any));
+    mockSummonerService.getTopChampions.and.returnValue(of([]));
+    mockSummonerService.getRecentMatches.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [SummonerComponent],
@@ -119,7 +128,7 @@ describe('SummonerComponent - Unit Tests', () => {
       // Assert
       expect(component.loading).toBeFalse();
       expect(component.summoner).toBeNull();
-      expect(component.error).toBe('Unable to load summoner');
+      expect(component.error).toBe('Unable to load summoner. Please try again later.');
     });
 
     it('should reset states before loading', () => {
@@ -145,13 +154,14 @@ describe('SummonerComponent - Unit Tests', () => {
   describe('onSearch()', () => {
     it('should navigate to summoner route with valid name', () => {
       // Arrange
-      component.searchQuery = 'NewSummoner';
+      component.searchQuery = 'NewSummoner#EUW';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'NewSummoner']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'NewSummoner#EUW']);
+      expect(component.error).toBeNull();
     });
 
     it('should not navigate with empty search query', () => {
@@ -163,6 +173,7 @@ describe('SummonerComponent - Unit Tests', () => {
 
       // Assert
       expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(component.error).toBe('Please enter a summoner name');
     });
 
     it('should not navigate with whitespace-only search query', () => {
@@ -174,17 +185,31 @@ describe('SummonerComponent - Unit Tests', () => {
 
       // Assert
       expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(component.error).toBe('Please enter a summoner name');
     });
 
     it('should trim search query before navigation', () => {
       // Arrange
-      component.searchQuery = '  TrimmedSummoner  ';
+      component.searchQuery = '  TrimmedSummoner#TAG  ';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TrimmedSummoner']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TrimmedSummoner#TAG']);
+      expect(component.error).toBeNull();
+    });
+
+    it('should show error for invalid format without #', () => {
+      // Arrange
+      component.searchQuery = 'InvalidSummoner';
+
+      // Act
+      component.onSearch();
+
+      // Assert
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)');
     });
   });
 });

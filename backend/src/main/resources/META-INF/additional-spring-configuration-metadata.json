@@ -1,0 +1,89 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret key for JWT token generation and validation"
+    },
+    {
+      "name": "jwt.expiration",
+      "type": "java.lang.Long",
+      "description": "JWT token expiration time in milliseconds"
+    },
+    {
+      "name": "riot.api.key",
+      "type": "java.lang.String",
+      "description": "Riot Games API key for accessing League of Legends data"
+    },
+    {
+      "name": "minio.endpoint",
+      "type": "java.lang.String",
+      "description": "MinIO server endpoint URL"
+    },
+    {
+      "name": "minio.access-key",
+      "type": "java.lang.String",
+      "description": "MinIO access key for authentication"
+    },
+    {
+      "name": "minio.secret-key",
+      "type": "java.lang.String",
+      "description": "MinIO secret key for authentication"
+    },
+    {
+      "name": "minio.bucket-name",
+      "type": "java.lang.String",
+      "description": "MinIO bucket name for file storage"
+    },
+    {
+      "name": "minio.region",
+      "type": "java.lang.String",
+      "description": "MinIO region configuration"
+    },
+    {
+      "name": "springdoc.api-docs.path",
+      "type": "java.lang.String",
+      "description": "Path to the OpenAPI documentation in JSON format"
+    },
+    {
+      "name": "springdoc.swagger-ui.path",
+      "type": "java.lang.String",
+      "description": "Path to the Swagger UI interface"
+    },
+    {
+      "name": "springdoc.swagger-ui.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable Swagger UI"
+    },
+    {
+      "name": "springdoc.swagger-ui.operationsSorter",
+      "type": "java.lang.String",
+      "description": "Sort operations by method (alpha, method)"
+    },
+    {
+      "name": "springdoc.swagger-ui.tagsSorter",
+      "type": "java.lang.String",
+      "description": "Sort tags alphabetically (alpha)"
+    },
+    {
+      "name": "springdoc.swagger-ui.tryItOutEnabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable 'Try it out' button by default"
+    },
+    {
+      "name": "springdoc.swagger-ui.filter",
+      "type": "java.lang.Boolean",
+      "description": "Enable filtering operations by tag"
+    },
+    {
+      "name": "springdoc.swagger-ui.syntaxHighlight.activated",
+      "type": "java.lang.Boolean",
+      "description": "Enable syntax highlighting in Swagger UI"
+    },
+    {
+      "name": "springdoc.show-actuator",
+      "type": "java.lang.Boolean",
+      "description": "Show Spring Boot Actuator endpoints in Swagger"
+    }
+  ]
+}

@@ -1,6 +1,21 @@
 export interface User {
   id: number;
-  username: string;
+  name: string;  // Backend uses 'name' not 'username'
   email: string;
-  role: 'USER' | 'ADMIN';
+  password?: string;  // Optional, only for creation
+  roles: string[];  // Backend uses array of roles
+  active: boolean;
+  image?: string;
+  avatarUrl?: string;  // Avatar URL from storage service
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }

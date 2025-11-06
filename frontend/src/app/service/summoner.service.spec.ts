@@ -47,7 +47,6 @@ describe('SummonerService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/summoners/name/${encodeURIComponent(summonerName)}`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockSummoner);
     });
 
@@ -105,7 +104,6 @@ describe('SummonerService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/summoners/${summonerId}`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockSummoner);
     });
 
@@ -144,7 +142,6 @@ describe('SummonerService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/summoners/${summonerId}/champion-stats`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockChampionStats);
     });
 
@@ -201,7 +198,6 @@ describe('SummonerService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/summoners/${summonerId}/matches?page=0&size=20`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockMatches);
     });
 

@@ -1,0 +1,17 @@
+# Trigger on GitHub release - Build and push with version tag and 'latest'
+name: Deploy Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy-release:
+    uses: ./.github/workflows/build-push.yml
+    with:
+      image-tag: ${{ github.event.release.tag_name }}
+      compose-tag: ${{ github.event.release.tag_name }}
+      update-latest: true
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

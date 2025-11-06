@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AdminService } from './admin.service';
-import { User } from '../dto/user.dto';
+import { User, PagedResponse } from '../dto/user.dto';
 import { API_URL } from './api.config';
 
 describe('AdminService - Unit Tests', () => {
@@ -28,49 +28,72 @@ describe('AdminService - Unit Tests', () => {
   describe('getUsers()', () => {
     it('should fetch all users', () => {
       // Arrange
-      const mockUsers: User[] = [
-        {
-          id: 1,
-          username: 'user1',
-          email: 'user1@example.com',
-          role: 'USER'
-        },
-        {
-          id: 2,
-          username: 'admin1',
-          email: 'admin1@example.com',
-          role: 'ADMIN'
-        },
-        {
-          id: 3,
-          username: 'user2',
-          email: 'user2@example.com',
-          role: 'USER'
-        }
-      ];
+      const mockResponse: PagedResponse<User> = {
+        content: [
+          {
+            id: 1,
+            name: 'user1',
+            email: 'user1@example.com',
+            roles: ['USER'],
+            active: true
+          },
+          {
+            id: 2,
+            name: 'admin1',
+            email: 'admin1@example.com',
+            roles: ['ADMIN'],
+            active: true
+          },
+          {
+            id: 3,
+            name: 'user2',
+            email: 'user2@example.com',
+            roles: ['USER'],
+            active: true
+          }
+        ],
+        totalElements: 3,
+        totalPages: 1,
+        size: 20,
+        number: 0,
+        first: true,
+        last: true,
+        empty: false
+      };
 
       // Act
-      service.getUsers().subscribe((users: User[]) => {
-        expect(users).toEqual(mockUsers);
-        expect(users.length).toBe(3);
+      service.getUsers().subscribe((response: PagedResponse<User>) => {
+        expect(response).toEqual(mockResponse);
+        expect(response.content.length).toBe(3);
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users`);
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
-      req.flush(mockUsers);
+      req.flush(mockResponse);
     });
 
     it('should handle empty user list', () => {
+      const emptyResponse: PagedResponse<User> = {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 20,
+        number: 0,
+        first: true,
+        last: true,
+        empty: true
+      };
+
       // Act
-      service.getUsers().subscribe((users: User[]) => {
-        expect(users).toEqual([]);
+      service.getUsers().subscribe((response: PagedResponse<User>) => {
+        expect(response.content).toEqual([]);
+        expect(response.empty).toBeTrue();
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users`);
-      req.flush([]);
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
+      req.flush(emptyResponse);
     });
 
     it('should handle forbidden access for non-admin', () => {
@@ -83,7 +106,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users`);
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
       req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
     });
 
@@ -97,7 +120,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users`);
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
     });
   });
@@ -123,7 +146,6 @@ describe('AdminService - Unit Tests', () => {
       const req = httpMock.expectOne(`${API_URL}/admin/users/${userId}`);
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({ active });
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
@@ -222,9 +244,8 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users/${userId}`);
+      const req = httpMock.expectOne(`${API_URL}/users/${userId}`);
       expect(req.request.method).toBe('DELETE');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockResponse);
     });
 
@@ -241,7 +262,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users/${nonExistentUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/users/${nonExistentUserId}`);
       req.flush('User not found', { status: 404, statusText: 'Not Found' });
     });
 
@@ -258,7 +279,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users/${userId}`);
+      const req = httpMock.expectOne(`${API_URL}/users/${userId}`);
       req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
     });
 
@@ -275,7 +296,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users/${ownUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/users/${ownUserId}`);
       req.flush('Cannot delete your own account', { status: 400, statusText: 'Bad Request' });
     });
 
@@ -292,7 +313,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/admin/users/${otherAdminUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/users/${otherAdminUserId}`);
       req.flush('Cannot delete other admin accounts', { status: 400, statusText: 'Bad Request' });
     });
   });
@@ -333,7 +354,6 @@ describe('AdminService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/admin/stats`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockSystemStats);
     });
 

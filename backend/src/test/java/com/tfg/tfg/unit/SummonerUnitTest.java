@@ -2,14 +2,9 @@ package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.tfg.tfg.model.entity.ChampionStat;
-import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 
 class SummonerUnitTest {
@@ -28,21 +23,15 @@ class SummonerUnitTest {
         assertNull(summoner.getRiotId());
         assertNull(summoner.getName());
         assertNull(summoner.getLevel());
-        assertNotNull(summoner.getMatches());
-        assertNotNull(summoner.getChampionStats());
-        assertTrue(summoner.getMatches().isEmpty());
-        assertTrue(summoner.getChampionStats().isEmpty());
     }
 
     @Test
     void testParameterizedConstructor() {
-        Summoner paramSummoner = new Summoner("RIOT123", "TestPlayer", 30);
+        Summoner paramSummoner = new Summoner("RIOT123", "TestPlayer#EUW", 30);
         
         assertEquals("RIOT123", paramSummoner.getRiotId());
-        assertEquals("TestPlayer", paramSummoner.getName());
+        assertEquals("TestPlayer#EUW", paramSummoner.getName());
         assertEquals(30, paramSummoner.getLevel());
-        assertNotNull(paramSummoner.getMatches());
-        assertNotNull(paramSummoner.getChampionStats());
     }
 
     @Test
@@ -66,37 +55,7 @@ class SummonerUnitTest {
         assertEquals(1500, summoner.getLp());
     }
 
-    @Test
-    void testMatchesManagement() {
-        assertTrue(summoner.getMatches().isEmpty());
-        
-        List<MatchEntity> matches = new ArrayList<>();
-        MatchEntity match1 = new MatchEntity();
-        MatchEntity match2 = new MatchEntity();
-        matches.add(match1);
-        matches.add(match2);
-        
-        summoner.setMatches(matches);
-        assertEquals(2, summoner.getMatches().size());
-        assertTrue(summoner.getMatches().contains(match1));
-        assertTrue(summoner.getMatches().contains(match2));
-    }
-
-    @Test
-    void testChampionStatsManagement() {
-        assertTrue(summoner.getChampionStats().isEmpty());
-        
-        List<ChampionStat> stats = new ArrayList<>();
-        ChampionStat stat1 = new ChampionStat();
-        ChampionStat stat2 = new ChampionStat();
-        stats.add(stat1);
-        stats.add(stat2);
-        
-        summoner.setChampionStats(stats);
-        assertEquals(2, summoner.getChampionStats().size());
-        assertTrue(summoner.getChampionStats().contains(stat1));
-        assertTrue(summoner.getChampionStats().contains(stat2));
-    }
+    // Tests for matches and championStats removed - data now fetched from Riot API in real-time
 
     @Test
     void testRankTierCombinations() {
@@ -172,11 +131,6 @@ class SummonerUnitTest {
         summoner.setTier("DIAMOND");
         summoner.setRank("I");
         summoner.setLp(2000);
-        
-        List<MatchEntity> matches = List.of(new MatchEntity(), new MatchEntity());
-        List<ChampionStat> stats = List.of(new ChampionStat(), new ChampionStat());
-        summoner.setMatches(matches);
-        summoner.setChampionStats(stats);
 
         assertEquals(42L, summoner.getId());
         assertEquals("RIOT999", summoner.getRiotId());
@@ -186,7 +140,5 @@ class SummonerUnitTest {
         assertEquals("DIAMOND", summoner.getTier());
         assertEquals("I", summoner.getRank());
         assertEquals(2000, summoner.getLp());
-        assertEquals(2, summoner.getMatches().size());
-        assertEquals(2, summoner.getChampionStats().size());
     }
 }

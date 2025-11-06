@@ -1,0 +1,59 @@
+# Manual workflow dispatch - Build and push with custom tag
+name: Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or commit to build from'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  manual-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: 🏷️ Generate tag
+        id: tag
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/g')
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG="${BRANCH_NAME}-${TIMESTAMP}-${COMMIT_SHORT}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Generated tag: ${TAG}"
+
+      - name: 🔐 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build and push Docker image
+        working-directory: ./docker
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ steps.tag.outputs.tag }} -f Dockerfile ..
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ steps.tag.outputs.tag }}
+
+      - name: 📦 Publish docker-compose as OCI artifact
+        working-directory: ./docker
+        run: |
+          sed -i "s|spiritblade:[^ ]*|spiritblade:${{ steps.tag.outputs.tag }}|g" docker-compose.yml
+          
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ steps.tag.outputs.tag }} --file - . <<DOCKERFILE
+          FROM scratch
+          COPY docker-compose.yml /docker-compose.yml
+          DOCKERFILE
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ steps.tag.outputs.tag }}
+
+      - name: ✅ Summary
+        run: |
+          echo "✅ Build completed successfully!"
+          echo "📦 Image: ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ steps.tag.outputs.tag }}"
+          echo "📦 Compose: ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ steps.tag.outputs.tag }}"

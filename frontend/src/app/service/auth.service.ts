@@ -1,16 +1,20 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 interface LoginRequest { username: string; password: string }
-interface LoginResponse { token?: string; username?: string; role?: string }
+interface LoginResponse { 
+  status: string;
+  message: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  // in-memory auth state; do NOT rely on localStorage token for isAuthenticated()
   private authState = new BehaviorSubject<boolean>(false);
   public readonly isAuthenticated$ = this.authState.asObservable();
   private currentUser: { username?: string; roles?: string[] } | null = null;
@@ -20,8 +24,17 @@ export class AuthService {
   }
 
   login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload, { withCredentials: true }).pipe(
-      tap(() => this.authState.next(true)),
+    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload).pipe(
+      tap((response) => {
+        // Store tokens in localStorage
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+        }
+        if (response.refreshToken) {
+          localStorage.setItem('refreshToken', response.refreshToken);
+        }
+        this.authState.next(true);
+      }),
       catchError(err => {
         this.authState.next(false);
         throw err;
@@ -30,8 +43,7 @@ export class AuthService {
   }
 
   register(payload: { name: string; email: string; password: string }): Observable<any> {
-    return this.http.post<any>(`${API_URL}/auth/register`, payload, { withCredentials: true }).pipe(
-      tap(() => this.authState.next(true)),
+    return this.http.post<any>(`${API_URL}/auth/register`, payload).pipe(
       catchError(err => {
         this.authState.next(false);
         throw err;
@@ -40,12 +52,11 @@ export class AuthService {
   }
 
   logout(): void {
-    // clear client state immediately and attempt server logout
+    // Clear tokens from localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     this.authState.next(false);
-    this.http.post<any>(`${API_URL}/auth/logout`, {}, { withCredentials: true }).subscribe({
-      next: () => {},
-      error: () => {}
-    });
+    this.currentUser = null;
   }
 
   isAuthenticated(): boolean {
@@ -57,7 +68,14 @@ export class AuthService {
    * This should be used by guards to prevent bypass.
    */
   checkSession(): Observable<boolean> {
-    return this.http.get<any>(`${API_URL}/auth/me`, { withCredentials: true }).pipe(
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      this.authState.next(false);
+      return of(false);
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<any>(`${API_URL}/auth/me`, { headers }).pipe(
       map((res) => {
         this.authState.next(true);
         this.currentUser = { username: res.username, roles: res.roles };
@@ -65,6 +83,8 @@ export class AuthService {
       }),
       catchError(() => {
         this.authState.next(false);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return of(false);
       })
     );
@@ -72,5 +92,9 @@ export class AuthService {
 
   getCurrentUser() {
     return this.currentUser;
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken');
   }
 }

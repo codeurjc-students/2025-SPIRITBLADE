@@ -2,25 +2,86 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable } from 'rxjs';
-import { User } from '../dto/user.dto';
+import { User, PagedResponse } from '../dto/user.dto';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
+  private readonly usersUrl = `${API_URL}/users`;
 
-  getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${API_URL}/admin/users`, { withCredentials: true });
+  /**
+   * Get all users from the system with pagination and filters.
+   */
+  getUsers(page: number = 0, size: number = 20, filters?: {
+    role?: string;
+    active?: boolean;
+    search?: string;
+  }): Observable<PagedResponse<User>> {
+    let params: any = { page, size };
+    
+    if (filters) {
+      if (filters.role) params.role = filters.role;
+      if (filters.active !== undefined) params.active = filters.active;
+      if (filters.search) params.search = filters.search;
+    }
+    
+    return this.http.get<PagedResponse<User>>(this.usersUrl, { params });
   }
 
+  /**
+   * Get a single user by ID.
+   */
+  getUserById(userId: number): Observable<User> {
+    return this.http.get<User>(`${this.usersUrl}/${userId}`);
+  }
+
+  /**
+   * Create a new user.
+   */
+  createUser(user: User): Observable<User> {
+    return this.http.post<User>(this.usersUrl, user);
+  }
+
+  /**
+   * Update an existing user.
+   */
+  updateUser(userId: number, user: User): Observable<User> {
+    return this.http.put<User>(`${this.usersUrl}/${userId}`, user);
+  }
+
+  /**
+   * Change user role.
+   */
+  changeUserRole(userId: number, role: string): Observable<User> {
+    return this.http.put<User>(`${this.usersUrl}/${userId}/role`, role);
+  }
+
+  /**
+   * Toggle user active status.
+   */
+  toggleUserActive(userId: number): Observable<User> {
+    return this.http.put<User>(`${this.usersUrl}/${userId}/toggle-active`, {});
+  }
+
+  /**
+   * Delete a user from the system.
+   */
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.usersUrl}/${userId}`);
+  }
+
+  /**
+   * Set user active status (deprecated - use toggleUserActive instead).
+   * @deprecated Use toggleUserActive() instead
+   */
   setUserActive(userId: number, active: boolean): Observable<any> {
-    return this.http.patch(`${API_URL}/admin/users/${userId}`, { active }, { withCredentials: true });
+    return this.http.patch<any>(`${API_URL}/admin/users/${userId}`, { active });
   }
 
-  deleteUser(userId: number): Observable<any> {
-    return this.http.delete(`${API_URL}/admin/users/${userId}`, { withCredentials: true });
-  }
-
+  /**
+   * Get system statistics.
+   */
   getSystemStats(): Observable<any> {
-    return this.http.get(`${API_URL}/admin/stats`, { withCredentials: true });
+    return this.http.get<any>(`${API_URL}/admin/stats`);
   }
 }

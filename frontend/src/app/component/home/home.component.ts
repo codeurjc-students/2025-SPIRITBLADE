@@ -1,37 +1,84 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+import { SummonerService } from '../../service/summoner.service';
+import { Summoner } from '../../dto/summoner.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
 
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   searchQuery = '';
+  recentSearches: Summoner[] = [];
+  loadingRecentSearches = false;
+  searchError: string | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private summonerService: SummonerService
+  ) {}
 
-  recentSearches = [
-    { name: 'Example Player 1', rank: 'Gold II' },
-    { name: 'Example Player 2', rank: 'Platinum IV' },
-    { name: 'Example Player 3', rank: 'Diamond I' },
-    { name: 'Example Player 4', rank: 'Master' }
-  ];
-
-  onSearch() {
-    if (this.searchQuery && this.searchQuery.trim()) {
-      this.router.navigate(['/summoner', this.searchQuery.trim()]);
-    }
+  ngOnInit(): void {
+    this.loadRecentSearches();
   }
 
-  searchSummoner(summonerName: string) {
-    console.log('Searching for recent summoner:', summonerName);
-    // TODO: Navegar al perfil del invocador
+  loadRecentSearches() {
+    this.loadingRecentSearches = true;
+    this.summonerService.getRecentSearches().subscribe({
+      next: searches => {
+        this.recentSearches = searches;
+        this.loadingRecentSearches = false;
+      },
+      error: err => {
+        console.debug('Error loading recent searches:', err);
+        this.loadingRecentSearches = false;
+      }
+    });
+  }
+
+  onSearch() {
+    this.searchError = null;
+    
+    if (!this.searchQuery || !this.searchQuery.trim()) {
+      this.searchError = 'Please enter a summoner name';
+      return;
+    }
+
+    const input = this.searchQuery.trim();
+    
+    // Validate format: nombre#región
+    if (!input.includes('#')) {
+      this.searchError = 'Please use format: name#region (e.g., jae9104#EUW)';
+      return;
+    }
+    
+    const parts = input.split('#');
+    const summonerName = parts[0].trim();
+    const region = parts[1].trim().toUpperCase();
+    
+    // Validate region (only EUW supported for now)
+    if (region !== 'EUW') {
+      this.searchError = 'Currently only EUW region is supported';
+      return;
+    }
+
+    if (!summonerName) {
+      this.searchError = 'Please enter a valid summoner name';
+      return;
+    }
+
+    // Navigate with the full Riot ID
+    this.router.navigate(['/summoner', input]);
+  }
+
+  searchSummoner(summoner: Summoner) {
+    this.router.navigate(['/summoner', summoner.name]);
   }
 }

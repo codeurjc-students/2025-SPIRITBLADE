@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
-    "test:integration": "ng test --include='**/*.integration.spec.ts' --watch=false --browsers=ChromeHeadless",
+  "test:integration": "ng test --include='**/*integration.spec.ts' --watch=false --browsers=ChromeHeadless",
     "test:e2e": "ng e2e"
   },
   "private": true,
@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
+    "chart.js": "^4.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"

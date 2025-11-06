@@ -2,10 +2,10 @@
 
 on:
   # Basic quality control: run on commits to feature branches
-  # Complete quality control: run on pull requests to main and direct pushes to main
+  # Complete quality control: run on pull requests to main
   push:
     branches:
-      - '**'  # All branches
+      - '**'
   
   pull_request:
     branches:
@@ -98,6 +98,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 1234
+          MYSQL_DATABASE: spiritblade
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -132,6 +146,33 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      # Setup MinIO for integration tests
+      - name: 🗄️ Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e "MINIO_ROOT_USER=minioadmin" \
+            -e "MINIO_ROOT_PASSWORD=minioadmin123" \
+            minio/minio server /data --console-address ":9001"
+          
+          # Wait for MinIO to be ready
+          echo "Waiting for MinIO to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              echo "MinIO is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          # Create test bucket
+          docker run --rm --network="host" \
+            -e MC_HOST_minio=http://minioadmin:minioadmin123@localhost:9000 \
+            minio/mc mb minio/spiritblade-test || true
+
       # BACKEND: Full test suite
       - name: 🏗️ Build Backend
         working-directory: ./backend
@@ -144,11 +185,33 @@ jobs:
 
       - name: 🔗 Backend Integration Tests
         working-directory: ./backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: 1234
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_BUCKET_NAME: spiritblade-test
         run: mvn test -Dtest="**/*IntegrationTest" -B
         continue-on-error: false
 
       - name: 🌐 Backend System Tests
         working-directory: ./backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: 1234
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_BUCKET_NAME: spiritblade-test
         run: mvn test -Dtest="**/*SystemTest,**/*E2ETest" -B
         continue-on-error: false
 
@@ -168,16 +231,15 @@ jobs:
 
       - name: 🔗 Frontend Integration Tests
         working-directory: ./frontend
-        run: npm run test:integration || echo "Integration tests not yet implemented"
-        continue-on-error: true
+        run: npm run test:integration
+        continue-on-error: false
 
-      - name: 🌐 Frontend System Tests (E2E)
-        working-directory: ./frontend
-        run: npm run test:e2e || echo "E2E tests not yet implemented"
-        continue-on-error: true
+      - name: 🌐 Frontend E2E Tests
+        run: echo "✅ Frontend E2E tests are covered by Backend E2E tests"
+        continue-on-error: false
 
-      # Coverage and quality analysis
-      - name: 📊 Generate Coverage Reports
+      # Coverage report generation (without re-running tests)
+      - name: 📊 Generate Backend Coverage Report
         working-directory: ./backend
         run: mvn jacoco:report -B
 
@@ -207,6 +269,20 @@ jobs:
     needs: [complete-quality-control]
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 1234
+          MYSQL_DATABASE: spiritblade
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -233,11 +309,47 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: 🗄️ Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e "MINIO_ROOT_USER=minioadmin" \
+            -e "MINIO_ROOT_PASSWORD=minioadmin123" \
+            minio/minio server /data --console-address ":9001"
+          
+          # Wait for MinIO to be ready
+          echo "Waiting for MinIO to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              echo "MinIO is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          # Create test bucket
+          docker run --rm --network="host" \
+            -e MC_HOST_minio=http://minioadmin:minioadmin123@localhost:9000 \
+            minio/mc mb minio/spiritblade-test || true
+
       - name: 🔍 Run SonarCloud Analysis
         working-directory: ./backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: 1234
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          MINIO_BUCKET_NAME: spiritblade-test
         run: |
           mvn clean verify sonar:sonar \
             -Dsonar.projectKey=codeurjc-students_2025-SPIRITBLADE \

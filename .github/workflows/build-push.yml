@@ -1,0 +1,66 @@
+# Reusable workflow for building and pushing Docker images
+name: Build and Push Docker
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        required: true
+        type: string
+        description: 'Docker image tag'
+      compose-tag:
+        required: true
+        type: string
+        description: 'Compose OCI artifact tag'
+      update-latest:
+        required: false
+        type: boolean
+        default: false
+        description: 'Also tag as latest'
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build and push Docker image
+        working-directory: ./docker
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ inputs.image-tag }} -f Dockerfile ..
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ inputs.image-tag }}
+          
+          if [ "${{ inputs.update-latest }}" == "true" ]; then
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ inputs.image-tag }} ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:latest
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:latest
+          fi
+
+      - name: 📦 Publish docker-compose as OCI artifact
+        working-directory: ./docker
+        run: |
+          # Update compose file with correct image tag
+          sed -i "s|spiritblade:[^ ]*|spiritblade:${{ inputs.image-tag }}|g" docker-compose.yml
+          
+          # Build and push as OCI artifact (simple method)
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} --file - . <<DOCKERFILE
+          FROM scratch
+          COPY docker-compose.yml /docker-compose.yml
+          DOCKERFILE
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }}
+          
+          if [ "${{ inputs.update-latest }}" == "true" ]; then
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
+          fi

@@ -8,7 +8,7 @@
     <div class="search-box">
       <input 
         type="text" 
-        placeholder="Enter summoner name..." 
+        placeholder="e.g., jae9104#EUW"
         class="search-input"
         [(ngModel)]="searchQuery"
         (keyup.enter)="onSearch()">
@@ -16,16 +16,36 @@
     </div>
   </section>
 
-  <section class="recent-searches">
+  <div *ngIf="searchError" class="search-error">
+      {{ searchError }}
+  </div>
+
+  <section class="recent-searches" *ngIf="!loadingRecentSearches && recentSearches.length > 0">
     <h3>Recent Searches</h3>
     <div class="summoner-list">
-      <div 
+      <button 
         class="summoner-card" 
         *ngFor="let summoner of recentSearches"
-        (click)="searchSummoner(summoner.name)">
-        <span class="summoner-name">{{ summoner.name }}</span>
-        <span class="summoner-rank">{{ summoner.rank }}</span>
-      </div>
+        (click)="searchSummoner(summoner)">
+        <div class="summoner-avatar">
+          <img *ngIf="summoner.profileIconUrl" 
+            [src]="summoner.profileIconUrl" 
+            [alt]="summoner.name"
+            class="avatar-img">
+        </div>
+        <div class="summoner-info">
+          <span class="summoner-name">{{ summoner.name }}</span>
+          <span class="summoner-level">Level {{ summoner.level }}</span>
+        </div>
+        <div class="summoner-rank-badge">
+          <span class="rank-tier">{{ summoner.tier || 'Unranked' }}</span>
+          <span class="rank-division" *ngIf="summoner.rank">{{ summoner.rank }}</span>
+        </div>
+      </button>
     </div>
+  </section>
+  
+  <section class="loading-section" *ngIf="loadingRecentSearches">
+    <p>Loading recent searches...</p>
   </section>
 </main>

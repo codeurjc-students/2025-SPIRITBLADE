@@ -1,17 +1,20 @@
 package com.tfg.tfg.model.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
-@Entity(name = "SUMMONERS")
+@Entity
+@Table(name = "summoners", indexes = {
+    @Index(name = "idx_summoner_name", columnList = "name"),
+    @Index(name = "idx_summoner_puuid", columnList = "puuid"),
+    @Index(name = "idx_summoner_last_searched", columnList = "lastSearchedAt")
+})
 public class Summoner {
 
     @Id
@@ -19,18 +22,26 @@ public class Summoner {
     private Long id;
 
     private String riotId;
+    
+    @Column(unique = true, nullable = false)
+    private String puuid;
+    
+    @Column(name = "`name`")
     private String name;
+    
+    @Column(name = "`level`")
     private Integer level;
+    
     private Integer profileIconId;
     private String tier;
+    
+    @Column(name = "`rank`")
     private String rank;
+    
     private Integer lp;
-
-    @OneToMany(mappedBy = "summoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<MatchEntity> matches = new ArrayList<>();
-
-    @OneToMany(mappedBy = "summoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ChampionStat> championStats = new ArrayList<>();
+    private Integer wins;
+    private Integer losses;
+    private LocalDateTime lastSearchedAt;
 
     public Summoner() {
     }
@@ -55,6 +66,14 @@ public class Summoner {
 
     public void setRiotId(String riotId) {
         this.riotId = riotId;
+    }
+
+    public String getPuuid() {
+        return puuid;
+    }
+
+    public void setPuuid(String puuid) {
+        this.puuid = puuid;
     }
 
     public String getName() {
@@ -105,19 +124,27 @@ public class Summoner {
         this.lp = lp;
     }
 
-    public List<MatchEntity> getMatches() {
-        return matches;
+    public Integer getWins() {
+        return wins;
     }
 
-    public void setMatches(List<MatchEntity> matches) {
-        this.matches = matches;
+    public void setWins(Integer wins) {
+        this.wins = wins;
     }
 
-    public List<ChampionStat> getChampionStats() {
-        return championStats;
+    public Integer getLosses() {
+        return losses;
     }
 
-    public void setChampionStats(List<ChampionStat> championStats) {
-        this.championStats = championStats;
+    public void setLosses(Integer losses) {
+        this.losses = losses;
+    }
+
+    public LocalDateTime getLastSearchedAt() {
+        return lastSearchedAt;
+    }
+
+    public void setLastSearchedAt(LocalDateTime lastSearchedAt) {
+        this.lastSearchedAt = lastSearchedAt;
     }
 }

@@ -1,0 +1,18 @@
+# Trigger on merge to main - Build and push with 'dev' tag
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-dev:
+    uses: ./.github/workflows/build-push.yml
+    with:
+      image-tag: 'dev'
+      compose-tag: 'dev'
+      update-latest: false
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

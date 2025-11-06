@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,6 +29,7 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
 	private final JwtRequestFilter jwtRequestFilter;
@@ -94,10 +96,28 @@ public class SecurityConfiguration {
 			.authorizeHttpRequests(authorize -> authorize
 					// Allow preflight requests
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					// Allow unauthenticated POSTs to auth endpoints (login/register)
+					
+					// ========== PUBLIC ENDPOINTS (Home & Summoner pages) ==========
+					// Authentication endpoints (login/register)
 					.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-					// Allow unauthenticated GETs for summoner lookup
+					// All GET summoner endpoints - public League of Legends data
+					// Used by: Home component (recent searches) & Summoner component (all queries)
 					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
+					// File serving endpoints - public access to avatars and images
+					.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
+					// Swagger UI and OpenAPI documentation
+					.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+					
+					// ========== PROTECTED ENDPOINTS (Dashboard & Admin) ==========
+					// Dashboard endpoints - require authentication, user can only access their own data
+					// Backend services verify user ownership
+					.requestMatchers("/api/v1/dashboard/**").authenticated()
+					// User management endpoints - require authentication
+					.requestMatchers("/api/v1/users/**").authenticated()
+					// Admin panel - require authentication and ADMIN role
+					// Role-based authorization is handled by @PreAuthorize annotations in controller
+					.requestMatchers("/api/v1/admin/**").authenticated()
+					
 					// Any other request to /api/v1/** requires authentication
 					.anyRequest().authenticated()
 			);

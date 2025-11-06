@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: spiritblade-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-spiritblade}
+      MYSQL_USER: ${MYSQL_USER:-spiritblade_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-spiritblade_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    image: ${DOCKER_USERNAME:-yourusername}/spiritblade:0.1
+    container_name: spiritblade-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: "${MYSQL_USER:-spiritblade_user}"
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD:-spiritblade_pass}"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+      SERVER_PORT: "443"
+      JWT_SECRET: "${JWT_SECRET:-change-this-secret-key}"
+      RIOT_API_KEY: "${RIOT_API_KEY}"
+    ports:
+      - "443:443"
+
+volumes:
+  mysql_data:

@@ -2,7 +2,6 @@ package com.tfg.tfg.security.jwt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +29,7 @@ public class UserLoginService {
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
-	public ResponseEntity<AuthResponse> login(HttpServletResponse response, LoginRequest loginRequest) {
+	public ResponseEntity<AuthResponse> login(LoginRequest loginRequest) {
 		
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -41,16 +40,17 @@ public class UserLoginService {
 		String username = loginRequest.getUsername();
 		UserDetails user = userDetailsService.loadUserByUsername(username);
 
-		HttpHeaders responseHeaders = new HttpHeaders();
 		var newAccessToken = jwtTokenProvider.generateAccessToken(user);
 		var newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
 
-		response.addCookie(buildTokenCookie(TokenType.ACCESS, newAccessToken));
-		response.addCookie(buildTokenCookie(TokenType.REFRESH, newRefreshToken));
-
-		AuthResponse loginResponse = new AuthResponse(AuthResponse.Status.SUCCESS,
-				"Auth successful. Tokens are created in cookie.");
-		return ResponseEntity.ok().headers(responseHeaders).body(loginResponse);
+		// Return tokens in response body instead of cookies to avoid Chrome blocking
+		AuthResponse loginResponse = new AuthResponse(
+			AuthResponse.Status.SUCCESS,
+			"Auth successful",
+			newAccessToken,
+			newRefreshToken
+		);
+		return ResponseEntity.ok().body(loginResponse);
 	}
 
 	public ResponseEntity<AuthResponse> refresh(HttpServletResponse response, String refreshToken) {
@@ -65,11 +65,12 @@ public class UserLoginService {
 					"Auth successful. Tokens are created in cookie.");
 			return ResponseEntity.ok().body(loginResponse);
 
-		} catch (Exception e) {
-			log.error("Error while processing refresh token", e);
+		} catch (RuntimeException e) {
+			log.warn("Error while processing refresh token: {}", e.getMessage());
+			log.debug("Stacktrace:", e);
 			AuthResponse loginResponse = new AuthResponse(AuthResponse.Status.FAILURE,
-					"Failure while processing refresh token");
-			return ResponseEntity.ok().body(loginResponse);
+					"Invalid or expired refresh token");
+			return ResponseEntity.status(401).body(loginResponse);
 		}
 	}
 
@@ -85,7 +86,9 @@ public class UserLoginService {
 		Cookie cookie = new Cookie(type.cookieName, token);
 		cookie.setMaxAge((int) type.duration.getSeconds());
 		cookie.setHttpOnly(true);
+		cookie.setSecure(true); // Required for HTTPS
 		cookie.setPath("/");
+		cookie.setAttribute("SameSite", "None"); // Required for cross-origin cookies
 		return cookie;
 	}
 
@@ -93,7 +96,9 @@ public class UserLoginService {
 		Cookie cookie = new Cookie(type.cookieName, "");
 		cookie.setMaxAge(0);
 		cookie.setHttpOnly(true);
+		cookie.setSecure(true);
 		cookie.setPath("/");
+		cookie.setAttribute("SameSite", "None");
 		return cookie;
 	}
 }

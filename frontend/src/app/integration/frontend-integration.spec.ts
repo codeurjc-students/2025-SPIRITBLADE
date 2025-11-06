@@ -4,7 +4,6 @@ import { AuthService } from '../service/auth.service';
 import { SummonerService } from '../service/summoner.service';
 import { DashboardService } from '../service/dashboard.service';
 import { UserService } from '../service/user.service';
-import { MatchService } from '../service/match.service';
 import { AdminService } from '../service/admin.service';
 import { API_URL } from '../service/api.config';
 
@@ -23,7 +22,6 @@ describe('Frontend Integration Tests', () => {
   let summonerService: SummonerService;
   let dashboardService: DashboardService;
   let userService: UserService;
-  let matchService: MatchService;
   let adminService: AdminService;
 
   beforeEach(() => {
@@ -34,7 +32,6 @@ describe('Frontend Integration Tests', () => {
         SummonerService,
         DashboardService,
         UserService,
-        MatchService,
         AdminService
       ]
     });
@@ -44,7 +41,6 @@ describe('Frontend Integration Tests', () => {
     summonerService = TestBed.inject(SummonerService);
     dashboardService = TestBed.inject(DashboardService);
     userService = TestBed.inject(UserService);
-    matchService = TestBed.inject(MatchService);
     adminService = TestBed.inject(AdminService);
   });
 
@@ -59,7 +55,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeTruthy();
       expect(dashboardService).toBeTruthy();
       expect(userService).toBeTruthy();
-      expect(matchService).toBeTruthy();
       expect(adminService).toBeTruthy();
     });
 
@@ -69,7 +64,7 @@ describe('Frontend Integration Tests', () => {
   });
 
   describe('Authentication Integration', () => {
-    xit('should handle login flow with valid credentials', (done) => {
+    it('should handle login flow with valid credentials', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       const loginData = { username: 'testuser', password: 'testpassword' };
       
@@ -93,7 +88,7 @@ describe('Frontend Integration Tests', () => {
       expect(authService.isAuthenticated()).toBeFalse();
     });
 
-    xit('should handle registration flow with valid data', (done) => {
+    it('should handle registration flow with valid data', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       const registerData = {
         name: 'testuser',
@@ -114,7 +109,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should handle session validation', (done) => {
+    it('should handle session validation', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       authService.checkSession().subscribe({
         next: (isValid: boolean) => {
@@ -131,7 +126,7 @@ describe('Frontend Integration Tests', () => {
   });
 
   describe('Summoner Service Integration', () => {
-    xit('should fetch summoner by name from API', (done) => {
+    it('should fetch summoner by name from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       const summonerName = 'TestSummoner';
       
@@ -149,7 +144,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should fetch summoner champion stats from API', (done) => {
+    it('should fetch summoner champion stats from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       const summonerId = 'test-summoner-id';
       
@@ -166,7 +161,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should fetch summoner match history from API', (done) => {
+    it('should fetch summoner match history from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend
       const summonerId = 'test-summoner-id';
       
@@ -186,7 +181,7 @@ describe('Frontend Integration Tests', () => {
   });
 
   describe('Dashboard Service Integration', () => {
-    xit('should fetch personal stats from API', (done) => {
+    it('should fetch personal stats from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
       dashboardService.getPersonalStats().subscribe({
         next: (stats) => {
@@ -201,7 +196,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should fetch favorites overview from API', (done) => {
+    it('should fetch favorites overview from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
       dashboardService.getFavoritesOverview().subscribe({
         next: (favorites) => {
@@ -218,13 +213,13 @@ describe('Frontend Integration Tests', () => {
   });
 
   describe('User Service Integration', () => {
-    xit('should fetch user profile from API', (done) => {
+    it('should fetch user profile from API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
       userService.getProfile().subscribe({
         next: (user) => {
           expect(user).toBeDefined();
           expect(user.id).toBeDefined();
-          expect(user.username).toBeDefined();
+          expect(user.name).toBeDefined();
           done();
         },
         error: (error) => {
@@ -235,14 +230,14 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should update user profile via API', (done) => {
+    it('should update user profile via API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
-      const updateData = { username: 'newusername' };
+      const updateData = { name: 'newusername' };
       
       userService.updateProfile(updateData).subscribe({
         next: (user) => {
           expect(user).toBeDefined();
-          expect(user.username).toBe('newusername');
+          expect(user.name).toBe('newusername');
           done();
         },
         error: (error) => {
@@ -253,7 +248,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should manage favorite summoners via API', (done) => {
+    it('should manage favorite summoners via API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
       const summonerId = 'test-summoner-id';
       
@@ -282,58 +277,10 @@ describe('Frontend Integration Tests', () => {
     });
   });
 
-  describe('Match Service Integration', () => {
-    xit('should fetch match details from API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend
-      const matchId = 'EUW1_1234567890';
-      
-      matchService.getMatch(matchId).subscribe({
-        next: (match) => {
-          expect(match).toBeDefined();
-          expect(match.id).toBe(matchId);
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
-    xit('should manage match notes via API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend and authentication
-      const matchId = 'EUW1_1234567890';
-      const noteData = { text: 'Great game!' };
-      
-      matchService.addNote(matchId, noteData).subscribe({
-        next: (note) => {
-          expect(note).toBeDefined();
-          expect(note.text).toBe(noteData.text);
-          
-          // Test fetching notes
-          matchService.getNotes(matchId).subscribe({
-            next: (notes) => {
-              expect(Array.isArray(notes)).toBeTrue();
-              done();
-            },
-            error: (error) => {
-              expect(error.status).toBeDefined();
-              done();
-            }
-          });
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-  });
+  // Match Service tests removed - service eliminated as backend endpoints don't exist
 
   describe('Admin Service Integration', () => {
-    xit('should fetch all users via admin API', (done) => {
+    it('should fetch all users via admin API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and admin authentication
       adminService.getUsers().subscribe({
         next: (users) => {
@@ -348,7 +295,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should manage user status via admin API', (done) => {
+    it('should manage user status via admin API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and admin authentication
       const userId = 123;
       
@@ -365,7 +312,7 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    xit('should fetch system stats via admin API', (done) => {
+    it('should fetch system stats via admin API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and admin authentication
       adminService.getSystemStats().subscribe({
         next: (stats) => {
@@ -389,7 +336,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeTruthy();
       expect(dashboardService).toBeTruthy();
       expect(userService).toBeTruthy();
-      expect(matchService).toBeTruthy();
       expect(adminService).toBeTruthy();
     });
 
@@ -405,7 +351,6 @@ describe('Frontend Integration Tests', () => {
       expect(summonerService).toBeInstanceOf(SummonerService);
       expect(dashboardService).toBeInstanceOf(DashboardService);
       expect(userService).toBeInstanceOf(UserService);
-      expect(matchService).toBeInstanceOf(MatchService);
       expect(adminService).toBeInstanceOf(AdminService);
     });
 

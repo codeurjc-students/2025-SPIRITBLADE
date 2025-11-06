@@ -50,7 +50,6 @@ describe('DashboardService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/dashboard/me/stats`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockPersonalStats);
     });
 
@@ -129,7 +128,6 @@ describe('DashboardService - Unit Tests', () => {
       // Assert
       const req = httpMock.expectOne(`${API_URL}/dashboard/me/favorites`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.withCredentials).toBeTrue();
       req.flush(mockFavorites);
     });
 
