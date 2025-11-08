@@ -1,4 +1,4 @@
-package com.tfg.tfg.unit;
+﻿package com.tfg.tfg.unit;
 
 import com.tfg.tfg.exception.*;
 import com.tfg.tfg.exception.GlobalExceptionHandler.ErrorResponse;
@@ -71,7 +71,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testHandleInvalidCredentials_WithBadCredentials() {
+    void testHandleInvalidCredentialsWithBadCredentials() {
         BadCredentialsException ex = new BadCredentialsException("Bad credentials");
         
         ResponseEntity<ErrorResponse> response = handler.handleInvalidCredentials(ex, mockRequest);
@@ -82,7 +82,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testHandleInvalidCredentials_WithInvalidCredentialsException() {
+    void testHandleInvalidCredentialsWithInvalidCredentialsException() {
         InvalidCredentialsException ex = new InvalidCredentialsException("Invalid credentials");
         
         ResponseEntity<ErrorResponse> response = handler.handleInvalidCredentials(ex, mockRequest);
@@ -122,7 +122,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testHandleRiotApiException_NotFound() {
+    void testHandleRiotApiExceptionNotFound() {
         RiotApiException ex = new RiotApiException("Summoner not found", 404);
         
         ResponseEntity<ErrorResponse> response = handler.handleRiotApiException(ex, mockRequest);
@@ -132,7 +132,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testHandleRiotApiException_OtherError() {
+    void testHandleRiotApiExceptionOtherError() {
         RiotApiException ex = new RiotApiException("Service unavailable", 503);
         
         ResponseEntity<ErrorResponse> response = handler.handleRiotApiException(ex, mockRequest);
@@ -220,7 +220,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testErrorResponse_Constructor() {
+    void testErrorResponseConstructor() {
         ErrorResponse error = new ErrorResponse(404, "Not Found", "Resource not found", "/api/test");
         
         assertNotNull(error.getTimestamp());
@@ -231,7 +231,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testErrorResponse_Setters() {
+    void testErrorResponseSetters() {
         ErrorResponse error = new ErrorResponse(200, "OK", "Success", "/api/test");
         LocalDateTime newTime = LocalDateTime.now().plusHours(1);
         

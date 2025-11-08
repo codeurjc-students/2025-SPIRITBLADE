@@ -1,4 +1,4 @@
-package com.tfg.tfg.integration;
+﻿package com.tfg.tfg.integration;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
@@ -57,12 +57,12 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testGetDataDragonService_ReturnsInstance() {
+    void testGetDataDragonServiceReturnsInstance() {
         assertThat(riotService.getDataDragonService()).isNotNull();
     }
 
     @Test
-    void testSummonerRepository_CanSaveAndRetrieve() {
+    void testSummonerRepositoryCanSaveAndRetrieve() {
         Summoner summoner = new Summoner();
         summoner.setName("TestSummoner");
         summoner.setPuuid("test-puuid-12345");
@@ -80,7 +80,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepository_FindByName_CaseInsensitive() {
+    void testSummonerRepositoryFindByNameCaseInsensitive() {
         Summoner summoner = new Summoner();
         summoner.setName("CaseSensitive");
         summoner.setPuuid("test-puuid-case");
@@ -93,7 +93,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepository_FindByPuuid_ReturnsUnique() {
+    void testSummonerRepositoryFindByPuuidReturnsUnique() {
         Summoner summoner = new Summoner();
         summoner.setName("UniquePuuid");
         summoner.setPuuid("unique-puuid-123");
@@ -105,7 +105,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepository_NoDuplicatePuuid() {
+    void testSummonerRepositoryNoDuplicatePuuid() {
         Summoner summoner1 = new Summoner();
         summoner1.setName("Summoner1");
         summoner1.setPuuid("duplicate-puuid");
@@ -125,7 +125,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testUserRepository_CanLinkSummoner() {
+    void testUserRepositoryCanLinkSummoner() {
         Summoner summoner = new Summoner();
         summoner.setName("LinkedSummoner");
         summoner.setPuuid("linked-puuid");
@@ -141,7 +141,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testUserRepository_CanAddFavorites() {
+    void testUserRepositoryCanAddFavorites() {
         Summoner favorite = new Summoner();
         favorite.setName("FavoriteSummoner");
         favorite.setPuuid("favorite-puuid");
@@ -166,7 +166,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testUserRepository_CanRemoveFavorites() {
+    void testUserRepositoryCanRemoveFavorites() {
         Summoner favorite = new Summoner();
         favorite.setName("ToRemove");
         favorite.setPuuid("remove-puuid");
@@ -192,7 +192,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepository_UpdatesLastSearchedAt() {
+    void testSummonerRepositoryUpdatesLastSearchedAt() {
         Summoner summoner = new Summoner();
         summoner.setName("SearchedSummoner");
         summoner.setPuuid("searched-puuid");
@@ -210,7 +210,7 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepository_StoresRankInformation() {
+    void testSummonerRepositoryStoresRankInformation() {
         Summoner summoner = new Summoner();
         summoner.setName("RankedSummoner");
         summoner.setPuuid("ranked-puuid");

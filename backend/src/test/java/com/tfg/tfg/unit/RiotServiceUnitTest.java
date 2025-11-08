@@ -1,4 +1,4 @@
-package com.tfg.tfg.unit;
+﻿package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -67,7 +67,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetSummonerByName_Success() {
+    void testGetSummonerByNameSuccess() {
         // Given
         String riotId = "TestPlayer#EUW";
         String puuid = "test-puuid-123";
@@ -134,7 +134,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetSummonerByName_NotFound() {
+    void testGetSummonerByNameNotFound() {
         // Given
         String riotId = "NonExistent#EUW";
         
@@ -161,7 +161,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetTopChampionMasteries_Success() {
+    void testGetTopChampionMasteriesSuccess() {
         // Given
         String puuid = "test-puuid";
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
@@ -194,7 +194,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetTopChampionMasteries_ApiError() {
+    void testGetTopChampionMasteriesApiError() {
         // Given
         String puuid = "test-puuid";
         
@@ -233,7 +233,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetMatchHistory_Success() {
+    void testGetMatchHistorySuccess() {
         // Given
         String puuid = "test-puuid";
         String[] matchIds = {"EUW1_123", "EUW1_456"};
@@ -292,7 +292,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetMatchHistory_EmptyResult() {
+    void testGetMatchHistoryEmptyResult() {
         // Given
         String puuid = "test-puuid";
         String[] emptyMatchIds = {};
@@ -317,7 +317,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetMatchDetails_Success() {
+    void testGetMatchDetailsSuccess() {
         // Given
         String matchId = "EUW1_123";
         
@@ -369,7 +369,7 @@ class RiotServiceUnitTest {
     // ==================== Helper Methods Tests ====================
     
     @Test
-    void testGetObjectiveKills_WithObjective() {
+    void testGetObjectiveKillsWithObjective() {
         // Given
         RiotMatchDTO.ObjectiveDTO objective = new RiotMatchDTO.ObjectiveDTO();
         objective.setKills(5);
@@ -391,7 +391,7 @@ class RiotServiceUnitTest {
     }
     
     @Test
-    void testGetObjectiveKills_NullObjective() {
+    void testGetObjectiveKillsNullObjective() {
         // When - Using reflection to call private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
@@ -446,7 +446,7 @@ class RiotServiceUnitTest {
     }
     
     @Test
-    void testFindParticipantByPuuid_Found() {
+    void testFindParticipantByPuuidFound() {
         // Given
         String targetPuuid = "target-puuid";
         
@@ -486,7 +486,7 @@ class RiotServiceUnitTest {
     }
     
     @Test
-    void testFindParticipantByPuuid_NotFound() {
+    void testFindParticipantByPuuidNotFound() {
         // Given
         RiotMatchDTO matchDTO = new RiotMatchDTO();
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
@@ -556,7 +556,7 @@ class RiotServiceUnitTest {
     }
     
     @Test
-    void testSaveMatchToDatabase_SummonerNotFound() {
+    void testSaveMatchToDatabaseSummonerNotFound() {
         // Given - Mock summoner not found scenario
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
@@ -583,7 +583,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testSaveMatchToDatabase_NullMatchId() {
+    void testSaveMatchToDatabaseNullMatchId() {
         // Given - Mock match with null matchId
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         riotMatch.setMetadata(null);  // Null metadata means null matchId
@@ -610,7 +610,7 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testSaveMatchToDatabase_Success() {
+    void testSaveMatchToDatabaseSuccess() {
         // Given - Full match with all data
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();

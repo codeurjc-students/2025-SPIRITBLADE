@@ -13,7 +13,7 @@ describe('LoginComponent - Unit Tests', () => {
 
   beforeEach(async () => {
     // Create spy objects
-    mockAuthService = jasmine.createSpyObj('AuthService', ['login', 'register']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['login', 'register', 'checkSession', 'isAdmin']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
@@ -72,7 +72,7 @@ describe('LoginComponent - Unit Tests', () => {
       });
     });
 
-    it('should login successfully and redirect', (done) => {
+    it('should login successfully and redirect to dashboard for regular user', (done) => {
       // Arrange
       const mockResponse = { 
         status: 'success',
@@ -81,6 +81,8 @@ describe('LoginComponent - Unit Tests', () => {
         refreshToken: 'mock-refresh-token'
       };
       mockAuthService.login.and.returnValue(of(mockResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(false);
 
       // Act
       component.onLogin();
@@ -97,7 +99,39 @@ describe('LoginComponent - Unit Tests', () => {
 
       // Check redirect after timeout
       setTimeout(() => {
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockAuthService.isAdmin).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+        done();
+      }, 650);
+    });
+
+    it('should login successfully and redirect to admin for admin user', (done) => {
+      // Arrange
+      const mockResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(true);
+
+      // Act
+      component.onLogin();
+
+      // Assert
+      expect(mockAuthService.login).toHaveBeenCalledWith({
+        username: 'testuser',
+        password: 'testpass'
+      });
+
+      // Check redirect after timeout
+      setTimeout(() => {
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockAuthService.isAdmin).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin']);
         done();
       }, 650);
     });
@@ -187,7 +221,7 @@ describe('LoginComponent - Unit Tests', () => {
       });
     });
 
-    it('should register successfully and auto-login', (done) => {
+    it('should register successfully and auto-login for regular user', (done) => {
       // Arrange
       const mockRegisterResponse = { id: 1, username: 'newuser' };
       const mockLoginResponse = { 
@@ -199,6 +233,8 @@ describe('LoginComponent - Unit Tests', () => {
       
       mockAuthService.register.and.returnValue(of(mockRegisterResponse));
       mockAuthService.login.and.returnValue(of(mockLoginResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(false);
 
       // Act
       component.onRegister();
@@ -217,7 +253,9 @@ describe('LoginComponent - Unit Tests', () => {
 
       // Check redirect after timeout
       setTimeout(() => {
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockAuthService.isAdmin).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
         done();
       }, 650);
     });

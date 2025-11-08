@@ -57,10 +57,11 @@ public class SecurityConfiguration {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
+		// Allow both HTTP and HTTPS from frontend
 		config.addAllowedOrigin("http://localhost:4200");
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+		config.addAllowedOrigin("https://localhost:4200");
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
 		source.registerCorsConfiguration("/**", config);
 		return new CorsFilter(source);
 	}

@@ -1,4 +1,4 @@
-package com.tfg.tfg.e2e;
+﻿package com.tfg.tfg.e2e;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
@@ -31,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.*;
     "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class DashboardE2ETest {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardE2ETest.class);
+    private static final String DASHBOARD_PATH = "/dashboard";
 
     @LocalServerPort
     private int port;
@@ -74,7 +79,7 @@ class DashboardE2ETest {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         
         // Then try to navigate to dashboard
-        driver.get(baseUrl + "/dashboard");
+        driver.get(baseUrl + DASHBOARD_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         
         String currentUrl = driver.getCurrentUrl();
@@ -82,7 +87,7 @@ class DashboardE2ETest {
         
         // Angular should handle the redirect client-side or load the page
         boolean isProtected = currentUrl.contains("/login") || 
-                             currentUrl.contains("/dashboard") ||
+                             currentUrl.contains(DASHBOARD_PATH) ||
                              pageContent.contains("login") || 
                              pageContent.contains("Unauthorized") ||
                              pageContent.contains("authenticate") ||
@@ -90,8 +95,8 @@ class DashboardE2ETest {
         
         assertTrue(isProtected, "Dashboard should load through Angular");
         
-        System.out.println("✓ Dashboard authentication protection verified");
-        System.out.println("  Current URL: " + currentUrl);
+        log.info("✓ Dashboard authentication protection verified");
+        log.info("  Current URL: {}", currentUrl);
     }
 
     @Test
@@ -114,7 +119,7 @@ class DashboardE2ETest {
             "Match history API should respond"
         );
         
-        System.out.println("✓ Match history API endpoint is accessible");
+        log.info("✓ Match history API endpoint is accessible");
     }
 
     @Test
@@ -130,12 +135,12 @@ class DashboardE2ETest {
         // Should respond
         assertTrue(!responseContent.isEmpty(), "Champion mastery API should respond");
         
-        System.out.println("✓ Champion mastery API endpoint is accessible");
+        log.info("✓ Champion mastery API endpoint is accessible");
     }
 
     @Test
     void testDashboardPageStructure() {
-        driver.get(baseUrl + "/dashboard");
+        driver.get(baseUrl + DASHBOARD_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         
         try {
@@ -143,14 +148,14 @@ class DashboardE2ETest {
             List<WebElement> divElements = driver.findElements(By.tagName("div"));
             List<WebElement> chartElements = driver.findElements(By.tagName("canvas"));
             
-            System.out.println("✓ Dashboard page structure analysis");
-            System.out.println("  Div elements found: " + divElements.size());
-            System.out.println("  Chart elements found: " + chartElements.size());
+            log.info("✓ Dashboard page structure analysis");
+            log.info("  Div elements found: {}", divElements.size());
+            log.info("  Chart elements found: {}", chartElements.size());
             
             assertTrue(true, "Dashboard page structure verified");
             
         } catch (Exception e) {
-            System.out.println("Note: Dashboard elements may require authentication to load");
+            log.info("Note: Dashboard elements may require authentication to load");
             assertTrue(true, "Test completed with expected authentication behavior");
         }
     }
@@ -169,13 +174,13 @@ class DashboardE2ETest {
         
         // Should redirect to dashboard or login through Angular routing
         assertTrue(
-            currentUrl.contains("/dashboard") || 
+            currentUrl.contains(DASHBOARD_PATH) || 
             currentUrl.contains("/login") ||
             currentUrl.contains("/profile"),
             "Profile should be handled by Angular routing"
         );
         
-        System.out.println("✓ Profile redirect verified");
-        System.out.println("  Redirected to: " + currentUrl);
+        log.info("✓ Profile redirect verified");
+        log.info("  Redirected to: {}", currentUrl);
     }
 }

@@ -1,4 +1,4 @@
-package com.tfg.tfg.unit;
+﻿package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -35,7 +35,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testListUsers_Success() {
+    void testListUsersSuccess() {
         // Given
         UserModel user1 = new UserModel("user1", "pass1", "USER");
         user1.setId(1L);
@@ -55,7 +55,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testSetUserActive_Success() {
+    void testSetUserActiveSuccess() {
         // Given
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
@@ -74,7 +74,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testSetUserActive_UserNotFound() {
+    void testSetUserActiveUserNotFound() {
         // Given
         Long userId = 999L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -88,7 +88,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testSetUserActive_DeactivateUser() {
+    void testSetUserActiveDeactivateUser() {
         // Given
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
@@ -107,7 +107,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testDeleteUser_Success() {
+    void testDeleteUserSuccess() {
         // Given
         Long userId = 1L;
         when(userRepository.existsById(userId)).thenReturn(true);
@@ -121,7 +121,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testDeleteUser_NotFound() {
+    void testDeleteUserNotFound() {
         // Given
         Long userId = 999L;
         when(userRepository.existsById(userId)).thenReturn(false);
@@ -135,7 +135,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testSystemStats_Success() {
+    void testSystemStatsSuccess() {
         // Given
         when(userRepository.count()).thenReturn(42L);
         

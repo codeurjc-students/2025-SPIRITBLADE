@@ -23,7 +23,6 @@ import com.tfg.tfg.repository.UserModelRepository;
 public class AdminController {
 
     private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_USER = "USER";
 
     private final UserModelRepository userRepository;
 
@@ -47,7 +46,14 @@ public class AdminController {
         boolean active = Boolean.TRUE.equals(body.get("active"));
         var opt = userRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        
         UserModel u = opt.get();
+        
+        // Prevent actions on admin users
+        if (u.getRols() != null && u.getRols().contains(ROLE_ADMIN)) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+        
         u.setActive(active);
         userRepository.save(u);
         return ResponseEntity.ok().build();
@@ -57,12 +63,24 @@ public class AdminController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) return ResponseEntity.notFound().build();
+        
+        var opt = userRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        UserModel u = opt.get();
+        
+        // Prevent deletion of admin users
+        if (u.getRols() != null && u.getRols().contains(ROLE_ADMIN)) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+        
         userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     /**
      * Promote a user to ADMIN role.
+     * Only regular users can be promoted.
      * 
      * @param id User ID to promote
      * @return Success response
@@ -93,6 +111,7 @@ public class AdminController {
 
     /**
      * Demote a user from ADMIN role (keep USER role).
+     * Admins cannot demote other admins.
      * 
      * @param id User ID to demote
      * @return Success response
@@ -104,18 +123,10 @@ public class AdminController {
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         
         UserModel user = opt.get();
-        List<String> roles = user.getRols();
-        if (roles != null) {
-            roles = new java.util.ArrayList<>(roles); // Make mutable
-            roles.remove(ROLE_ADMIN);
-            
-            // Ensure at least USER role remains
-            if (roles.isEmpty()) {
-                roles.add(ROLE_USER);
-            }
-            
-            user.setRols(roles);
-            userRepository.save(user);
+        
+        // Prevent demotion of admin users (they cannot demote each other)
+        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
+            return ResponseEntity.status(403).build(); // Forbidden
         }
         
         return ResponseEntity.ok(UserMapper.toDTO(user));

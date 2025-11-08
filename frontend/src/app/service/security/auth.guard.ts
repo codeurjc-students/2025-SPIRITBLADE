@@ -1,16 +1,17 @@
 import { inject } from '@angular/core';
-import { CanActivate, Router, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
+import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { AuthService } from '../auth.service';
 
-export class AuthGuard implements CanActivate {
-  private auth = inject(AuthService);
-  private router = inject(Router);
+/**
+ * Generic Auth Guard - Only checks if user is authenticated.
+ * For role-specific guards, use AdminGuard or UserGuard.
+ */
+export const AuthGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
 
-  canActivate(): Observable<boolean | UrlTree> {
-    return this.auth.checkSession().pipe(
-      map(ok => (ok ? true : this.router.parseUrl('/login')))
-    );
-  }
-}
+  return auth.checkSession().pipe(
+    map(ok => (ok ? true : router.parseUrl('/login')))
+  );
+};

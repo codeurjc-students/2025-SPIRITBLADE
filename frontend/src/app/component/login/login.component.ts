@@ -60,7 +60,19 @@ export class LoginComponent {
       this.authService.login(payload).subscribe({
         next: (response: any) => {
           this.message = { type: 'success', text: 'Login successful. Redirecting...' };
-          setTimeout(() => this.router.navigate(['/profile']), 600);
+          
+          // After successful login, check user session to get role
+          this.authService.checkSession().subscribe({
+            next: () => {
+              // Redirect based on user role
+              const redirectPath = this.authService.isAdmin() ? '/admin' : '/dashboard';
+              setTimeout(() => this.router.navigate([redirectPath]), 600);
+            },
+            error: () => {
+              // Fallback to dashboard if session check fails
+              setTimeout(() => this.router.navigate(['/dashboard']), 600);
+            }
+          });
         },
         error: (err: any) => {
           // For debugging keep a non-intrusive debug log and show friendly UI message
@@ -99,7 +111,19 @@ export class LoginComponent {
           this.authService.login({ username: payload.name, password: payload.password }).subscribe({
             next: (loginResp: any) => {
               this.message = { type: 'success', text: 'Automatic login completed. Redirecting...' };
-              setTimeout(() => this.router.navigate(['/profile']), 600);
+              
+              // After successful auto-login, check user session to get role
+              this.authService.checkSession().subscribe({
+                next: () => {
+                  // Redirect based on user role
+                  const redirectPath = this.authService.isAdmin() ? '/admin' : '/dashboard';
+                  setTimeout(() => this.router.navigate([redirectPath]), 600);
+                },
+                error: () => {
+                  // Fallback to dashboard if session check fails
+                  setTimeout(() => this.router.navigate(['/dashboard']), 600);
+                }
+              });
             },
             error: (err: any) => {
               console.debug('Auto-login after registration failed', err);

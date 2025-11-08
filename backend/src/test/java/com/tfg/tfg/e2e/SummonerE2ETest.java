@@ -1,4 +1,4 @@
-package com.tfg.tfg.e2e;
+﻿package com.tfg.tfg.e2e;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
@@ -30,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.*;
     "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class SummonerE2ETest {
+
+    private static final Logger log = LoggerFactory.getLogger(SummonerE2ETest.class);
 
     @LocalServerPort
     private int port;
@@ -107,7 +111,7 @@ class SummonerE2ETest {
             responseContent.substring(0, Math.min(500, responseContent.length()))
         );
         
-        System.out.println("✓ Summoner API endpoint is accessible and responding");
+        log.info("✓ Summoner API endpoint is accessible and responding");
         System.out.println("  Response preview: " + responseContent.substring(0, Math.min(200, responseContent.length())));
         
         // This fulfills Phase 2 requirement: the API endpoint exists and is functional
@@ -142,7 +146,7 @@ class SummonerE2ETest {
             assertTrue(true, "Navigation test completed successfully");
             
         } catch (Exception e) {
-            System.out.println("Note: Navigation elements may not be fully implemented yet");
+            log.info("Note: Navigation elements may not be fully implemented yet");
             System.out.println("Error: " + e.getMessage());
             // Don't fail the test for missing navigation in early development
             assertTrue(true, "Test completed with expected development state");
@@ -163,7 +167,7 @@ class SummonerE2ETest {
         // (may require authentication in full implementation)
         assertNotNull(pageContent);
         
-        System.out.println("✓ Backend API endpoint accessible");
+        log.info("✓ Backend API endpoint accessible");
         System.out.println("  Response preview: " + pageContent.substring(0, Math.min(100, pageContent.length())));
     }
 
@@ -191,8 +195,8 @@ class SummonerE2ETest {
         assertNotNull(head);
         assertNotNull(body);
         
-        System.out.println("✓ Page performance test passed");
-        System.out.println("  Load time: " + loadTime + "ms");
-        System.out.println("  HTML structure verified");
+        log.info("✓ Page performance test passed");
+        log.info("  Load time: {}", loadTime + "ms");
+        log.info("  HTML structure verified");
     }
 }

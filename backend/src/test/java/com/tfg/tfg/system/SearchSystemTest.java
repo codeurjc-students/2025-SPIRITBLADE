@@ -1,4 +1,4 @@
-package com.tfg.tfg.system;
+﻿package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -72,7 +72,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetAllSummoners_WithPagination_ReturnsPagedResults() {
+    void testGetAllSummonersWithPaginationReturnsPagedResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -90,7 +90,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetAllSummoners_FirstPage_ReturnsData() {
+    void testGetAllSummonersFirstPageReturnsData() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -102,7 +102,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetRecentSummoners_ReturnsRecentSearches() {
+    void testGetRecentSummonersReturnsRecentSearches() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -115,7 +115,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testSearchSummoner_WithValidName_ReturnsResults() {
+    void testSearchSummonerWithValidNameReturnsResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -127,7 +127,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testSearchSummoner_WithEmptyName_Returns400() {
+    void testSearchSummonerWithEmptyNameReturns400() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -139,7 +139,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testSearchSummoner_WithSpecialCharacters_HandlesCorrectly() {
+    void testSearchSummonerWithSpecialCharactersHandlesCorrectly() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -151,7 +151,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetSummoners_WithLargePageSize_ReturnsLimitedResults() {
+    void testGetSummonersWithLargePageSizeReturnsLimitedResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -166,7 +166,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetSummoners_SecondPage_ReturnsNextResults() {
+    void testGetSummonersSecondPageReturnsNextResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -181,7 +181,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testSearchSummoner_ReturnsExpectedFields() {
+    void testSearchSummonerReturnsExpectedFields() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -194,7 +194,7 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetSummoners_ContainsPaginationMetadata() {
+    void testGetSummonersContainsPaginationMetadata() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)

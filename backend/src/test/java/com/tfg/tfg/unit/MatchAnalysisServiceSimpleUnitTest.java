@@ -1,4 +1,4 @@
-package com.tfg.tfg.unit;
+﻿package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -22,6 +22,10 @@ import com.tfg.tfg.service.MatchAnalysisService;
 @ExtendWith(MockitoExtension.class)
 class MatchAnalysisServiceSimpleUnitTest {
 
+    private static final String TEST_PLAYER_NAME = "TestPlayer";
+    private static final String TEST_MATCH_ID = "EUW1_123";
+    private static final Long TEST_SUMMONER_ID = 1L;
+
     @Mock
     private MatchEntityRepository matchRepository;
     
@@ -36,55 +40,53 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetMatchesForSummoner_Success() {
-        String summonerName = "TestPlayer";
+    void testGetMatchesForSummonerSuccess() {
         Summoner summoner = new Summoner();
-        summoner.setId(1L);
-        summoner.setName(summonerName);
+        summoner.setId(TEST_SUMMONER_ID);
+        summoner.setName(TEST_PLAYER_NAME);
         
         MatchEntity match = new MatchEntity();
-        match.setMatchId("EUW1_123");
+        match.setMatchId(TEST_MATCH_ID);
         
-        when(summonerRepository.findByName(summonerName)).thenReturn(Optional.of(summoner));
+        when(summonerRepository.findByName(TEST_PLAYER_NAME)).thenReturn(Optional.of(summoner));
         when(matchRepository.findBySummoner(summoner)).thenReturn(List.of(match));
         
-        List<MatchEntity> result = service.getMatchesForSummoner(summonerName);
+        List<MatchEntity> result = service.getMatchesForSummoner(TEST_PLAYER_NAME);
         
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(summonerRepository).findByName(summonerName);
+        verify(summonerRepository).findByName(TEST_PLAYER_NAME);
         verify(matchRepository).findBySummoner(summoner);
     }
     
     @Test
-    void testGetMatchesForSummoner_NotFound() {
-        String summonerName = "NonExistent";
+    void testGetMatchesForSummonerNotFound() {
+        String nonExistent = "NonExistent";
         
-        when(summonerRepository.findByName(summonerName)).thenReturn(Optional.empty());
+        when(summonerRepository.findByName(nonExistent)).thenReturn(Optional.empty());
         
-        List<MatchEntity> result = service.getMatchesForSummoner(summonerName);
+        List<MatchEntity> result = service.getMatchesForSummoner(nonExistent);
         
         assertTrue(result.isEmpty());
         verify(matchRepository, never()).findBySummoner(any());
     }
     
     @Test
-    void testGetMatchesBySummonerNameSimple_Success() {
-        String summonerName = "TestPlayer";
+    void testGetMatchesBySummonerNameSimpleSuccess() {
         MatchEntity match = new MatchEntity();
-        match.setMatchId("EUW1_123");
+        match.setMatchId(TEST_MATCH_ID);
         
-        when(matchRepository.findBySummonerName(summonerName)).thenReturn(List.of(match));
+        when(matchRepository.findBySummonerName(TEST_PLAYER_NAME)).thenReturn(List.of(match));
         
-        List<MatchEntity> result = service.getMatchesBySummonerNameSimple(summonerName);
+        List<MatchEntity> result = service.getMatchesBySummonerNameSimple(TEST_PLAYER_NAME);
         
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(matchRepository).findBySummonerName(summonerName);
+        verify(matchRepository).findBySummonerName(TEST_PLAYER_NAME);
     }
     
     @Test
-    void testGetHighKillMatches_Success() {
+    void testGetHighKillMatchesSuccess() {
         Long summonerId = 1L;
         int minKills = 10;
         
@@ -102,7 +104,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetWinRateForSummoner_Success() {
+    void testGetWinRateForSummonerSuccess() {
         Long summonerId = 1L;
         Object[] stats = {100L, 60L, 40L};
         
@@ -118,7 +120,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetWinRateForSummoner_NoData() {
+    void testGetWinRateForSummonerNoData() {
         Long summonerId = 1L;
         
         when(matchRepository.getWinRateStats(summonerId)).thenReturn(null);
@@ -133,7 +135,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetMatchesWithNotes_Success() {
+    void testGetMatchesWithNotesSuccess() {
         Long summonerId = 1L;
         MatchEntity match = new MatchEntity();
         
@@ -147,7 +149,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetActiveSummoners_Success() {
+    void testGetActiveSummonersSuccess() {
         long minMatches = 10;
         Summoner summoner = new Summoner();
         summoner.setName("ActivePlayer");
@@ -163,7 +165,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetSummonerNameFromMatch_Success() {
+    void testGetSummonerNameFromMatchSuccess() {
         Long matchId = 1L;
         Summoner summoner = new Summoner();
         summoner.setName("TestPlayer");
@@ -180,7 +182,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetSummonerNameFromMatch_NotFound() {
+    void testGetSummonerNameFromMatchNotFound() {
         Long matchId = 999L;
         
         when(matchRepository.findById(matchId)).thenReturn(Optional.empty());
@@ -191,7 +193,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetSummonerNameFromMatch_NullSummoner() {
+    void testGetSummonerNameFromMatchNullSummoner() {
         Long matchId = 1L;
         MatchEntity match = new MatchEntity();
         match.setId(matchId);
@@ -205,7 +207,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testWinRateStats_WinRateCalculation() {
+    void testWinRateStatsWinRateCalculation() {
         var stats = new MatchAnalysisService.WinRateStats(100, 75, 25);
         
         assertEquals(100, stats.getTotalMatches());
@@ -215,7 +217,7 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testWinRateStats_ZeroMatches() {
+    void testWinRateStatsZeroMatches() {
         var stats = new MatchAnalysisService.WinRateStats(0, 0, 0);
         
         assertEquals(0.0, stats.getWinRate(), 0.01);

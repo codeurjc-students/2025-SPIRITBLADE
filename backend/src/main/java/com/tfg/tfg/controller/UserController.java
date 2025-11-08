@@ -40,6 +40,7 @@ public class UserController {
     private static final String MESSAGE_KEY = "message";
     private static final String REGION_KEY = "region";
     private static final String USER_NOT_FOUND_MSG = "User not found";
+    private static final String ROLE_ADMIN = "ADMIN";
 
     private final UserModelRepository userRepository;
     private final UserService userService;
@@ -142,6 +143,7 @@ public class UserController {
 
     /**
      * Update user information (Admin only).
+     * Admins cannot modify other admin accounts.
      * 
      * @param id User ID
      * @param userDTO Updated user data
@@ -151,6 +153,11 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         return userRepository.findById(id).map(user -> {
+            // Prevent modification of admin users
+            if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
+            }
+            
             // Update fields
             if (userDTO.getName() != null) {
                 user.setName(userDTO.getName());
@@ -170,6 +177,7 @@ public class UserController {
 
     /**
      * Change user role (Admin only).
+     * Admins cannot change roles of other admin users.
      * 
      * @param id User ID
      * @param role New role
@@ -179,6 +187,11 @@ public class UserController {
     @PutMapping("/{id}/role")
     public ResponseEntity<UserDTO> changeRole(@PathVariable Long id, @RequestBody String role) {
         return userRepository.findById(id).map(user -> {
+            // Prevent role changes on admin users
+            if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
+            }
+            
             user.setRols(java.util.List.of(role));
             UserModel updatedUser = userRepository.save(user);
             return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
@@ -187,6 +200,7 @@ public class UserController {
 
     /**
      * Toggle user active status (Admin only).
+     * Admins cannot toggle status of other admin users.
      * 
      * @param id User ID
      * @return Updated user
@@ -195,6 +209,11 @@ public class UserController {
     @PutMapping("/{id}/toggle-active")
     public ResponseEntity<UserDTO> toggleActive(@PathVariable Long id) {
         return userRepository.findById(id).map(user -> {
+            // Prevent toggling active status on admin users
+            if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
+            }
+            
             user.setActive(!user.isActive());
             UserModel updatedUser = userRepository.save(user);
             return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
@@ -203,6 +222,7 @@ public class UserController {
 
     /**
      * Delete user (Admin only).
+     * Admins cannot delete other admin users.
      * 
      * @param id User ID
      * @return No content
@@ -211,6 +231,11 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id).map(user -> {
+            // Prevent deletion of admin users
+            if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).<Void>build();
+            }
+            
             userRepository.delete(user);
             return ResponseEntity.noContent().<Void>build();
         }).orElseGet(() -> ResponseEntity.notFound().build());

@@ -182,19 +182,24 @@ export class AdminComponent implements OnInit {
   }
 
   updateUser(): void {
-    if (!this.selectedUser || !this.selectedUser.id) {
+    if (!this.selectedUser) {
       return;
     }
 
     this.adminService.updateUser(this.selectedUser.id, this.selectedUser).subscribe({
-      next: (user) => {
-        console.log('User updated:', user);
+      next: () => {
+        console.log('User updated');
         this.loadUsers();
         this.closeEditModal();
       },
       error: (error) => {
         console.error('Error updating user:', error);
-        alert('Failed to update user.');
+        if (error.status === 403) {
+          this.errorMessage = 'Cannot edit admin users. Admins can only manage regular users.';
+        } else {
+          this.errorMessage = 'Failed to update user.';
+        }
+        this.closeEditModal();
       }
     });
   }
@@ -222,7 +227,12 @@ export class AdminComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting user:', error);
-        alert('Failed to delete user.');
+        if (error.status === 403) {
+          this.errorMessage = 'Cannot delete admin users. Admins can only manage regular users.';
+        } else {
+          this.errorMessage = 'Failed to delete user.';
+        }
+        this.closeDeleteModal();
       }
     });
   }
@@ -239,7 +249,11 @@ export class AdminComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error toggling user status:', error);
-        alert('Failed to toggle user status.');
+        if (error.status === 403) {
+          this.errorMessage = 'Cannot modify admin users. Admins can only manage regular users.';
+        } else {
+          this.errorMessage = 'Failed to toggle user status.';
+        }
       }
     });
   }
@@ -253,5 +267,13 @@ export class AdminComponent implements OnInit {
 
   getStatusBadgeClass(active: boolean): string {
     return active ? 'badge-active' : 'badge-inactive';
+  }
+
+  /**
+   * Check if a user has admin role.
+   * Admins cannot take actions on other admins.
+   */
+  isAdmin(user: User): boolean {
+    return user.roles?.includes('ADMIN') || user.roles?.includes('ROLE_ADMIN') || false;
   }
 }

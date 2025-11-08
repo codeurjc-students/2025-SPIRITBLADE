@@ -1,4 +1,4 @@
-package com.tfg.tfg.system;
+﻿package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -73,7 +73,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetPersonalStats_WithoutLinkedSummoner_ReturnsDefaultStats() {
+    void testGetPersonalStatsWithoutLinkedSummonerReturnsDefaultStats() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -88,7 +88,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankedMatches_WithoutLinkedSummoner_ReturnsEmptyList() {
+    void testGetRankedMatchesWithoutLinkedSummonerReturnsEmptyList() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -101,7 +101,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankedMatches_WithPagination_ReturnsCorrectSize() {
+    void testGetRankedMatchesWithPaginationReturnsCorrectSize() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -115,7 +115,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankedMatches_WithQueueFilter_SoloQueue() {
+    void testGetRankedMatchesWithQueueFilterSoloQueue() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -128,7 +128,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankedMatches_WithQueueFilter_FlexQueue() {
+    void testGetRankedMatchesWithQueueFilterFlexQueue() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -141,7 +141,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankHistory_WithoutLinkedSummoner_ReturnsEmptyList() {
+    void testGetRankHistoryWithoutLinkedSummonerReturnsEmptyList() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -154,7 +154,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetFavorites_ReturnsUserFavorites() {
+    void testGetFavoritesReturnsUserFavorites() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -167,7 +167,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testAddFavorite_WithValidSummoner() {
+    void testAddFavoriteWithValidSummoner() {
         // First, ensure a summoner exists (this might fail if no summoners in test DB)
         // This test demonstrates the endpoint structure
         given()
@@ -181,7 +181,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testRemoveFavorite_WithValidSummoner() {
+    void testRemoveFavoriteWithValidSummoner() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -193,7 +193,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetPersonalStats_Unauthorized_Returns401() {
+    void testGetPersonalStatsUnauthorizedReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -204,7 +204,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankedMatches_WithInvalidQueueId_ReturnsEmptyList() {
+    void testGetRankedMatchesWithInvalidQueueIdReturnsEmptyList() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -218,7 +218,7 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetPersonalStats_ContainsExpectedFields() {
+    void testGetPersonalStatsContainsExpectedFields() {
         // winRate can be null without matches, currentRank and mainRole should always be present
         given()
             .port(port)

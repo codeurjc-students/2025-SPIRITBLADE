@@ -1,4 +1,4 @@
-package com.tfg.tfg.system;
+﻿package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -101,7 +101,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_AsAdmin_ReturnsUserList() {
+    void testGetAllUsersAsAdminReturnsUserList() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -115,7 +115,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_AsRegularUser_Returns403() {
+    void testGetAllUsersAsRegularUserReturns403() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + userToken)
@@ -127,7 +127,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_WithPagination_ReturnsPagedResults() {
+    void testGetAllUsersWithPaginationReturnsPagedResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -143,7 +143,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_WithSearchFilter_ReturnsFilteredResults() {
+    void testGetAllUsersWithSearchFilterReturnsFilteredResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -157,7 +157,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_WithRoleFilter_ReturnsFilteredResults() {
+    void testGetAllUsersWithRoleFilterReturnsFilteredResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -171,7 +171,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_WithActiveFilter_ReturnsFilteredResults() {
+    void testGetAllUsersWithActiveFilterReturnsFilteredResults() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -185,7 +185,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetUserById_AsAdmin_ReturnsUserDetails() {
+    void testGetUserByIdAsAdminReturnsUserDetails() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -199,7 +199,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetUserById_AsRegularUser_Returns403() {
+    void testGetUserByIdAsRegularUserReturns403() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + userToken)
@@ -211,7 +211,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetUserByName_AsAdmin_ReturnsUserDetails() {
+    void testGetUserByNameAsAdminReturnsUserDetails() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -225,7 +225,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testCreateUser_AsAdmin_CreatesNewUser() {
+    void testCreateUserAsAdminCreatesNewUser() {
         String uniqueUsername = "testuser" + System.currentTimeMillis();
         
         given()
@@ -248,7 +248,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testCreateUser_AsRegularUser_Returns403() {
+    void testCreateUserAsRegularUserReturns403() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + userToken)
@@ -267,7 +267,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testUpdateUserRole_AsAdmin_UpdatesRole() {
+    void testUpdateUserRoleAsAdminUpdatesRole() {
         // Assuming user ID exists
         given()
             .port(port)
@@ -285,7 +285,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testToggleUserActive_AsAdmin_TogglesStatus() {
+    void testToggleUserActiveAsAdminTogglesStatus() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)
@@ -297,7 +297,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testDeleteUser_AsAdmin_DeletesUser() {
+    void testDeleteUserAsAdminDeletesUser() {
         // Create a user first
         String username = "todelete" + System.currentTimeMillis();
         Integer userId = given()
@@ -332,7 +332,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testDeleteUser_AsRegularUser_Returns403() {
+    void testDeleteUserAsRegularUserReturns403() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + userToken)
@@ -344,7 +344,7 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetAllUsers_ContainsExpectedUserFields() {
+    void testGetAllUsersContainsExpectedUserFields() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + adminToken)

@@ -31,60 +31,59 @@ public class DataInitializer {
 
     @PostConstruct
     public void init() {
-        // Get active Spring profile (production, development, etc.)
+        boolean isProduction = isProductionMode();
+        
+        String adminPassword = resolvePassword("ADMIN_DEFAULT_PASSWORD", ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, isProduction);
+        String userPassword = resolvePassword("USER_DEFAULT_PASSWORD", USER_USERNAME, DEFAULT_USER_PASSWORD, isProduction);
+        
+        createAdminUserIfNotExists(adminPassword, isProduction);
+        createRegularUserIfNotExists(userPassword, isProduction);
+    }
+
+    private boolean isProductionMode() {
         String profile = System.getProperty("spring.profiles.active", "development");
-        boolean isProduction = "production".equalsIgnoreCase(profile);
-        
-        // Use environment variables in production, fixed passwords in development
-        String adminPassword = System.getenv("ADMIN_DEFAULT_PASSWORD");
-        if (adminPassword == null) {
+        return "production".equalsIgnoreCase(profile);
+    }
+
+    private String resolvePassword(String envVarName, String username, String defaultPassword, boolean isProduction) {
+        String password = System.getenv(envVarName);
+        if (password == null) {
             if (isProduction) {
-                adminPassword = generateSecurePassword(ADMIN_USERNAME);
-                logger.warn("Production mode detected but ADMIN_DEFAULT_PASSWORD not set! Using generated password.");
+                password = generateSecurePassword(username);
+                logger.warn("Production mode detected but {} not set! Using generated password.", envVarName);
             } else {
-                // Fixed password for development/demo
-                adminPassword = DEFAULT_ADMIN_PASSWORD;
-                logger.info("Development mode: Using default password for admin user");
+                password = defaultPassword;
+                logger.info("Development mode: Using default password for {} user", username);
             }
         }
-        
-        String userPassword = System.getenv("USER_DEFAULT_PASSWORD");
-        if (userPassword == null) {
-            if (isProduction) {
-                userPassword = generateSecurePassword(USER_USERNAME);
-                logger.warn("Production mode detected but USER_DEFAULT_PASSWORD not set! Using generated password.");
-            } else {
-                // Fixed password for development/demo
-                userPassword = DEFAULT_USER_PASSWORD;
-                logger.info("Development mode: Using default password for regular user");
-            }
-        }
-        
-        // Create admin user if not exists
+        return password;
+    }
+
+    private void createAdminUserIfNotExists(String adminPassword, boolean isProduction) {
         if (userRepository.findByName(ADMIN_USERNAME).isEmpty()) {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
             userRepository.save(admin);
-            if (isProduction) {
-                logger.info("Created default admin user: {} / [password from environment]", ADMIN_USERNAME);
-            } else {
-                logger.info("Created default admin user: {} / Password: {}", ADMIN_USERNAME, adminPassword);
-            }
+            logUserCreation(ADMIN_USERNAME, adminPassword, isProduction);
         }
+    }
 
-        // Create regular user if not exists
+    private void createRegularUserIfNotExists(String userPassword, boolean isProduction) {
         if (userRepository.findByName(USER_USERNAME).isEmpty()) {
             UserModel user = new UserModel(USER_USERNAME, passwordEncoder.encode(userPassword), "USER");
             user.setEmail("user@example.com");
             user.setActive(true);
             userRepository.save(user);
-            if (isProduction) {
-                logger.info("Created default user: {} / [password from environment]", USER_USERNAME);
-            } else {
-                logger.info("Created default user: {} / Password: {}", USER_USERNAME, userPassword);
-            }
+            logUserCreation(USER_USERNAME, userPassword, isProduction);
         }
+    }
 
+    private void logUserCreation(String username, String password, boolean isProduction) {
+        if (isProduction) {
+            logger.info("Created default user: {} / [password from environment]", username);
+        } else {
+            logger.info("Created default user: {} / Password: {}", username, password);
+        }
     }
 
     

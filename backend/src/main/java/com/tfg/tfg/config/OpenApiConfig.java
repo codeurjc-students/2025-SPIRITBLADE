@@ -46,11 +46,8 @@ public class OpenApiConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8443")
-                                .description("Local development server (HTTPS)"),
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("Local development server (HTTP)")))
+                                .url("https://localhost")
+                                .description("Local development server (HTTPS)")))
                 .addSecurityItem(new SecurityRequirement()
                         .addList(securitySchemeName))
                 .components(new Components()

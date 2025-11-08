@@ -1,4 +1,4 @@
-package com.tfg.tfg.system;
+﻿package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -62,7 +62,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogin_WithValidCredentials_ReturnsToken() {
+    void testLoginWithValidCredentialsReturnsToken() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -81,7 +81,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogin_WithInvalidCredentials_Returns401() {
+    void testLoginWithInvalidCredentialsReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -98,7 +98,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogin_WithNonExistentUser_Returns401() {
+    void testLoginWithNonExistentUserReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -115,7 +115,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogin_WithEmptyUsername_Returns400() {
+    void testLoginWithEmptyUsernameReturns400() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -132,7 +132,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testRegister_WithValidData_ReturnsSuccess() {
+    void testRegisterWithValidDataReturnsSuccess() {
         String uniqueUsername = "newuser" + System.currentTimeMillis();
         
         given()
@@ -153,7 +153,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testRegister_WithExistingUsername_Returns409() {
+    void testRegisterWithExistingUsernameReturns409() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -171,7 +171,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testRegister_WithInvalidEmail_Returns400() {
+    void testRegisterWithInvalidEmailReturns400() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -189,7 +189,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testGetMe_WithValidToken_ReturnsUserInfo() {
+    void testGetMeWithValidTokenReturnsUserInfo() {
         // First login to get token
         String token = given()
             .port(port)
@@ -221,7 +221,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testGetMe_WithoutToken_Returns401() {
+    void testGetMeWithoutTokenReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -232,7 +232,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testGetMe_WithInvalidToken_Returns401() {
+    void testGetMeWithInvalidTokenReturns401() {
         given()
             .port(port)
             .header("Authorization", "Bearer invalid_token_here")
@@ -244,7 +244,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogout_WithValidToken_ReturnsSuccess() {
+    void testLogoutWithValidTokenReturnsSuccess() {
         // First login
         String token = given()
             .port(port)
@@ -274,7 +274,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testRefreshToken_WithValidToken_ReturnsNewToken() {
+    void testRefreshTokenWithValidTokenReturnsNewToken() {
         // First login
         String refreshToken = given()
             .port(port)
@@ -305,7 +305,7 @@ class AuthSystemTest {
     }
 
     @Test
-    void testLogin_ReturnsUserWithCorrectRole() {
+    void testLoginReturnsUserWithCorrectRole() {
         // Login response contains accessToken but not roles (roles are in JWT token itself)
         given()
             .port(port)

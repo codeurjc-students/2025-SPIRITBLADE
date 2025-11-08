@@ -1,4 +1,4 @@
-package com.tfg.tfg.unit;
+﻿package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -55,73 +55,73 @@ class DataDragonServiceSimpleUnitTest {
     }
     
     @Test
-    void testLoadChampionData_Success() {
+    void testLoadChampionDataSuccess() {
         assertTrue(service.isDataLoaded());
         assertEquals(2, service.getChampionCount());
     }
     
     @Test
-    void testGetChampionNameById_Found() {
+    void testGetChampionNameByIdFound() {
         String name = service.getChampionNameById(266L);
         assertEquals("Aatrox", name);
     }
     
     @Test
-    void testGetChampionNameById_NotFound() {
+    void testGetChampionNameByIdNotFound() {
         String name = service.getChampionNameById(999L);
         assertEquals("Champion 999", name);
     }
     
     @Test
-    void testGetChampionNameById_Null() {
+    void testGetChampionNameByIdNull() {
         String name = service.getChampionNameById(null);
         assertEquals("Unknown Champion", name);
     }
     
     @Test
-    void testGetChampionNameByKey_Found() {
+    void testGetChampionNameByKeyFound() {
         String name = service.getChampionNameByKey("Aatrox");
         assertEquals("Aatrox", name);
     }
     
     @Test
-    void testGetChampionNameByKey_NotFound() {
+    void testGetChampionNameByKeyNotFound() {
         String name = service.getChampionNameByKey("UnknownChamp");
         assertEquals("UnknownChamp", name);
     }
     
     @Test
-    void testGetChampionNameByKey_Null() {
+    void testGetChampionNameByKeyNull() {
         String name = service.getChampionNameByKey(null);
         assertEquals("Unknown Champion", name);
     }
     
     @Test
-    void testGetChampionIconUrl_Found() {
+    void testGetChampionIconUrlFound() {
         String url = service.getChampionIconUrl(266L);
         assertTrue(url.contains("Aatrox.png"));
     }
     
     @Test
-    void testGetChampionIconUrl_NotFound() {
+    void testGetChampionIconUrlNotFound() {
         String url = service.getChampionIconUrl(999L);
         assertEquals("", url);
     }
     
     @Test
-    void testGetProfileIconUrl_Valid() {
+    void testGetProfileIconUrlValid() {
         String url = service.getProfileIconUrl(1);
         assertTrue(url.contains("profileicon/1.png"));
     }
     
     @Test
-    void testGetProfileIconUrl_Null() {
+    void testGetProfileIconUrlNull() {
         String url = service.getProfileIconUrl(null);
         assertEquals("", url);
     }
     
     @Test
-    void testLoadChampionData_ApiError() throws Exception {
+    void testLoadChampionDataApiError() throws Exception {
         DataDragonService serviceWithError = new DataDragonService();
         
         RestTemplate errorRestTemplate = mock(RestTemplate.class);
@@ -141,7 +141,7 @@ class DataDragonServiceSimpleUnitTest {
     }
     
     @Test
-    void testLoadChampionData_InvalidJson() throws Exception {
+    void testLoadChampionDataInvalidJson() throws Exception {
         DataDragonService serviceWithBadData = new DataDragonService();
         
         RestTemplate badRestTemplate = mock(RestTemplate.class);
@@ -160,7 +160,7 @@ class DataDragonServiceSimpleUnitTest {
     }
     
     @Test
-    void testIsDataLoaded_EmptyService() {
+    void testIsDataLoadedEmptyService() {
         DataDragonService emptyService = new DataDragonService();
         assertFalse(emptyService.isDataLoaded());
     }
