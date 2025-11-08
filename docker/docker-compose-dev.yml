@@ -1,41 +1,51 @@
 version: '3.8'
 
 services:
+  # MySQL Database
   mysql:
     image: mysql:8.0
-    container_name: spiritblade-mysql-dev
+    container_name: spiritblade-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-spiritblade_dev}
-      MYSQL_USER: ${MYSQL_USER:-spiritblade_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-spiritblade_pass}
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: spiritblade
+    ports:
+      - "3306:3306"
     volumes:
-      - mysql_dev_data:/var/lib/mysql
-    ports:
-      - "3307:3306"
+      - mysql_data:/var/lib/mysql
+    networks:
+      - spiritblade-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
-  app:
-    image: ${DOCKER_USERNAME:-yourusername}/spiritblade:dev
-    container_name: spiritblade-app-dev
-    depends_on:
-      mysql:
-        condition: service_healthy
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: spiritblade-minio
+    command: server /data --console-address ":9001"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade_dev}?useSSL=false&serverTimezone=UTC"
-      SPRING_DATASOURCE_USERNAME: "${MYSQL_USER:-spiritblade_user}"
-      SPRING_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD:-spiritblade_pass}"
-      SPRING_JPA_HIBERNATE_DDL_AUTO: "create-drop"
-      SERVER_PORT: "443"
-      JWT_SECRET: "${JWT_SECRET:-dev-secret-key}"
-      RIOT_API_KEY: "${RIOT_API_KEY}"
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
     ports:
-      - "443:443"
+      - "9000:9000"  # API port
+      - "9001:9001"  # Console port (web UI)
+    volumes:
+      - minio_data:/data
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
 volumes:
-  mysql_dev_data:
+  mysql_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  spiritblade-network:
+    driver: bridge
