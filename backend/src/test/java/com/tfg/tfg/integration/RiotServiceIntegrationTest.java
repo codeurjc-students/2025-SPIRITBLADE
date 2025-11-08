@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.integration;
+package com.tfg.tfg.integration;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
@@ -18,8 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas de integración para el servicio de Riot API.
- * Verifica la integración entre:
+ * Pruebas de integraciÃ³n para el servicio de Riot API.
+ * Verifica la integraciÃ³n entre:
  * - RiotService
  * - SummonerRepository
  * - MatchRepository

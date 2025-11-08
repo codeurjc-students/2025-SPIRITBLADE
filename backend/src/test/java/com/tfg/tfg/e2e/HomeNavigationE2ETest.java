@@ -24,9 +24,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para la navegación general y la página principal.
- * Verifica que la aplicación se cargue correctamente y que la navegación
- * funcione según lo esperado.
+ * Pruebas End-to-End para la navegaciÃƒÂ³n general y la pÃƒÂ¡gina principal.
+ * Verifica que la aplicaciÃƒÂ³n se cargue correctamente y que la navegaciÃƒÂ³n
+ * funcione segÃƒÂºn lo esperado.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -84,7 +84,7 @@ class HomeNavigationE2ETest {
         String pageTitle = driver.getTitle();
         assertNotNull(pageTitle);
         
-        log.info("✓ Home page loads successfully");
+        log.info("Ã¢Å“â€œ Home page loads successfully");
         log.info("  Page title: {}", pageTitle);
         log.info("  URL: {}", driver.getCurrentUrl());
     }
@@ -99,7 +99,7 @@ class HomeNavigationE2ETest {
             List<WebElement> headerElements = driver.findElements(By.tagName("header"));
             List<WebElement> navElements = driver.findElements(By.tagName("nav"));
             
-            log.info("✓ Navigation structure verified");
+            log.info("Ã¢Å“â€œ Navigation structure verified");
             log.info("  Header elements found: {}", headerElements.size());
             log.info("  Nav elements found: {}", navElements.size());
             
@@ -120,7 +120,7 @@ class HomeNavigationE2ETest {
         try {
             List<WebElement> footerElements = driver.findElements(By.tagName("footer"));
             
-            log.info("✓ Footer structure verified");
+            log.info("Ã¢Å“â€œ Footer structure verified");
             log.info("  Footer elements found: {}", footerElements.size());
             
             assertTrue(true, "Footer elements verified");
@@ -149,10 +149,10 @@ class HomeNavigationE2ETest {
             WebElement body = driver.findElement(By.tagName("body"));
             assertNotNull(body);
             
-            log.info("✓ Page loads at {}x{}", size[0], size[1]);
+            log.info("Ã¢Å“â€œ Page loads at {}x{}", size[0], size[1]);
         }
         
-        log.info("✓ Responsive design verified");
+        log.info("Ã¢Å“â€œ Responsive design verified");
     }
 
     @Test
@@ -165,7 +165,7 @@ class HomeNavigationE2ETest {
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
         
-        log.info("✓ Error page is accessible");
+        log.info("Ã¢Å“â€œ Error page is accessible");
         log.info("  URL: {}", driver.getCurrentUrl());
     }
 
@@ -190,7 +190,7 @@ class HomeNavigationE2ETest {
             "Invalid routes should be handled by Angular routing"
         );
         
-        log.info("✓ Invalid route handling verified");
+        log.info("Ã¢Å“â€œ Invalid route handling verified");
         log.info("  Redirected to: {}", currentUrl);
     }
 
@@ -207,7 +207,7 @@ class HomeNavigationE2ETest {
             assertNotNull(body);
         }
         
-        log.info("✓ Multiple page transitions verified");
+        log.info("Ã¢Å“â€œ Multiple page transitions verified");
         log.info("  Successfully navigated through {} pages", pages.length);
     }
 }

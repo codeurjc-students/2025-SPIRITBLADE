@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.system;
+package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -16,13 +16,13 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para autenticación y gestión de sesiones.
+ * Sistema de pruebas para autenticaciÃ³n y gestiÃ³n de sesiones.
  * Verifica:
- * - Login con credenciales válidas/inválidas
+ * - Login con credenciales vÃ¡lidas/invÃ¡lidas
  * - Registro de nuevos usuarios
  * - Refresh de tokens JWT
  * - Logout
- * - Verificación de usuario autenticado
+ * - VerificaciÃ³n de usuario autenticado
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AuthSystemTest {

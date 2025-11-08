@@ -24,9 +24,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el panel de administración.
- * Verifica que los endpoints administrativos estén protegidos y
- * funcionen correctamente con la autenticación adecuada.
+ * Pruebas End-to-End para el panel de administraciÃƒÂ³n.
+ * Verifica que los endpoints administrativos estÃƒÂ©n protegidos y
+ * funcionen correctamente con la autenticaciÃƒÂ³n adecuada.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -96,7 +96,7 @@ class AdminE2ETest {
         
         assertTrue(isProtected, "Admin page should load through Angular");
         
-        log.info("✓ Admin page authentication protection verified");
+        log.info("Ã¢Å“â€œ Admin page authentication protection verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
@@ -118,7 +118,7 @@ class AdminE2ETest {
             "Admin API should require authentication"
         );
         
-        System.out.println("✓ Admin API endpoint protection verified");
+        System.out.println("Ã¢Å“â€œ Admin API endpoint protection verified");
         System.out.println("  Response indicates authentication required");
     }
 
@@ -132,7 +132,7 @@ class AdminE2ETest {
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
         
-        System.out.println("✓ User management API endpoint is accessible");
+        System.out.println("Ã¢Å“â€œ User management API endpoint is accessible");
         System.out.println("  Endpoint responds to requests (authentication required)");
     }
 
@@ -146,7 +146,7 @@ class AdminE2ETest {
             List<WebElement> tableElements = driver.findElements(By.tagName("table"));
             List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
             
-            System.out.println("✓ Admin page structure analysis");
+            System.out.println("Ã¢Å“â€œ Admin page structure analysis");
             System.out.println("  Table elements found: " + tableElements.size());
             System.out.println("  Button elements found: " + buttonElements.size());
             
@@ -176,6 +176,6 @@ class AdminE2ETest {
             "Delete user endpoint should respond"
         );
         
-        System.out.println("✓ Delete user API endpoint is accessible");
+        System.out.println("Ã¢Å“â€œ Delete user API endpoint is accessible");
     }
 }

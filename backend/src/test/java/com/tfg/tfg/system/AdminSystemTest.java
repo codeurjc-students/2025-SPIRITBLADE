@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.system;
+package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -16,14 +16,14 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para gestión de usuarios por administradores.
+ * Sistema de pruebas para gestiÃ³n de usuarios por administradores.
  * Verifica:
  * - Listado de usuarios con filtros
- * - Creación de usuarios
- * - Actualización de roles
- * - Activación/desactivación de usuarios
- * - Eliminación de usuarios
- * - Búsqueda de usuarios
+ * - CreaciÃ³n de usuarios
+ * - ActualizaciÃ³n de roles
+ * - ActivaciÃ³n/desactivaciÃ³n de usuarios
+ * - EliminaciÃ³n de usuarios
+ * - BÃºsqueda de usuarios
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminSystemTest {

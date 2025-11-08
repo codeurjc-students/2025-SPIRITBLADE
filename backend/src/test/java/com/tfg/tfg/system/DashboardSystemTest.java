@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.system;
+package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -16,12 +16,12 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para el Dashboard y estadísticas personales.
+ * Sistema de pruebas para el Dashboard y estadÃ­sticas personales.
  * Verifica funcionalidades de:
- * - Estadísticas personales (rank, LP, rol principal)
+ * - EstadÃ­sticas personales (rank, LP, rol principal)
  * - Historial de partidas ranqueadas
- * - Progresión de LP
- * - Gestión de favoritos
+ * - ProgresiÃ³n de LP
+ * - GestiÃ³n de favoritos
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DashboardSystemTest {

@@ -24,9 +24,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el flujo de autenticación y login.
+ * Pruebas End-to-End para el flujo de autenticaciÃƒÂ³n y login.
  * Verifica que los usuarios puedan acceder al sistema de login y que
- * los endpoints de autenticación respondan correctamente.
+ * los endpoints de autenticaciÃƒÂ³n respondan correctamente.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -83,7 +83,7 @@ class LoginE2ETest {
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
         
-        log.info("✓ Login page is accessible");
+        log.info("Ã¢Å“â€œ Login page is accessible");
         log.info("  URL: {}", driver.getCurrentUrl());
     }
 
@@ -106,7 +106,7 @@ class LoginE2ETest {
             "Auth API endpoint should respond"
         );
         
-        log.info("✓ Authentication API endpoint is accessible");
+        log.info("Ã¢Å“â€œ Authentication API endpoint is accessible");
     }
 
     @Test
@@ -120,7 +120,7 @@ class LoginE2ETest {
             List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
             List<WebElement> formElements = driver.findElements(By.tagName("form"));
             
-            log.info("✓ Login page structure verified");
+            log.info("Ã¢Å“â€œ Login page structure verified");
             log.info("  Input elements found: {}", inputElements.size());
             log.info("  Button elements found: {}", buttonElements.size());
             log.info("  Form elements found: {}", formElements.size());
@@ -157,7 +157,7 @@ class LoginE2ETest {
         
         assertTrue(isProtected, "Protected routes should load through Angular");
         
-        log.info("✓ Protected route authentication verified");
+        log.info("Ã¢Å“â€œ Protected route authentication verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
@@ -174,7 +174,7 @@ class LoginE2ETest {
         // The endpoint should respond (even if it's an error for GET request)
         assertFalse(responseContent.isEmpty(), "Register API endpoint should respond");
         
-        log.info("✓ Registration API endpoint is accessible");
+        log.info("Ã¢Å“â€œ Registration API endpoint is accessible");
     }
 }
 

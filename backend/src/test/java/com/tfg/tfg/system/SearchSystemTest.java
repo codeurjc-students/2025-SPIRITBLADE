@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.system;
+package com.tfg.tfg.system;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -16,12 +16,12 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para búsqueda y gestión de invocadores.
+ * Sistema de pruebas para bÃºsqueda y gestiÃ³n de invocadores.
  * Verifica:
- * - Búsqueda de invocadores por nombre
+ * - BÃºsqueda de invocadores por nombre
  * - Listado de invocadores recientes
- * - Obtención de datos de invocador específico
- * - Paginación de resultados
+ * - ObtenciÃ³n de datos de invocador especÃ­fico
+ * - PaginaciÃ³n de resultados
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SearchSystemTest {

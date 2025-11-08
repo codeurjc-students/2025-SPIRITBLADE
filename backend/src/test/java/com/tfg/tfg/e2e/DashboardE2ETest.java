@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.e2e;
+package com.tfg.tfg.e2e;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pruebas End-to-End para el dashboard del usuario.
- * Verifica que el dashboard requiera autenticación y que los endpoints
+ * Verifica que el dashboard requiera autenticaciÃ³n y que los endpoints
  * de datos del usuario funcionen correctamente.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -95,7 +95,7 @@ class DashboardE2ETest {
         
         assertTrue(isProtected, "Dashboard should load through Angular");
         
-        log.info("✓ Dashboard authentication protection verified");
+        log.info("âœ“ Dashboard authentication protection verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
@@ -119,7 +119,7 @@ class DashboardE2ETest {
             "Match history API should respond"
         );
         
-        log.info("✓ Match history API endpoint is accessible");
+        log.info("âœ“ Match history API endpoint is accessible");
     }
 
     @Test
@@ -135,7 +135,7 @@ class DashboardE2ETest {
         // Should respond
         assertTrue(!responseContent.isEmpty(), "Champion mastery API should respond");
         
-        log.info("✓ Champion mastery API endpoint is accessible");
+        log.info("âœ“ Champion mastery API endpoint is accessible");
     }
 
     @Test
@@ -148,7 +148,7 @@ class DashboardE2ETest {
             List<WebElement> divElements = driver.findElements(By.tagName("div"));
             List<WebElement> chartElements = driver.findElements(By.tagName("canvas"));
             
-            log.info("✓ Dashboard page structure analysis");
+            log.info("âœ“ Dashboard page structure analysis");
             log.info("  Div elements found: {}", divElements.size());
             log.info("  Chart elements found: {}", chartElements.size());
             
@@ -180,7 +180,7 @@ class DashboardE2ETest {
             "Profile should be handled by Angular routing"
         );
         
-        log.info("✓ Profile redirect verified");
+        log.info("âœ“ Profile redirect verified");
         log.info("  Redirected to: {}", currentUrl);
     }
 }

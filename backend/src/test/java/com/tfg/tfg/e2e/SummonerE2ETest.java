@@ -1,4 +1,4 @@
-﻿package com.tfg.tfg.e2e;
+package com.tfg.tfg.e2e;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pruebas End-to-End usando Selenium WebDriver para verificar que los datos
- * de ejemplo de la entidad principal se muestran en la página principal.
+ * de ejemplo de la entidad principal se muestran en la pÃ¡gina principal.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -111,7 +111,7 @@ class SummonerE2ETest {
             responseContent.substring(0, Math.min(500, responseContent.length()))
         );
         
-        log.info("✓ Summoner API endpoint is accessible and responding");
+        log.info("âœ“ Summoner API endpoint is accessible and responding");
         System.out.println("  Response preview: " + responseContent.substring(0, Math.min(200, responseContent.length())));
         
         // This fulfills Phase 2 requirement: the API endpoint exists and is functional
@@ -132,11 +132,11 @@ class SummonerE2ETest {
             List<WebElement> summonerElements = driver.findElements(By.xpath("//*[contains(text(), 'Summoner') or contains(text(), 'summoner')]"));
             
             if (!navElements.isEmpty()) {
-                System.out.println("✓ Navigation elements found: " + navElements.size());
+                System.out.println("âœ“ Navigation elements found: " + navElements.size());
             }
             
             if (!summonerElements.isEmpty()) {
-                System.out.println("✓ Summoner-related content found: " + summonerElements.size());
+                System.out.println("âœ“ Summoner-related content found: " + summonerElements.size());
                 for (WebElement element : summonerElements) {
                     System.out.println("  - " + element.getText());
                 }
@@ -167,7 +167,7 @@ class SummonerE2ETest {
         // (may require authentication in full implementation)
         assertNotNull(pageContent);
         
-        log.info("✓ Backend API endpoint accessible");
+        log.info("âœ“ Backend API endpoint accessible");
         System.out.println("  Response preview: " + pageContent.substring(0, Math.min(100, pageContent.length())));
     }
 
@@ -195,7 +195,7 @@ class SummonerE2ETest {
         assertNotNull(head);
         assertNotNull(body);
         
-        log.info("✓ Page performance test passed");
+        log.info("âœ“ Page performance test passed");
         log.info("  Load time: {}", loadTime + "ms");
         log.info("  HTML structure verified");
     }
