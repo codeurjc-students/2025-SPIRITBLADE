@@ -43,7 +43,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_Success() throws IOException {
+    void testUploadAvatarSuccess() throws IOException {
         // Given
         String username = "testuser";
         // PNG magic bytes
@@ -73,7 +73,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_ReplacesOldAvatar() throws IOException {
+    void testUploadAvatarReplacesOldAvatar() throws IOException {
         // Given
         String username = "testuser";
         byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -101,7 +101,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_UserNotFound() throws IOException {
+    void testUploadAvatarUserNotFound() throws IOException {
         // Given
         String username = "nonexistent";
         byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -120,7 +120,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_EmptyFile() {
+    void testUploadAvatarEmptyFile() {
         // Given
         when(multipartFile.isEmpty()).thenReturn(true);
         
@@ -131,7 +131,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_FileTooLarge() {
+    void testUploadAvatarFileTooLarge() {
         // Given
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getSize()).thenReturn(6L * 1024 * 1024); // 6MB
@@ -144,7 +144,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testUploadAvatar_StorageError() throws IOException {
+    void testUploadAvatarStorageError() throws IOException {
         // Given
         String username = "testuser";
         byte[] content = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -165,7 +165,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testDeleteAvatar_Success() throws IOException {
+    void testDeleteAvatarSuccess() throws IOException {
         // Given
         String username = "testuser";
         UserModel user = new UserModel(username, "pass", "USER");
@@ -186,7 +186,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testDeleteAvatar_NoAvatar() throws IOException {
+    void testDeleteAvatarNoAvatar() throws IOException {
         // Given
         String username = "testuser";
         UserModel user = new UserModel(username, "pass", "USER");
@@ -200,7 +200,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testDeleteAvatar_UserNotFound() {
+    void testDeleteAvatarUserNotFound() {
         // Given
         String username = "nonexistent";
         when(userRepository.findByName(username)).thenReturn(Optional.empty());
@@ -212,7 +212,7 @@ class UserAvatarServiceUnitTest {
     }
 
     @Test
-    void testDeleteAvatar_StorageError() throws IOException {
+    void testDeleteAvatarStorageError() throws IOException {
         // Given
         String username = "testuser";
         UserModel user = new UserModel(username, "pass", "USER");

@@ -20,7 +20,9 @@ export class AuthService {
   private currentUser: { username?: string; roles?: string[] } | null = null;
 
   isAdmin(): boolean {
-    return !!this.currentUser && Array.isArray(this.currentUser.roles) && this.currentUser.roles.includes('ADMIN');
+    return !!this.currentUser && 
+           Array.isArray(this.currentUser.roles) && 
+           (this.currentUser.roles.includes('ADMIN') || this.currentUser.roles.includes('ROLE_ADMIN'));
   }
 
   login(payload: LoginRequest): Observable<LoginResponse> {
@@ -81,7 +83,8 @@ export class AuthService {
         this.currentUser = { username: res.username, roles: res.roles };
         return true;
       }),
-      catchError(() => {
+      catchError((err) => {
+        console.debug('Session check failed:', err.status);
         this.authState.next(false);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');

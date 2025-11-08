@@ -40,6 +40,8 @@ class FileControllerIntegrationTest {
     private static final String AVATAR_12345 = "avatars/12345-avatar.png";
     private static final String AVATARS_FOLDER = "avatars";
     private static final String UPLOAD_URL = "/api/v1/files/upload";
+    private static final String FILES_API_PATH = "/api/v1/files/";
+    private static final String MINIO_BASE_URL = "http://localhost:9000/bucket/";
     private static final String JSON_SUCCESS = "$.success";
     private static final String JSON_FILE_ID = "$.fileId";
     private static final String JSON_ERROR = "$.error";
@@ -79,7 +81,7 @@ class FileControllerIntegrationTest {
 
         // Mock storage service behavior
         when(storageService.store(any(), isNull())).thenReturn(TEST_IMAGE_12345);
-        when(storageService.getPublicUrl(TEST_IMAGE_12345)).thenReturn("http://localhost:9000/bucket/" + TEST_IMAGE_12345);
+        when(storageService.getPublicUrl(TEST_IMAGE_12345)).thenReturn(MINIO_BASE_URL + TEST_IMAGE_12345);
 
         // Perform request
         mockMvc.perform(multipart(UPLOAD_URL)
@@ -88,7 +90,7 @@ class FileControllerIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
                 .andExpect(jsonPath(JSON_FILE_ID, is(TEST_IMAGE_12345)))
-                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/" + TEST_IMAGE_12345)));
+                .andExpect(jsonPath("$.url", is(MINIO_BASE_URL + TEST_IMAGE_12345)));
 
         // Verify interactions
         verify(storageService).store(any(), isNull());
@@ -108,7 +110,7 @@ class FileControllerIntegrationTest {
 
         // Mock storage service behavior
         when(storageService.store(any(), eq(AVATARS_FOLDER))).thenReturn(AVATAR_12345);
-        when(storageService.getPublicUrl(AVATAR_12345)).thenReturn("http://localhost:9000/bucket/" + AVATAR_12345);
+        when(storageService.getPublicUrl(AVATAR_12345)).thenReturn(MINIO_BASE_URL + AVATAR_12345);
 
         // Perform request
         mockMvc.perform(multipart(UPLOAD_URL)
@@ -118,7 +120,7 @@ class FileControllerIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
                 .andExpect(jsonPath(JSON_FILE_ID, is(AVATAR_12345)))
-                .andExpect(jsonPath("$.url", is("http://localhost:9000/bucket/" + AVATAR_12345)));
+                .andExpect(jsonPath("$.url", is(MINIO_BASE_URL + AVATAR_12345)));
 
         // Verify interactions
         verify(storageService).store(any(), eq(AVATARS_FOLDER));
@@ -214,7 +216,7 @@ class FileControllerIntegrationTest {
         when(storageService.retrieve(TEST_IMAGE_PNG)).thenReturn(inputStream);
 
         // Perform request
-        mockMvc.perform(get("/api/v1/files/" + TEST_IMAGE_PNG))
+        mockMvc.perform(get(FILES_API_PATH + TEST_IMAGE_PNG))
                 .andExpect(status().isOk())
                 .andExpect(header().string(CONTENT_TYPE, containsString(IMAGE_PNG)))
                 .andExpect(content().bytes(fileContent));
@@ -230,7 +232,7 @@ class FileControllerIntegrationTest {
             .thenThrow(new java.io.IOException("File not found"));
 
         // Perform request
-        mockMvc.perform(get("/api/v1/files/nonexistent.png"))
+        mockMvc.perform(get(FILES_API_PATH + "nonexistent.png"))
                 .andExpect(status().isNotFound());
 
         // Verify interactions
@@ -244,7 +246,7 @@ class FileControllerIntegrationTest {
         doNothing().when(storageService).delete(TEST_IMAGE_12345);
 
         // Perform request
-        mockMvc.perform(delete("/api/v1/files/" + TEST_IMAGE_12345))
+        mockMvc.perform(delete(FILES_API_PATH + TEST_IMAGE_12345))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath(JSON_SUCCESS, is(TRUE)))
@@ -261,7 +263,7 @@ class FileControllerIntegrationTest {
         doThrow(new java.io.IOException("Delete error")).when(storageService).delete(TEST_IMAGE_PNG);
 
         // Perform request
-        mockMvc.perform(delete("/api/v1/files/" + TEST_IMAGE_PNG))
+        mockMvc.perform(delete(FILES_API_PATH + TEST_IMAGE_PNG))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath(JSON_SUCCESS, is(FALSE)))
@@ -301,7 +303,7 @@ class FileControllerIntegrationTest {
 
         // Mock storage service behavior
         when(storageService.store(any(), isNull())).thenReturn(EMPTY_IMAGE_12345);
-        when(storageService.getPublicUrl(EMPTY_IMAGE_12345)).thenReturn("http://localhost:9000/bucket/" + EMPTY_IMAGE_12345);
+        when(storageService.getPublicUrl(EMPTY_IMAGE_12345)).thenReturn(MINIO_BASE_URL + EMPTY_IMAGE_12345);
 
         // Perform request
         mockMvc.perform(multipart(UPLOAD_URL)
@@ -319,7 +321,7 @@ class FileControllerIntegrationTest {
     @Test
     void testGetFileCaseInsensitiveExtension() throws Exception {
         // Test uppercase extension handling
-        byte[] fileContent = "test image content".getBytes();
+        byte[] fileContent = TEST_IMAGE_CONTENT.getBytes();
         InputStream inputStream = new ByteArrayInputStream(fileContent);
 
         when(storageService.retrieve("test-image.PNG")).thenReturn(inputStream);

@@ -46,7 +46,7 @@ class DataInitializerUnitTest {
     }
 
     @Test
-    void testInit_CreatesAdminAndUserWhenNotExist() {
+    void testInitCreatesAdminAndUserWhenNotExist() {
         // Given - No users exist
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
         when(userRepository.findByName("user")).thenReturn(Optional.empty());
@@ -83,7 +83,7 @@ class DataInitializerUnitTest {
     }
 
     @Test
-    void testInit_DoesNotCreateAdminWhenExists() {
+    void testInitDoesNotCreateAdminWhenExists() {
         // Given - Admin already exists
         UserModel existingAdmin = new UserModel("admin", "encoded-password", "ADMIN");
         when(userRepository.findByName("admin")).thenReturn(Optional.of(existingAdmin));
@@ -104,7 +104,7 @@ class DataInitializerUnitTest {
     }
 
     @Test
-    void testInit_DoesNotCreateUserWhenExists() {
+    void testInitDoesNotCreateUserWhenExists() {
         // Given - User already exists
         UserModel existingUser = new UserModel("user", "encoded-password", "USER");
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
@@ -125,7 +125,7 @@ class DataInitializerUnitTest {
     }
 
     @Test
-    void testInit_DoesNotCreateUsersWhenBothExist() {
+    void testInitDoesNotCreateUsersWhenBothExist() {
         // Given - Both users already exist
         UserModel existingAdmin = new UserModel("admin", "encoded-password", "ADMIN");
         UserModel existingUser = new UserModel("user", "encoded-password", "USER");

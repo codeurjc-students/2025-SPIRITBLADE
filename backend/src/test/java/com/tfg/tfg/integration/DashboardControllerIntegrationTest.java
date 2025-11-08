@@ -110,11 +110,11 @@ class DashboardControllerIntegrationTest {
             match.setKills(6 + i);
             match.setDeaths(4);
             match.setAssists(8 + i);
-            match.setGameDuration(1850L + (long) i * 50L);
+            match.setGameDuration(1850L + i * 50L);
             match.setQueueId(420); // Ranked Solo/Duo
             match.setGameMode("RANKED");
             match.setLane(getLane(i)); // Varied lanes
-            match.setTimestamp(now.minusDays(i % 7).minusHours((long) i * 2));
+            match.setTimestamp(now.minusDays(i % 7).minusHours(i * 2L));
             match.setLpAtMatch(70 + i); // LP progression
             match.setTierAtMatch("GOLD");
             match.setRankAtMatch("III");

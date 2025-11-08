@@ -57,7 +57,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_WithFolder_Success() throws IOException {
+    void testStoreMultipartFileWithFolderSuccess() throws IOException {
         // Given
         String originalFilename = "test-image.png";
         String contentType = "image/png";
@@ -83,7 +83,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_WithoutFolder_Success() throws IOException {
+    void testStoreMultipartFileWithoutFolderSuccess() throws IOException {
         // Given
         String originalFilename = "document.png";
         String contentType = "image/png";
@@ -109,7 +109,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_EmptyFolder_Success() throws IOException {
+    void testStoreMultipartFileEmptyFolderSuccess() throws IOException {
         // Given
         String originalFilename = "file.png";
         // PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
@@ -131,7 +131,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_NoExtension_PNG() {
+    void testStoreMultipartFileNoExtensionPNG() {
         // Given - File without .png extension should be rejected even with PNG content type
         String originalFilename = "noextension";
         when(multipartFile.isEmpty()).thenReturn(false);
@@ -149,7 +149,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_NullFilename_PNG() {
+    void testStoreMultipartFileNullFilenamePNG() {
         // Given - Null filename should be rejected even with PNG content type
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn(null);
@@ -165,7 +165,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_EmptyFile_ThrowsException() {
+    void testStoreMultipartFileEmptyFileThrowsException() {
         // Given
         when(multipartFile.isEmpty()).thenReturn(true);
 
@@ -179,7 +179,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_WithFolder_Success() {
+    void testStoreInputStreamWithFolderSuccess() {
         // Given
         String fileName = "upload.png";
         String contentType = "image/png";
@@ -196,7 +196,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_WithoutFolder_Success() {
+    void testStoreInputStreamWithoutFolderSuccess() {
         // Given
         String fileName = "data.png";
         String contentType = "image/png";
@@ -212,7 +212,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_EmptyFolder() {
+    void testStoreInputStreamEmptyFolder() {
         // Given
         String fileName = "test.png";
         InputStream inputStream = new ByteArrayInputStream("<xml/>".getBytes());
@@ -227,7 +227,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_NoExtension_PNG() {
+    void testStoreInputStreamNoExtensionPNG() {
         // Given - File without .png extension should be rejected even with PNG content type
         String fileName = "noext";
         InputStream inputStream = new ByteArrayInputStream("data".getBytes());
@@ -244,7 +244,7 @@ class MinioStorageServiceUnitTest {
 
     // Tests for PNG-only validation - Multipart Files
     @Test
-    void testStore_MultipartFile_RejectsJPEG() {
+    void testStoreMultipartFileRejectsJPEG() {
         // Given - Validation fails at content type check, filename not needed
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getContentType()).thenReturn("image/jpeg");
@@ -261,7 +261,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_RejectsGIF() {
+    void testStoreMultipartFileRejectsGIF() {
         // Given - Validation fails at content type check, filename not needed
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getContentType()).thenReturn("image/gif");
@@ -276,7 +276,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_RejectsPDF() {
+    void testStoreMultipartFileRejectsPDF() {
         // Given - Validation fails at content type check, filename not needed
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getContentType()).thenReturn("application/pdf");
@@ -291,7 +291,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_MultipartFile_RejectsWrongExtension() {
+    void testStoreMultipartFileRejectsWrongExtension() {
         // Given - PNG content type but non-PNG extension (.jpg)
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn("image.jpg");
@@ -309,7 +309,7 @@ class MinioStorageServiceUnitTest {
 
     // Tests for PNG-only validation - InputStream
     @Test
-    void testStore_InputStream_RejectsJPEG() {
+    void testStoreInputStreamRejectsJPEG() {
         // Given
         String fileName = "photo.jpg";
         InputStream inputStream = new ByteArrayInputStream("jpeg data".getBytes());
@@ -326,7 +326,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_RejectsTextFile() {
+    void testStoreInputStreamRejectsTextFile() {
         // Given
         String fileName = "document.txt";
         InputStream inputStream = new ByteArrayInputStream("text".getBytes());
@@ -341,7 +341,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testStore_InputStream_RejectsWrongExtension() {
+    void testStoreInputStreamRejectsWrongExtension() {
         // Given - PNG content type but non-PNG extension (.jpeg)
         String fileName = "image.jpeg";
         InputStream inputStream = new ByteArrayInputStream("png data".getBytes());
@@ -357,7 +357,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testRetrieve_Success() throws IOException {
+    void testRetrieveSuccess() throws IOException {
         // Given
         String fileUrl = "avatars/test-file.png";
         S3Object s3Object = mock(S3Object.class);
@@ -376,7 +376,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testRetrieve_FileNotFound_ThrowsException() {
+    void testRetrieveFileNotFoundThrowsException() {
         // Given
         String fileUrl = "nonexistent/file.txt";
         when(s3Client.getObject(bucketName, fileUrl)).thenThrow(new RuntimeException("Not found"));
@@ -391,7 +391,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testDelete_Success() throws IOException {
+    void testDeleteSuccess() throws IOException {
         // Given
         String fileUrl = "images/old-photo.jpg";
         doNothing().when(s3Client).deleteObject(bucketName, fileUrl);
@@ -404,7 +404,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testDelete_FileNotFound_ThrowsException() {
+    void testDeleteFileNotFoundThrowsException() {
         // Given
         String fileUrl = "missing/file.txt";
         doThrow(new RuntimeException("Delete failed")).when(s3Client).deleteObject(bucketName, fileUrl);
@@ -419,7 +419,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testExists_FileExists_ReturnsTrue() {
+    void testExistsFileExistsReturnsTrue() {
         // Given
         String fileUrl = "documents/report.pdf";
         when(s3Client.doesObjectExist(bucketName, fileUrl)).thenReturn(true);
@@ -433,7 +433,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testExists_FileDoesNotExist_ReturnsFalse() {
+    void testExistsFileDoesNotExistReturnsFalse() {
         // Given
         String fileUrl = "missing/file.doc";
         when(s3Client.doesObjectExist(bucketName, fileUrl)).thenReturn(false);
@@ -446,7 +446,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testExists_ExceptionOccurs_ReturnsFalse() {
+    void testExistsExceptionOccursReturnsFalse() {
         // Given
         String fileUrl = "error/file.txt";
         when(s3Client.doesObjectExist(bucketName, fileUrl)).thenThrow(new RuntimeException("S3 error"));
@@ -472,7 +472,7 @@ class MinioStorageServiceUnitTest {
     }
 
     @Test
-    void testGetPublicUrl_DifferentIdentifier() {
+    void testGetPublicUrlDifferentIdentifier() {
         // Given
         String fileIdentifier = "documents/contract-2024.pdf";
 

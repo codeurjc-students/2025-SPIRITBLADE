@@ -65,7 +65,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testListUsers_WithoutFilters() {
+    void testListUsersWithoutFilters() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
         when(userRepository.findAll(any(Pageable.class))).thenReturn(page);
@@ -81,7 +81,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testListUsers_WithSearchFilter() {
+    void testListUsersWithSearchFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
         when(userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
@@ -98,7 +98,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testListUsers_WithRoleAndActiveFilters() {
+    void testListUsersWithRoleAndActiveFilters() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
         when(userRepository.findByRolsContainingAndActive(anyString(), anyBoolean(), any(Pageable.class)))
@@ -113,7 +113,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testListUsers_WithRoleFilter() {
+    void testListUsersWithRoleFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
         when(userRepository.findByRolsContaining(anyString(), any(Pageable.class))).thenReturn(page);
@@ -127,7 +127,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testListUsers_WithActiveFilter() {
+    void testListUsersWithActiveFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
         when(userRepository.findByActive(anyBoolean(), any(Pageable.class))).thenReturn(page);
@@ -141,7 +141,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetUserById_Found() {
+    void testGetUserByIdFound() {
         // Arrange
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
@@ -156,7 +156,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetUserById_NotFound() {
+    void testGetUserByIdNotFound() {
         // Arrange
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -169,7 +169,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetByName_Found() {
+    void testGetByNameFound() {
         // Arrange
         when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
 
@@ -184,7 +184,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetByName_NotFound() {
+    void testGetByNameNotFound() {
         // Arrange
         when(userRepository.findByName("nonexistent")).thenReturn(Optional.empty());
 
@@ -197,7 +197,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetMyProfile_UserFound() {
+    void testGetMyProfileUserFound() {
         // Arrange
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
@@ -216,7 +216,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetMyProfile_UserNotFound() {
+    void testGetMyProfileUserNotFound() {
         // Arrange
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "nonexistent", null, Collections.emptyList()
@@ -232,7 +232,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testUploadAvatar_Success() {
+    void testUploadAvatarSuccess() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
             "file", 
@@ -258,7 +258,7 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testUploadAvatar_UserNotFound() {
+    void testUploadAvatarUserNotFound() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
             "file", 

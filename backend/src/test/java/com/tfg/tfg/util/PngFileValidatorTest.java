@@ -20,13 +20,13 @@ class PngFileValidatorTest {
     };
 
     @Test
-    void testValidateContentType_Valid() {
+    void testValidateContentTypeValid() {
         assertDoesNotThrow(() -> PngFileValidator.validateContentType("image/png"));
         assertDoesNotThrow(() -> PngFileValidator.validateContentType("IMAGE/PNG"));
     }
 
     @Test
-    void testValidateContentType_Invalid() {
+    void testValidateContentTypeInvalid() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> PngFileValidator.validateContentType("image/jpeg")
@@ -35,7 +35,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateContentType_Null() {
+    void testValidateContentTypeNull() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> PngFileValidator.validateContentType(null)
@@ -44,14 +44,14 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateExtension_Valid() {
+    void testValidateExtensionValid() {
         assertDoesNotThrow(() -> PngFileValidator.validateExtension("file.png"));
         assertDoesNotThrow(() -> PngFileValidator.validateExtension("file.PNG"));
         assertDoesNotThrow(() -> PngFileValidator.validateExtension("path/to/file.png"));
     }
 
     @Test
-    void testValidateExtension_Invalid() {
+    void testValidateExtensionInvalid() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> PngFileValidator.validateExtension("file.jpg")
@@ -60,7 +60,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateExtension_NoExtension() {
+    void testValidateExtensionNoExtension() {
         assertThrows(
             IllegalArgumentException.class,
             () -> PngFileValidator.validateExtension("file")
@@ -68,7 +68,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateMagicBytes_Valid() throws IOException {
+    void testValidateMagicBytesValid() throws IOException {
         byte[] validPngHeader = PNG_MAGIC_BYTES.clone();
         try (InputStream inputStream = new ByteArrayInputStream(validPngHeader)) {
             assertDoesNotThrow(() -> PngFileValidator.validateMagicBytes(inputStream));
@@ -76,7 +76,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateMagicBytes_Invalid() throws IOException {
+    void testValidateMagicBytesInvalid() throws IOException {
         byte[] invalidHeader = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         try (InputStream inputStream = new ByteArrayInputStream(invalidHeader)) {
             IllegalArgumentException exception = assertThrows(
@@ -88,7 +88,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidateMagicBytes_TooShort() throws IOException {
+    void testValidateMagicBytesTooShort() throws IOException {
         byte[] shortHeader = {0x00, 0x00};
         try (InputStream inputStream = new ByteArrayInputStream(shortHeader)) {
             IllegalArgumentException exception = assertThrows(
@@ -100,7 +100,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_MultipartFile_Valid() {
+    void testValidatePngFileMultipartFileValid() {
         byte[] content = new byte[100];
         System.arraycopy(PNG_MAGIC_BYTES, 0, content, 0, PNG_MAGIC_BYTES.length);
         
@@ -115,7 +115,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_MultipartFile_InvalidContentType() {
+    void testValidatePngFileMultipartFileInvalidContentType() {
         MultipartFile file = new MockMultipartFile(
             "file",
             "test.png",
@@ -131,7 +131,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_MultipartFile_InvalidExtension() {
+    void testValidatePngFileMultipartFileInvalidExtension() {
         MultipartFile file = new MockMultipartFile(
             "file",
             "test.jpg",
@@ -147,7 +147,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_MultipartFile_InvalidMagicBytes() {
+    void testValidatePngFileMultipartFileInvalidMagicBytes() {
         byte[] invalidContent = new byte[100]; // All zeros
         
         MultipartFile file = new MockMultipartFile(
@@ -165,7 +165,7 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_MultipartFile_Empty() {
+    void testValidatePngFileMultipartFileEmpty() {
         MultipartFile file = new MockMultipartFile(
             "file",
             "test.png",
@@ -181,14 +181,14 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFile_StringParams_Valid() {
+    void testValidatePngFileStringParamsValid() {
         assertDoesNotThrow(() -> 
             PngFileValidator.validatePngFile("image/png", "test.png")
         );
     }
 
     @Test
-    void testValidatePngFile_StringParams_Invalid() {
+    void testValidatePngFileStringParamsInvalid() {
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> PngFileValidator.validatePngFile("image/jpeg", "test.jpg")

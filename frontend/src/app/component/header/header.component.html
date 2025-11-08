@@ -7,8 +7,10 @@
     <div class="nav-links">
       <a routerLink="/">Home</a>
       <a *ngIf="!isAuthenticated" routerLink="/login">Login</a>
-      <a *ngIf="isAuthenticated" routerLink="/dashboard">Profile</a>
-  <a *ngIf="isAuthenticated && isAdmin" routerLink="/admin">Admin</a>
+      <!-- Regular users can access dashboard -->
+      <a *ngIf="isAuthenticated && !isAdmin" routerLink="/dashboard">Dashboard</a>
+      <!-- Admins can only access admin panel -->
+      <a *ngIf="isAuthenticated && isAdmin" routerLink="/admin">Admin Panel</a>
       <a *ngIf="isAuthenticated"  href="" (click)="logout()">Logout</a>
     </div>
   </nav>

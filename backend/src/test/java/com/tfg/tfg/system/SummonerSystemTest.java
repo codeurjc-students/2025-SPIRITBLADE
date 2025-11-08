@@ -50,7 +50,7 @@ class SummonerSystemTest {
     }
 
     @Test
-    void testGetAllSummoners_ReturnsPagedResults() {
+    void testGetAllSummonersReturnsPagedResults() {
         // Login first to get auth token
         String token = given()
             .port(port)

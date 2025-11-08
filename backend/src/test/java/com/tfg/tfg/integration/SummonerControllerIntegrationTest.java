@@ -65,7 +65,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetAllSummoners_EmptyDatabase() throws Exception {
+    void testGetAllSummonersEmptyDatabase() throws Exception {
         mockMvc.perform(get("/api/v1/summoners"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
@@ -75,7 +75,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetAllSummoners_WithPagination() throws Exception {
+    void testGetAllSummonersWithPagination() throws Exception {
         // Create 25 summoners
         for (int i = 0; i < 25; i++) {
             Summoner s = new Summoner();
@@ -111,7 +111,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetAllSummoners_SortedByLastSearchedAt() throws Exception {
+    void testGetAllSummonersSortedByLastSearchedAt() throws Exception {
         Summoner oldest = new Summoner();
         oldest.setName("Oldest");
         oldest.setPuuid("puuid-old");
@@ -134,7 +134,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetRecentSearches_EmptyDatabase() throws Exception {
+    void testGetRecentSearchesEmptyDatabase() throws Exception {
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -142,7 +142,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetRecentSearches_WithSummoners() throws Exception {
+    void testGetRecentSearchesWithSummoners() throws Exception {
         // Create 12 summoners (should return only 10 most recent)
         for (int i = 0; i < 12; i++) {
             Summoner s = new Summoner();
@@ -162,7 +162,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetRecentSearches_FiltersNullLastSearchedAt() throws Exception {
+    void testGetRecentSearchesFiltersNullLastSearchedAt() throws Exception {
         // Create summoner WITH lastSearchedAt
         Summoner withDate = new Summoner();
         withDate.setName("WithDate");
@@ -186,7 +186,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetSummonerByName_Success() throws Exception {
+    void testGetSummonerByNameSuccess() throws Exception {
         SummonerDTO mockDTO = new SummonerDTO();
         mockDTO.setName("ProPlayer");
         mockDTO.setTier("CHALLENGER");
@@ -205,7 +205,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetSummonerByName_NotFound() throws Exception {
+    void testGetSummonerByNameNotFound() throws Exception {
         when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
 
         mockMvc.perform(get("/api/v1/summoners/name/NonExistent"))
@@ -215,7 +215,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetTopChampions_Success() throws Exception {
+    void testGetTopChampionsSuccess() throws Exception {
         SummonerDTO mockSummoner = new SummonerDTO();
         mockSummoner.setName("TestPlayer");
         mockSummoner.setPuuid("test-puuid-123");
@@ -246,7 +246,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetTopChampions_SummonerNotFound() throws Exception {
+    void testGetTopChampionsSummonerNotFound() throws Exception {
         when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
 
         mockMvc.perform(get("/api/v1/summoners/name/NonExistent/masteries"))
@@ -257,7 +257,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetTopChampions_SummonerWithoutPuuid() throws Exception {
+    void testGetTopChampionsSummonerWithoutPuuid() throws Exception {
         SummonerDTO mockSummoner = new SummonerDTO();
         mockSummoner.setName("NoPuuid");
         mockSummoner.setPuuid(null);
@@ -272,7 +272,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetRecentMatches_Success() throws Exception {
+    void testGetRecentMatchesSuccess() throws Exception {
         SummonerDTO mockSummoner = new SummonerDTO();
         mockSummoner.setName("TestPlayer");
         mockSummoner.setPuuid("test-puuid-123");
@@ -299,7 +299,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetRecentMatches_WithPagination() throws Exception {
+    void testGetRecentMatchesWithPagination() throws Exception {
         SummonerDTO mockSummoner = new SummonerDTO();
         mockSummoner.setName("TestPlayer");
         mockSummoner.setPuuid("test-puuid-123");
@@ -318,7 +318,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetRecentMatches_SummonerNotFound() throws Exception {
+    void testGetRecentMatchesSummonerNotFound() throws Exception {
         when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
 
         mockMvc.perform(get("/api/v1/summoners/name/NonExistent/matches"))
@@ -328,7 +328,7 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetRecentMatches_SummonerWithoutPuuid() throws Exception {
+    void testGetRecentMatchesSummonerWithoutPuuid() throws Exception {
         SummonerDTO mockSummoner = new SummonerDTO();
         mockSummoner.setName("NoPuuid");
         mockSummoner.setPuuid(null);
@@ -343,7 +343,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetMatchDetails_Success() throws Exception {
+    void testGetMatchDetailsSuccess() throws Exception {
         MatchDetailDTO mockDetail = new MatchDetailDTO();
         mockDetail.setMatchId("EUW1_123456");
         mockDetail.setGameDuration(1850L);
@@ -360,7 +360,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetMatchDetails_NotFound() throws Exception {
+    void testGetMatchDetailsNotFound() throws Exception {
         when(riotService.getMatchDetails("EUW1_INVALID")).thenReturn(null);
 
         mockMvc.perform(get("/api/v1/summoners/matches/EUW1_INVALID"))
@@ -371,7 +371,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetById_Success() throws Exception {
+    void testGetByIdSuccess() throws Exception {
         Summoner summoner = new Summoner();
         summoner.setName("FoundById");
         summoner.setPuuid("puuid-by-id");
@@ -388,7 +388,7 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetById_NotFound() throws Exception {
+    void testGetByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/v1/summoners/99999"))
                 .andExpect(status().isNotFound());
     }

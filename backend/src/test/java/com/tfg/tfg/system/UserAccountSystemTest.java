@@ -16,12 +16,12 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para gestión de cuentas de usuario.
+ * Sistema de pruebas para gestiÃ³n de cuentas de usuario.
  * Verifica:
- * - Vinculación de cuenta de League of Legends
- * - Desvinculación de cuenta
- * - Obtención de información de cuenta vinculada
- * - Subida y gestión de avatares
+ * - VinculaciÃ³n de cuenta de League of Legends
+ * - DesvinculaciÃ³n de cuenta
+ * - ObtenciÃ³n de informaciÃ³n de cuenta vinculada
+ * - Subida y gestiÃ³n de avatares
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserAccountSystemTest {
@@ -72,7 +72,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testGetMyProfile_ReturnsUserInfo() {
+    void testGetMyProfileReturnsUserInfo() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -87,7 +87,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testGetLinkedSummoner_WithoutLink_ReturnsNotLinked() {
+    void testGetLinkedSummonerWithoutLinkReturnsNotLinked() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -100,7 +100,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testLinkSummoner_WithValidCredentials_LinksAccount() {
+    void testLinkSummonerWithValidCredentialsLinksAccount() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -118,7 +118,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testLinkSummoner_WithEmptySummonerName_Returns400() {
+    void testLinkSummonerWithEmptySummonerNameReturns400() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -136,7 +136,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testLinkSummoner_WithInvalidRegion_Returns400() {
+    void testLinkSummonerWithInvalidRegionReturns400() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -154,7 +154,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testUnlinkSummoner_WithoutLinkedAccount_ReturnsError() {
+    void testUnlinkSummonerWithoutLinkedAccountReturnsError() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -166,7 +166,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testLinkSummoner_Unauthorized_Returns401() {
+    void testLinkSummonerUnauthorizedReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -183,7 +183,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testGetLinkedSummoner_Unauthorized_Returns401() {
+    void testGetLinkedSummonerUnauthorizedReturns401() {
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -194,7 +194,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testUpdateProfile_WithValidData_UpdatesUser() {
+    void testUpdateProfileWithValidDataUpdatesUser() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -211,7 +211,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testUploadAvatar_WithoutFile_Returns400() {
+    void testUploadAvatarWithoutFileReturns400() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -223,7 +223,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testDeleteAvatar_RemovesAvatar() {
+    void testDeleteAvatarRemovesAvatar() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -235,7 +235,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testGetMyProfile_ContainsExpectedFields() {
+    void testGetMyProfileContainsExpectedFields() {
         given()
             .port(port)
             .header("Authorization", "Bearer " + authToken)
@@ -253,7 +253,7 @@ class UserAccountSystemTest {
     }
 
     @Test
-    void testLinkSummoner_TwoDifferentSummoners_UpdatesLink() {
+    void testLinkSummonerTwoDifferentSummonersUpdatesLink() {
         // First link
         given()
             .port(port)

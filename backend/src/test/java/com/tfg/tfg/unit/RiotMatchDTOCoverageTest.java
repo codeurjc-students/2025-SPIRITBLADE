@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RiotMatchDTOCoverageTest {
 
     @Test
-    void testParticipantDTO_RemainingFields() {
+    void testParticipantDTORemainingFields() {
         RiotMatchDTO.ParticipantDTO participant = new RiotMatchDTO.ParticipantDTO();
         
         // Test fields not covered in previous tests
@@ -42,7 +42,7 @@ class RiotMatchDTOCoverageTest {
     }
 
     @Test
-    void testParticipantDTO_WinFieldBoolean() {
+    void testParticipantDTOWinFieldBoolean() {
         RiotMatchDTO.ParticipantDTO participant = new RiotMatchDTO.ParticipantDTO();
         
         participant.setWin(true);
@@ -56,7 +56,7 @@ class RiotMatchDTOCoverageTest {
     }
 
     @Test
-    void testInfoDTO_GameModeAndQueue() {
+    void testInfoDTOGameModeAndQueue() {
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
         
         info.setGameMode("ARAM");
@@ -67,7 +67,7 @@ class RiotMatchDTOCoverageTest {
     }
 
     @Test
-    void testMetadataDTO_DataVersion() {
+    void testMetadataDTODataVersion() {
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         
         metadata.setDataVersion("3");
@@ -75,7 +75,7 @@ class RiotMatchDTOCoverageTest {
     }
 
     @Test
-    void testTeamDTO_WinBoolean() {
+    void testTeamDTOWinBoolean() {
         RiotMatchDTO.TeamDTO team = new RiotMatchDTO.TeamDTO();
         
         team.setWin(true);
@@ -86,7 +86,7 @@ class RiotMatchDTOCoverageTest {
     }
 
     @Test
-    void testTeamDTO_Bans() {
+    void testTeamDTOBans() {
         RiotMatchDTO.TeamDTO team = new RiotMatchDTO.TeamDTO();
         
         RiotMatchDTO.BanDTO ban1 = new RiotMatchDTO.BanDTO();

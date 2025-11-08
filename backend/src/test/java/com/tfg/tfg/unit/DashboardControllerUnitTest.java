@@ -79,7 +79,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyStats_AsGuest() {
+    void testMyStatsAsGuest() {
         // Clear security context (guest user)
         SecurityContextHolder.clearContext();
 
@@ -101,7 +101,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyStats_AuthenticatedUserNoLinkedSummoner() {
+    void testMyStatsAuthenticatedUserNoLinkedSummoner() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -130,7 +130,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyStats_AuthenticatedUserWithLinkedSummoner() {
+    void testMyStatsAuthenticatedUserWithLinkedSummoner() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -169,7 +169,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyFavorites_AsGuest() {
+    void testMyFavoritesAsGuest() {
         // Clear security context
         SecurityContextHolder.clearContext();
 
@@ -183,7 +183,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyFavorites_AuthenticatedUserWithFavorites() {
+    void testMyFavoritesAuthenticatedUserWithFavorites() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -212,7 +212,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testAddFavorite_AsGuest() {
+    void testAddFavoriteAsGuest() {
         // Clear security context
         SecurityContextHolder.clearContext();
 
@@ -229,7 +229,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testAddFavorite_UserNotFound() {
+    void testAddFavoriteUserNotFound() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -250,7 +250,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testAddFavorite_Success() {
+    void testAddFavoriteSuccess() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -279,7 +279,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testCalculateLPGainedLast7Days_NoMatches() {
+    void testCalculateLPGainedLast7DaysNoMatches() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -301,7 +301,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testCalculateLPGainedLast7Days_WithMatches() {
+    void testCalculateLPGainedLast7DaysWithMatches() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -341,7 +341,7 @@ class DashboardControllerUnitTest {
     // ========== REMOVE FAVORITE TESTS ==========
 
     @Test
-    void testRemoveFavorite_AsGuest() {
+    void testRemoveFavoriteAsGuest() {
         // Clear security context for guest user
         SecurityContextHolder.clearContext();
 
@@ -358,7 +358,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testRemoveFavorite_SummonerNotFound() {
+    void testRemoveFavoriteSummonerNotFound() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -384,7 +384,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testRemoveFavorite_Success() {
+    void testRemoveFavoriteSuccess() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -421,7 +421,7 @@ class DashboardControllerUnitTest {
     // ========== RANK HISTORY TESTS ==========
 
     @Test
-    void testMyRankHistory_AsGuest() {
+    void testMyRankHistoryAsGuest() {
         // Clear security context for guest user
         SecurityContextHolder.clearContext();
 
@@ -435,7 +435,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyRankHistory_NoLinkedSummoner() {
+    void testMyRankHistoryNoLinkedSummoner() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -459,7 +459,7 @@ class DashboardControllerUnitTest {
     }
 
     @Test
-    void testMyRankHistory_WithRankedMatches() {
+    void testMyRankHistoryWithRankedMatches() {
         // Setup authentication - use real SecurityContext
         Authentication auth = new UsernamePasswordAuthenticationToken("testuser", "password", List.of());
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -494,7 +494,7 @@ class DashboardControllerUnitTest {
     // ==================== getRankedMatches Tests ====================
     
     @Test
-    void testGetRankedMatches_AsGuest() {
+    void testGetRankedMatchesAsGuest() {
         // Setup: No authentication
         SecurityContextHolder.clearContext();
         
@@ -510,7 +510,7 @@ class DashboardControllerUnitTest {
     }
     
     @Test
-    void testGetRankedMatches_NoLinkedSummoner() {
+    void testGetRankedMatchesNoLinkedSummoner() {
         // Setup: Authenticated user without linked summoner
         testUser.setLinkedSummonerName(null);
         SecurityContextHolder.getContext().setAuthentication(
@@ -534,7 +534,7 @@ class DashboardControllerUnitTest {
     }
     
     @Test
-    void testGetRankedMatches_WithCachedMatches() {
+    void testGetRankedMatchesWithCachedMatches() {
         // Setup: Authenticated user with linked summoner
         testUser.setLinkedSummonerName("TestSummoner");
         SecurityContextHolder.getContext().setAuthentication(
@@ -585,7 +585,7 @@ class DashboardControllerUnitTest {
     }
     
     @Test
-    void testGetRankedMatches_WithQueueIdFilter() {
+    void testGetRankedMatchesWithQueueIdFilter() {
         // Setup: Authenticated user with queue filter
         testUser.setLinkedSummonerName("TestSummoner");
         SecurityContextHolder.getContext().setAuthentication(
@@ -629,7 +629,7 @@ class DashboardControllerUnitTest {
     // ==================== refreshMatches Tests ====================
     
     @Test
-    void testRefreshMatches_AsGuest() {
+    void testRefreshMatchesAsGuest() {
         // Setup: No authentication
         SecurityContextHolder.clearContext();
         
@@ -645,7 +645,7 @@ class DashboardControllerUnitTest {
     }
     
     @Test
-    void testRefreshMatches_NoLinkedSummoner() {
+    void testRefreshMatchesNoLinkedSummoner() {
         // Setup: Authenticated user without linked summoner
         testUser.setLinkedSummonerName(null);
         SecurityContextHolder.getContext().setAuthentication(
@@ -669,7 +669,7 @@ class DashboardControllerUnitTest {
     }
     
     @Test
-    void testRefreshMatches_Success() {
+    void testRefreshMatchesSuccess() {
         // Setup: Authenticated user with linked summoner
         testUser.setLinkedSummonerName("TestSummoner");
         SecurityContextHolder.getContext().setAuthentication(

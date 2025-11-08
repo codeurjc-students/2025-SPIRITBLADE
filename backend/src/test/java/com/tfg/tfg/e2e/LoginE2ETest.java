@@ -12,6 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
@@ -22,15 +24,18 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el flujo de autenticación y login.
+ * Pruebas End-to-End para el flujo de autenticaciÃƒÂ³n y login.
  * Verifica que los usuarios puedan acceder al sistema de login y que
- * los endpoints de autenticación respondan correctamente.
+ * los endpoints de autenticaciÃƒÂ³n respondan correctamente.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
     "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class LoginE2ETest {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginE2ETest.class);
+    private static final String LOGIN_PATH = "/login";
 
     @LocalServerPort
     private int port;
@@ -70,7 +75,7 @@ class LoginE2ETest {
     @Test
     void testLoginPageAccessibility() {
         // Navigate to login page
-        driver.get(baseUrl + "/login");
+        driver.get(baseUrl + LOGIN_PATH);
         
         // Wait for page to load
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -78,8 +83,8 @@ class LoginE2ETest {
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
         
-        System.out.println("✓ Login page is accessible");
-        System.out.println("  URL: " + driver.getCurrentUrl());
+        log.info("Ã¢Å“â€œ Login page is accessible");
+        log.info("  URL: {}", driver.getCurrentUrl());
     }
 
     @Test
@@ -101,12 +106,12 @@ class LoginE2ETest {
             "Auth API endpoint should respond"
         );
         
-        System.out.println("✓ Authentication API endpoint is accessible");
+        log.info("Ã¢Å“â€œ Authentication API endpoint is accessible");
     }
 
     @Test
     void testLoginFormElements() {
-        driver.get(baseUrl + "/login");
+        driver.get(baseUrl + LOGIN_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         
         try {
@@ -115,16 +120,16 @@ class LoginE2ETest {
             List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
             List<WebElement> formElements = driver.findElements(By.tagName("form"));
             
-            System.out.println("✓ Login page structure verified");
-            System.out.println("  Input elements found: " + inputElements.size());
-            System.out.println("  Button elements found: " + buttonElements.size());
-            System.out.println("  Form elements found: " + formElements.size());
+            log.info("Ã¢Å“â€œ Login page structure verified");
+            log.info("  Input elements found: {}", inputElements.size());
+            log.info("  Button elements found: {}", buttonElements.size());
+            log.info("  Form elements found: {}", formElements.size());
             
             // The test passes if the page loads without errors
             assertTrue(true, "Login page loaded successfully");
             
         } catch (Exception e) {
-            System.out.println("Note: Login form elements may be dynamically loaded");
+            log.info("Note: Login form elements may be dynamically loaded");
             assertTrue(true, "Test completed with expected dynamic loading behavior");
         }
     }
@@ -143,7 +148,7 @@ class LoginE2ETest {
         String pageContent = driver.findElement(By.tagName("body")).getText();
         
         // Angular should handle the redirect client-side
-        boolean isProtected = currentUrl.contains("/login") || 
+        boolean isProtected = currentUrl.contains(LOGIN_PATH) || 
                              currentUrl.contains("/dashboard") || // May stay on dashboard but not load data
                              pageContent.contains("login") || 
                              pageContent.contains("Unauthorized") ||
@@ -152,8 +157,8 @@ class LoginE2ETest {
         
         assertTrue(isProtected, "Protected routes should load through Angular");
         
-        System.out.println("✓ Protected route authentication verified");
-        System.out.println("  Current URL: " + currentUrl);
+        log.info("Ã¢Å“â€œ Protected route authentication verified");
+        log.info("  Current URL: {}", currentUrl);
     }
 
     @Test
@@ -169,6 +174,7 @@ class LoginE2ETest {
         // The endpoint should respond (even if it's an error for GET request)
         assertFalse(responseContent.isEmpty(), "Register API endpoint should respond");
         
-        System.out.println("✓ Registration API endpoint is accessible");
+        log.info("Ã¢Å“â€œ Registration API endpoint is accessible");
     }
 }
+

@@ -12,6 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
@@ -22,15 +24,18 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para la navegación general y la página principal.
- * Verifica que la aplicación se cargue correctamente y que la navegación
- * funcione según lo esperado.
+ * Pruebas End-to-End para la navegaciÃƒÂ³n general y la pÃƒÂ¡gina principal.
+ * Verifica que la aplicaciÃƒÂ³n se cargue correctamente y que la navegaciÃƒÂ³n
+ * funcione segÃƒÂºn lo esperado.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
     "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class HomeNavigationE2ETest {
+
+    private static final Logger log = LoggerFactory.getLogger(HomeNavigationE2ETest.class);
+    private static final String ERROR_PATH = "/error";
 
     @LocalServerPort
     private int port;
@@ -79,9 +84,9 @@ class HomeNavigationE2ETest {
         String pageTitle = driver.getTitle();
         assertNotNull(pageTitle);
         
-        System.out.println("✓ Home page loads successfully");
-        System.out.println("  Page title: " + pageTitle);
-        System.out.println("  URL: " + driver.getCurrentUrl());
+        log.info("Ã¢Å“â€œ Home page loads successfully");
+        log.info("  Page title: {}", pageTitle);
+        log.info("  URL: {}", driver.getCurrentUrl());
     }
 
     @Test
@@ -94,14 +99,14 @@ class HomeNavigationE2ETest {
             List<WebElement> headerElements = driver.findElements(By.tagName("header"));
             List<WebElement> navElements = driver.findElements(By.tagName("nav"));
             
-            System.out.println("✓ Navigation structure verified");
-            System.out.println("  Header elements found: " + headerElements.size());
-            System.out.println("  Nav elements found: " + navElements.size());
+            log.info("Ã¢Å“â€œ Navigation structure verified");
+            log.info("  Header elements found: {}", headerElements.size());
+            log.info("  Nav elements found: {}", navElements.size());
             
             assertTrue(true, "Navigation elements verified");
             
         } catch (Exception e) {
-            System.out.println("Note: Navigation structure may be dynamically loaded");
+            log.info("Note: Navigation structure may be dynamically loaded");
             assertTrue(true, "Test completed with dynamic loading behavior");
         }
     }
@@ -115,13 +120,13 @@ class HomeNavigationE2ETest {
         try {
             List<WebElement> footerElements = driver.findElements(By.tagName("footer"));
             
-            System.out.println("✓ Footer structure verified");
-            System.out.println("  Footer elements found: " + footerElements.size());
+            log.info("Ã¢Å“â€œ Footer structure verified");
+            log.info("  Footer elements found: {}", footerElements.size());
             
             assertTrue(true, "Footer elements verified");
             
         } catch (Exception e) {
-            System.out.println("Note: Footer may be dynamically loaded");
+            log.info("Note: Footer may be dynamically loaded");
             assertTrue(true, "Test completed");
         }
     }
@@ -144,24 +149,24 @@ class HomeNavigationE2ETest {
             WebElement body = driver.findElement(By.tagName("body"));
             assertNotNull(body);
             
-            System.out.println("✓ Page loads at " + size[0] + "x" + size[1]);
+            log.info("Ã¢Å“â€œ Page loads at {}x{}", size[0], size[1]);
         }
         
-        System.out.println("✓ Responsive design verified");
+        log.info("Ã¢Å“â€œ Responsive design verified");
     }
 
     @Test
     void testErrorPageHandling() {
         // Test error page navigation
-        driver.get(baseUrl + "/error");
+        driver.get(baseUrl + ERROR_PATH);
         
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
         
-        System.out.println("✓ Error page is accessible");
-        System.out.println("  URL: " + driver.getCurrentUrl());
+        log.info("Ã¢Å“â€œ Error page is accessible");
+        log.info("  URL: {}", driver.getCurrentUrl());
     }
 
     @Test
@@ -179,20 +184,20 @@ class HomeNavigationE2ETest {
         // Angular wildcard route should handle this
         assertTrue(
             currentUrl.equals(baseUrl + "/") || 
-            currentUrl.contains("/error") ||
+            currentUrl.contains(ERROR_PATH) ||
             currentUrl.endsWith("/") ||
             currentUrl.contains("/nonexistent-page-12345"),
             "Invalid routes should be handled by Angular routing"
         );
         
-        System.out.println("✓ Invalid route handling verified");
-        System.out.println("  Redirected to: " + currentUrl);
+        log.info("Ã¢Å“â€œ Invalid route handling verified");
+        log.info("  Redirected to: {}", currentUrl);
     }
 
     @Test
     void testMultiplePageTransitions() {
         // Test navigation between multiple pages
-        String[] pages = {"/", "/login", "/", "/error", "/"};
+        String[] pages = {"/", "/login", "/", ERROR_PATH, "/"};
         
         for (String page : pages) {
             driver.get(baseUrl + page);
@@ -202,7 +207,7 @@ class HomeNavigationE2ETest {
             assertNotNull(body);
         }
         
-        System.out.println("✓ Multiple page transitions verified");
-        System.out.println("  Successfully navigated through " + pages.length + " pages");
+        log.info("Ã¢Å“â€œ Multiple page transitions verified");
+        log.info("  Successfully navigated through {} pages", pages.length);
     }
 }
