@@ -110,7 +110,11 @@ class AdminControllerUnitTest {
     void testDeleteUserSuccess() {
         // Given
         Long userId = 1L;
+        UserModel user = new UserModel("testuser", "password", "USER");
+        user.setId(userId);
+        
         when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         
         // When
         ResponseEntity<Void> response = adminController.deleteUser(userId);
