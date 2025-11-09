@@ -17,19 +17,19 @@ import com.tfg.tfg.mapper.SummonerMapper;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.service.RiotService;
+import com.tfg.tfg.service.SummonerService;
 import com.tfg.tfg.service.DataDragonService;
 
 @RestController
 @RequestMapping("/api/v1/summoners")
 public class SummonerController {
 
-    private final SummonerRepository summonerRepository;
+    private final SummonerService summonerService;
     private final RiotService riotService;
 
-    public SummonerController(SummonerRepository summonerRepository, RiotService riotService) {
-        this.summonerRepository = summonerRepository;
+    public SummonerController(SummonerService summonerService, RiotService riotService) {
+        this.summonerService = summonerService;
         this.riotService = riotService;
     }
 
@@ -39,7 +39,7 @@ public class SummonerController {
             @RequestParam(defaultValue = "20") int size) {
         
         PageRequest pageable = PageRequest.of(page, size, Sort.by("lastSearchedAt").descending());
-        Page<Summoner> summonersPage = summonerRepository.findAll(pageable);
+        Page<Summoner> summonersPage = summonerService.findAll(pageable);
         
         DataDragonService dataDragonService = riotService.getDataDragonService();
         Page<SummonerDTO> dtos = summonersPage.map(s -> SummonerMapper.toDTO(s, dataDragonService));
@@ -49,7 +49,7 @@ public class SummonerController {
 
     @GetMapping("/recent")
     public ResponseEntity<List<SummonerDTO>> getRecentSearches() {
-        List<Summoner> recentSummoners = summonerRepository.findTop10ByOrderByLastSearchedAtDesc();
+        List<Summoner> recentSummoners = summonerService.findRecentSearches();
         DataDragonService dataDragonService = riotService.getDataDragonService();
         List<SummonerDTO> dtos = recentSummoners.stream()
             .filter(s -> s.getLastSearchedAt() != null)
@@ -111,7 +111,7 @@ public class SummonerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SummonerDTO> getById(@PathVariable Long id) {
-        return summonerRepository.findById(id)
+        return summonerService.findById(id)
             .map(s -> ResponseEntity.ok(SummonerMapper.toDTO(s, riotService.getDataDragonService())))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

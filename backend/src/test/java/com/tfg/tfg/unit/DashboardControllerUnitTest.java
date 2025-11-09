@@ -7,11 +7,11 @@ import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.MatchRepository;
-import com.tfg.tfg.repository.SummonerRepository;
-import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.MatchService;
 import com.tfg.tfg.service.RiotService;
+import com.tfg.tfg.service.SummonerService;
+import com.tfg.tfg.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,16 +39,16 @@ import static org.mockito.Mockito.*;
 class DashboardControllerUnitTest {
 
     @Mock
-    private SummonerRepository summonerRepository;
+    private SummonerService summonerService;
 
     @Mock
     private RiotService riotService;
 
     @Mock
-    private MatchRepository matchRepository;
+    private MatchService matchService;
 
     @Mock
-    private UserModelRepository userRepository;
+    private UserService userService;
 
     @Mock
     private DataDragonService dataDragonService;
@@ -109,7 +109,7 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.setContext(securityContext);
 
         // User exists but has no linked summoner
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         testUser.setLinkedSummonerName(null);
 
         // Execute
@@ -138,8 +138,8 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.setContext(securityContext);
 
         // User has linked summoner
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock champion mastery
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
@@ -148,7 +148,7 @@ class DashboardControllerUnitTest {
         when(riotService.getTopChampionMasteries("test-puuid-123", 1)).thenReturn(List.of(mastery));
         
         // Mock match history for LP calculation
-        when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(List.of());
+        when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class))).thenReturn(List.of());
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
@@ -196,7 +196,7 @@ class DashboardControllerUnitTest {
         favoriteSummoner.setPuuid("favorite-puuid");
         testUser.addFavoriteSummoner(favoriteSummoner);
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(riotService.getDataDragonService()).thenReturn(dataDragonService);
 
         // Execute
@@ -236,7 +236,7 @@ class DashboardControllerUnitTest {
         securityContext.setAuthentication(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
+        when(userService.findByName("testuser")).thenReturn(Optional.empty());
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.addFavorite("SomeSummoner");
@@ -260,9 +260,9 @@ class DashboardControllerUnitTest {
         Summoner favoriteSummoner = new Summoner();
         favoriteSummoner.setName("FavoriteSummoner");
         
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("FavoriteSummoner")).thenReturn(Optional.of(favoriteSummoner));
-        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("FavoriteSummoner")).thenReturn(Optional.of(favoriteSummoner));
+        when(userService.save(any(UserModel.class))).thenReturn(testUser);
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.addFavorite("FavoriteSummoner");
@@ -272,7 +272,7 @@ class DashboardControllerUnitTest {
         assertEquals(200, response.getStatusCode().value());
         Map<String, Object> body = response.getBody();
         assertEquals(true, body.get("success"));
-        verify(userRepository).save(testUser);
+        verify(userService).save(testUser);
         
         // Cleanup
         SecurityContextHolder.clearContext();
@@ -286,9 +286,9 @@ class DashboardControllerUnitTest {
         securityContext.setAuthentication(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
-        when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(List.of());
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class))).thenReturn(List.of());
         when(riotService.getTopChampionMasteries(anyString(), anyInt())).thenReturn(List.of());
 
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
@@ -319,11 +319,12 @@ class DashboardControllerUnitTest {
         recentMatch.setTimestamp(LocalDateTime.now().minusHours(1));
         recentMatch.setLpAtMatch(45);
         
-        when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner))
-            .thenReturn(List.of(recentMatch, oldMatch));
+        // findRecentMatches devuelve en orden cronológico (primero el más antiguo)
+        when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class)))
+            .thenReturn(List.of(oldMatch, recentMatch));
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         when(riotService.getTopChampionMasteries(anyString(), anyInt())).thenReturn(List.of());
         
         testSummoner.setLp(50); // Current LP is 50
@@ -365,8 +366,8 @@ class DashboardControllerUnitTest {
         securityContext.setAuthentication(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("NonExistent")).thenReturn(Optional.empty());
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("NonExistent")).thenReturn(Optional.empty());
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.removeFavorite("NonExistent");
@@ -398,9 +399,9 @@ class DashboardControllerUnitTest {
         // Add favorite first so we can remove it
         testUser.addFavoriteSummoner(favoriteToRemove);
         
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("FavoriteToRemove")).thenReturn(Optional.of(favoriteToRemove));
-        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("FavoriteToRemove")).thenReturn(Optional.of(favoriteToRemove));
+        when(userService.save(any(UserModel.class))).thenReturn(testUser);
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.removeFavorite("FavoriteToRemove");
@@ -412,7 +413,7 @@ class DashboardControllerUnitTest {
         assertNotNull(body);
         assertEquals(true, body.get("success"));
         assertTrue(body.get("message").toString().contains("removed"));
-        verify(userRepository).save(testUser);
+        verify(userService).save(testUser);
         
         // Cleanup
         SecurityContextHolder.clearContext();
@@ -443,7 +444,7 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.setContext(securityContext);
 
         // User exists but has no linked summoner
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         testUser.setLinkedSummonerName(null);
 
         // Execute
@@ -466,11 +467,11 @@ class DashboardControllerUnitTest {
         securityContext.setAuthentication(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock ranked matches - empty for simplicity (will test single point with current state)
-        when(matchRepository.findRankedMatchesBySummoner(testSummoner, "RANKED")).thenReturn(List.of());
+        when(matchService.findRankedMatchesBySummoner(testSummoner, "RANKED")).thenReturn(List.of());
 
         // Execute
         ResponseEntity<List<RankHistoryDTO>> response = dashboardController.myRankHistory();
@@ -517,7 +518,7 @@ class DashboardControllerUnitTest {
             new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
         );
         
-        when(userRepository.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
+        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
         
         // Execute
         ResponseEntity<List<com.tfg.tfg.model.dto.MatchHistoryDTO>> response = 
@@ -541,11 +542,11 @@ class DashboardControllerUnitTest {
             new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
         );
         
-        when(userRepository.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock cached matches (vamos por el camino de API ya que el cache check es complejo)
-        when(matchRepository.findRankedMatchesBySummonerOrderByTimestampDesc(testSummoner))
+        when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(testSummoner))
             .thenReturn(List.of());
         
         // Mock API response with ranked match
@@ -592,11 +593,11 @@ class DashboardControllerUnitTest {
             new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
         );
         
-        when(userRepository.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock empty cached matches (will fetch from API)
-        when(matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, 440))
+        when(matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, 440))
             .thenReturn(List.of());
         
         // Mock API response with Flex match
@@ -652,7 +653,7 @@ class DashboardControllerUnitTest {
             new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
         );
         
-        when(userRepository.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
+        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
         
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.refreshMatches();
@@ -676,8 +677,8 @@ class DashboardControllerUnitTest {
             new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
         );
         
-        when(userRepository.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerRepository.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
+        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock API response with matches
         com.tfg.tfg.model.dto.MatchHistoryDTO match1 = new com.tfg.tfg.model.dto.MatchHistoryDTO();
@@ -708,5 +709,3 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.clearContext();
     }
 }
-
-

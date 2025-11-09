@@ -19,19 +19,19 @@ import org.springframework.http.ResponseEntity;
 import com.tfg.tfg.controller.AdminController;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class AdminControllerUnitTest {
 
     @Mock
-    private UserModelRepository userRepository;
+    private UserService userService;
     
     private AdminController adminController;
     
     @BeforeEach
     void setUp() {
-        adminController = new AdminController(userRepository);
+        adminController = new AdminController(userService);
     }
 
     @Test
@@ -42,7 +42,7 @@ class AdminControllerUnitTest {
         UserModel user2 = new UserModel("user2", "pass2", "ADMIN");
         user2.setId(2L);
         
-        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+        when(userService.findAllUsers()).thenReturn(List.of(user1, user2));
         
         // When
         ResponseEntity<List<UserDTO>> response = adminController.listUsers();
@@ -51,7 +51,7 @@ class AdminControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
-        verify(userRepository).findAll();
+        verify(userService).findAllUsers();
     }
 
     @Test
@@ -62,29 +62,31 @@ class AdminControllerUnitTest {
         user.setId(userId);
         user.setActive(false);
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(UserModel.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
+        when(userService.setUserActive(userId, true)).thenReturn(Optional.of(user));
         
         // When
         ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", true));
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userRepository).save(argThat(u -> u.isActive()));
+        verify(userService).findById(userId);
+        verify(userService).setUserActive(userId, true);
     }
 
     @Test
     void testSetUserActiveUserNotFound() {
         // Given
         Long userId = 999L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userService.findById(userId)).thenReturn(Optional.empty());
         
         // When
         ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", true));
         
         // Then
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRepository, never()).save(any());
+        verify(userService).findById(userId);
+        verify(userService, never()).setUserActive(anyLong(), anyBoolean());
     }
 
     @Test
@@ -95,15 +97,16 @@ class AdminControllerUnitTest {
         user.setId(userId);
         user.setActive(true);
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(UserModel.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
+        when(userService.setUserActive(userId, false)).thenReturn(Optional.of(user));
         
         // When
         ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", false));
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userRepository).save(argThat(u -> !u.isActive()));
+        verify(userService).findById(userId);
+        verify(userService).setUserActive(userId, false);
     }
 
     @Test
@@ -113,35 +116,35 @@ class AdminControllerUnitTest {
         UserModel user = new UserModel("testuser", "password", "USER");
         user.setId(userId);
         
-        when(userRepository.existsById(userId)).thenReturn(true);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userService.existsById(userId)).thenReturn(true);
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
         
         // When
         ResponseEntity<Void> response = adminController.deleteUser(userId);
         
         // Then
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userRepository).deleteById(userId);
+        verify(userService).deleteUser(userId);
     }
 
     @Test
     void testDeleteUserNotFound() {
         // Given
         Long userId = 999L;
-        when(userRepository.existsById(userId)).thenReturn(false);
+        when(userService.existsById(userId)).thenReturn(false);
         
         // When
         ResponseEntity<Void> response = adminController.deleteUser(userId);
         
         // Then
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRepository, never()).deleteById(any());
+        verify(userService, never()).deleteUser(any());
     }
 
     @Test
     void testSystemStatsSuccess() {
         // Given
-        when(userRepository.count()).thenReturn(42L);
+        when(userService.countUsers()).thenReturn(42L);
         
         // When
         ResponseEntity<Map<String, Object>> response = adminController.systemStats();
@@ -150,6 +153,6 @@ class AdminControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(42L, response.getBody().get("users"));
-        verify(userRepository).count();
+        verify(userService).countUsers();
     }
 }

@@ -26,7 +26,6 @@ import com.tfg.tfg.mapper.UserMapper;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.UserAvatarService;
 import com.tfg.tfg.service.UserService;
@@ -42,14 +41,12 @@ public class UserController {
     private static final String USER_NOT_FOUND_MSG = "User not found";
     private static final String ROLE_ADMIN = "ADMIN";
 
-    private final UserModelRepository userRepository;
     private final UserService userService;
     private final RiotService riotService;
     private final UserAvatarService userAvatarService;
 
-    public UserController(UserModelRepository userRepository, UserService userService, 
+    public UserController(UserService userService, 
                          RiotService riotService, UserAvatarService userAvatarService) {
-        this.userRepository = userRepository;
         this.userService = userService;
         this.riotService = riotService;
         this.userAvatarService = userAvatarService;
@@ -77,18 +74,17 @@ public class UserController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         Page<UserModel> usersPage;
         
-        // Apply filters
+        // Apply filters using service layer
         if (search != null && !search.trim().isEmpty()) {
-            usersPage = userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                search, search, pageable);
+            usersPage = userService.findBySearch(search, pageable);
         } else if (role != null && active != null) {
-            usersPage = userRepository.findByRolsContainingAndActive(role, active, pageable);
+            usersPage = userService.findByRoleAndActive(role, active, pageable);
         } else if (role != null) {
-            usersPage = userRepository.findByRolsContaining(role, pageable);
+            usersPage = userService.findByRole(role, pageable);
         } else if (active != null) {
-            usersPage = userRepository.findByActive(active, pageable);
+            usersPage = userService.findByActive(active, pageable);
         } else {
-            usersPage = userRepository.findAll(pageable);
+            usersPage = userService.findAll(pageable);
         }
         
         Page<UserDTO> dtoPage = usersPage.map(UserMapper::toDTO);
@@ -104,7 +100,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
+        return userService.findById(id)
             .map(UserMapper::toDTO)
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
@@ -118,7 +114,7 @@ public class UserController {
      */
     @GetMapping("/name/{name}")
     public ResponseEntity<UserDTO> getByName(@PathVariable String name) {
-        return userRepository.findByName(name)
+        return userService.findByName(name)
             .map(UserMapper::toDTO)
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
@@ -134,11 +130,8 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         // Exceptions are handled by GlobalExceptionHandler
-        userService.createUser(userDTO);
-        return userRepository.findByName(userDTO.getName())
-            .map(UserMapper::toDTO)
-            .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+        UserModel createdUser = userService.createUser(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toDTO(createdUser));
     }
 
     /**
@@ -152,26 +145,16 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return userRepository.findById(id).map(user -> {
+        return userService.findById(id).map(user -> {
             // Prevent modification of admin users
             if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
             }
             
-            // Update fields
-            if (userDTO.getName() != null) {
-                user.setName(userDTO.getName());
-            }
-            if (userDTO.getEmail() != null) {
-                user.setEmail(userDTO.getEmail());
-            }
-            if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
-                user.setRols(userDTO.getRoles());
-            }
-            user.setActive(userDTO.isActive());
-            
-            UserModel updatedUser = userRepository.save(user);
-            return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
+            return userService.updateUser(id, userDTO)
+                .map(UserMapper::toDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<UserDTO>build());
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -186,15 +169,16 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
     public ResponseEntity<UserDTO> changeRole(@PathVariable Long id, @RequestBody String role) {
-        return userRepository.findById(id).map(user -> {
+        return userService.findById(id).map(user -> {
             // Prevent role changes on admin users
             if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
             }
             
-            user.setRols(java.util.List.of(role));
-            UserModel updatedUser = userRepository.save(user);
-            return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
+            return userService.changeUserRole(id, java.util.List.of(role))
+                .map(UserMapper::toDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<UserDTO>build());
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -208,15 +192,16 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/toggle-active")
     public ResponseEntity<UserDTO> toggleActive(@PathVariable Long id) {
-        return userRepository.findById(id).map(user -> {
+        return userService.findById(id).map(user -> {
             // Prevent toggling active status on admin users
             if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).<UserDTO>build();
             }
             
-            user.setActive(!user.isActive());
-            UserModel updatedUser = userRepository.save(user);
-            return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
+            return userService.toggleUserActive(id)
+                .map(UserMapper::toDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<UserDTO>build());
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -230,14 +215,15 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        return userRepository.findById(id).map(user -> {
+        return userService.findById(id).map(user -> {
             // Prevent deletion of admin users
             if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).<Void>build();
             }
             
-            userRepository.delete(user);
-            return ResponseEntity.noContent().<Void>build();
+            boolean deleted = userService.deleteUser(id);
+            return deleted ? ResponseEntity.noContent().<Void>build() 
+                          : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Void>build();
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -255,19 +241,9 @@ public class UserController {
 
         String username = auth.getName();
         
-        return userRepository.findByName(username)
-            .map(user -> {
-                // Update fields
-                if (userDTO.getEmail() != null) {
-                    user.setEmail(userDTO.getEmail());
-                }
-                if (userDTO.getAvatarUrl() != null) {
-                    user.setAvatarUrl(userDTO.getAvatarUrl());
-                }
-                
-                UserModel updatedUser = userRepository.save(user);
-                return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
-            })
+        return userService.updateUserProfile(username, userDTO)
+            .map(UserMapper::toDTO)
+            .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
     
@@ -276,7 +252,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             // Fallback: return first user if exists (for development)
-            return userRepository.findFirstByOrderByIdAsc()
+            return userService.findFirstUser()
                 .map(UserMapper::toDTO)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -284,7 +260,7 @@ public class UserController {
 
         String username = auth.getName();
         
-        return userRepository.findByName(username)
+        return userService.findByName(username)
             .map(user -> {
                 UserDTO dto = UserMapper.toDTO(user);
                 // Ensure avatarUrl is set (fallback to image field if avatarUrl is null)
@@ -336,14 +312,9 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
             }
             
-            // Update user with linked summoner info
-            UserModel user = userRepository.findByName(username)
+            // Update user with linked summoner info through service
+            userService.linkSummoner(username, summoner.getPuuid(), summoner.getName(), region)
                 .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
-            
-            user.setLinkedSummonerPuuid(summoner.getPuuid());
-            user.setLinkedSummonerName(summoner.getName());
-            user.setLinkedSummonerRegion(region);
-            userRepository.save(user);
 
             Map<String, Object> response = new HashMap<>();
             response.put(SUCCESS_KEY, true);
@@ -380,13 +351,8 @@ public class UserController {
         String username = auth.getName();
         
         try {
-            UserModel user = userRepository.findByName(username)
+            userService.unlinkSummoner(username)
                 .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
-            
-            user.setLinkedSummonerPuuid(null);
-            user.setLinkedSummonerName(null);
-            user.setLinkedSummonerRegion(null);
-            userRepository.save(user);
 
             Map<String, Object> response = new HashMap<>();
             response.put(SUCCESS_KEY, true);
@@ -417,7 +383,7 @@ public class UserController {
         String username = auth.getName();
         
         try {
-            UserModel user = userRepository.findByName(username)
+            UserModel user = userService.findByName(username)
                 .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
             
             Map<String, Object> response = new HashMap<>();
