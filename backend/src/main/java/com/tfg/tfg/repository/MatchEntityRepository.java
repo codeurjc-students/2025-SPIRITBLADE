@@ -64,20 +64,6 @@ public interface MatchEntityRepository extends JpaRepository<MatchEntity, Long> 
     List<MatchEntity> findBySummonerName(String summonerName);
     
     /**
-     * Complex multi-table JOIN query.
-     * Finds matches where summoner has notes attached.
-     * Demonstrates joining through multiple relationships.
-     * 
-     * @param summonerId The summoner's ID
-     * @return List of matches with notes
-     */
-    @Query("SELECT DISTINCT m FROM MatchEntity m " +
-           "JOIN m.summoner s " +
-           "LEFT JOIN NOTES n ON n.match.id = m.id " +
-           "WHERE s.id = :summonerId AND n.id IS NOT NULL")
-    List<MatchEntity> findMatchesWithNotesBySummonerId(@Param("summonerId") Long summonerId);
-    
-    /**
      * Query with subquery: finds summoners who played more than X matches.
      * Demonstrates complex query with nested SELECT.
      * 
