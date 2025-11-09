@@ -1,41 +1,109 @@
 version: '3.8'
 
 services:
+  # MySQL Database - Production
   mysql:
     image: mysql:8.0
-    container_name: spiritblade-mysql
+    container_name: spiritblade-mysql-prod
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-1234}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-spiritblade}
-      MYSQL_USER: ${MYSQL_USER:-spiritblade_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-spiritblade_pass}
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
+    networks:
+      - spiritblade-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-1234}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: spiritblade-minio-prod
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+    ports:
+      - "9000:9000"  # API port
+      - "9001:9001"  # Console port (web UI)
+    volumes:
+      - minio_data:/data
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 20s
+
+  # SPIRITBLADE Application
   app:
-    image: ${DOCKER_USERNAME:-yourusername}/spiritblade:0.1
-    container_name: spiritblade-app
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: ${DOCKER_USERNAME:-spiritblade}/spiritblade:${VERSION:-0.2.0}
+    container_name: spiritblade-app-prod
+    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC"
-      SPRING_DATASOURCE_USERNAME: "${MYSQL_USER:-spiritblade_user}"
-      SPRING_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD:-spiritblade_pass}"
+      # Database Configuration
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD:-1234}"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+      
+      # Server Configuration
       SERVER_PORT: "443"
-      JWT_SECRET: "${JWT_SECRET:-change-this-secret-key}"
+      SERVER_SSL_ENABLED: "${SERVER_SSL_ENABLED:-true}"
+      SERVER_SSL_KEY_STORE_PASSWORD: "${SSL_PASSWORD:-spiritblade}"
+      
+      # Security Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_EXPIRATION: "${JWT_EXPIRATION:-86400000}"
+      
+      # Riot API Configuration
       RIOT_API_KEY: "${RIOT_API_KEY}"
+      
+      # MinIO Configuration
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:-minioadmin}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:-minioadmin123}"
+      MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME:-spiritblade-uploads}"
+      
+      # Logging Configuration
+      LOGGING_LEVEL_COM_TFG_TFG: "INFO"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: "WARN"
+      LOGGING_LEVEL_ORG_HIBERNATE: "WARN"
     ports:
       - "443:443"
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
 
 volumes:
   mysql_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  spiritblade-network:
+    driver: bridge
