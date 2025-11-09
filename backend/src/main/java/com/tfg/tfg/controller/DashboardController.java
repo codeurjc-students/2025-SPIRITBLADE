@@ -16,10 +16,10 @@ import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.MatchRepository;
-import com.tfg.tfg.repository.SummonerRepository;
-import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
+import com.tfg.tfg.service.SummonerService;
+import com.tfg.tfg.service.MatchService;
+import com.tfg.tfg.service.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,21 +77,21 @@ public class DashboardController {
     private static final int MIN_LP = 0;
     private static final int MAX_LP = 100;
     
-    private final SummonerRepository summonerRepository;
+    private final SummonerService summonerService;
     private final RiotService riotService;
-    private final MatchRepository matchRepository;
-    private final UserModelRepository userRepository;
+    private final MatchService matchService;
+    private final UserService userService;
     private final com.tfg.tfg.service.DataDragonService dataDragonService;
 
-    public DashboardController(SummonerRepository summonerRepository, 
+    public DashboardController(SummonerService summonerService, 
                               RiotService riotService,
-                              MatchRepository matchRepository,
-                              UserModelRepository userRepository,
+                              MatchService matchService,
+                              UserService userService,
                               com.tfg.tfg.service.DataDragonService dataDragonService) {
-        this.summonerRepository = summonerRepository;
+        this.summonerService = summonerService;
         this.riotService = riotService;
-        this.matchRepository = matchRepository;
-        this.userRepository = userRepository;
+        this.matchService = matchService;
+        this.userService = userService;
         this.dataDragonService = dataDragonService;
     }
 
@@ -106,7 +106,7 @@ public class DashboardController {
         // Only use linked summoner data, do NOT fallback to DataInitializer
         Summoner summoner = null;
         if (linkedSummonerName != null) {
-            summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+            summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         }
 
         // Populate stats based on summoner data
@@ -143,7 +143,7 @@ public class DashboardController {
         
         try {
             // Get the user and return their linked summoner name
-            return userRepository.findByName(username)
+            return userService.findByName(username)
                 .map(UserModel::getLinkedSummonerName)
                 .orElse(null);
         } catch (Exception ex) {
@@ -205,12 +205,7 @@ public class DashboardController {
             LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
             
             // Get matches from last 7 days sorted by timestamp
-            List<MatchEntity> recentMatches = matchRepository.findBySummonerOrderByTimestampDesc(summoner)
-                    .stream()
-                    .filter(m -> m.getTimestamp() != null && m.getTimestamp().isAfter(sevenDaysAgo))
-                    .filter(m -> m.getLpAtMatch() != null)
-                    .sorted((a, b) -> a.getTimestamp().compareTo(b.getTimestamp())) // Oldest first
-                    .toList();
+            List<MatchEntity> recentMatches = matchService.findRecentMatches(summoner, sevenDaysAgo);
             
             if (recentMatches.isEmpty()) {
                 return 0;
@@ -238,11 +233,7 @@ public class DashboardController {
     private String calculateMainRole(Summoner summoner) {
         try {
             // Get recent matches to analyze roles
-            List<MatchEntity> recentMatches = matchRepository.findBySummonerOrderByTimestampDesc(summoner)
-                    .stream()
-                    .limit(20) // Analyze last 20 matches
-                    .filter(m -> m.getLane() != null && !m.getLane().isEmpty())
-                    .toList();
+            List<MatchEntity> recentMatches = matchService.findRecentMatchesForRoleAnalysis(summoner, 20);
             
             if (recentMatches.isEmpty()) {
                 return UNKNOWN;
@@ -297,7 +288,7 @@ public class DashboardController {
         }
         
         // Get user and their favorite summoners
-        UserModel user = userRepository.findByName(username).orElse(null);
+        UserModel user = userService.findByName(username).orElse(null);
         
         if (user == null) {
             return ResponseEntity.ok(List.of());
@@ -324,13 +315,13 @@ public class DashboardController {
             return ResponseEntity.status(401).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not authenticated"));
         }
         
-        UserModel user = userRepository.findByName(username).orElse(null);
+        UserModel user = userService.findByName(username).orElse(null);
         if (user == null) {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
         }
         
         // First try to find summoner in database
-        Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+        Summoner summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
         
         // If not in database, try to fetch from Riot API
         if (summoner == null) {
@@ -342,7 +333,7 @@ public class DashboardController {
                 }
                 
                 // After API call, summoner should be saved to DB, retrieve it
-                summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+                summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
                 if (summoner == null) {
                     return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found in database after API fetch"));
                 }
@@ -359,7 +350,7 @@ public class DashboardController {
         
         // Add to favorites
         user.addFavoriteSummoner(summoner);
-        userRepository.save(user);
+        userService.save(user);
         
         return ResponseEntity.ok(Map.of(SUCCESS_KEY, true, MESSAGE_KEY, "Summoner added to favorites"));
     }
@@ -376,20 +367,20 @@ public class DashboardController {
             return ResponseEntity.status(401).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not authenticated"));
         }
         
-        UserModel user = userRepository.findByName(username).orElse(null);
+        UserModel user = userService.findByName(username).orElse(null);
         if (user == null) {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
         }
         
         // Find summoner by name
-        Summoner summoner = summonerRepository.findByNameIgnoreCase(summonerName).orElse(null);
+        Summoner summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
         if (summoner == null) {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
         }
         
         // Remove from favorites
         user.removeFavoriteSummoner(summoner);
-        userRepository.save(user);
+        userService.save(user);
         
         return ResponseEntity.ok(Map.of(SUCCESS_KEY, true, MESSAGE_KEY, "Summoner removed from favorites"));
     }
@@ -411,14 +402,14 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
         
-        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         
         if (summoner == null) {
             return ResponseEntity.ok(List.of());
         }
         
         // Get ranked matches ordered by timestamp ASC (oldest first)
-        List<MatchEntity> rankedMatches = matchRepository.findRankedMatchesBySummoner(summoner, "RANKED");
+        List<MatchEntity> rankedMatches = matchService.findRankedMatchesBySummoner(summoner, "RANKED");
         
         // Calculate LP progression - matches are already ordered oldest first
         List<RankHistoryDTO> dtos = calculateLPProgression(summoner, rankedMatches);
@@ -617,7 +608,7 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
         
-        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         if (summoner == null || summoner.getPuuid() == null) {
             return ResponseEntity.ok(List.of());
         }
@@ -627,10 +618,10 @@ public class DashboardController {
             List<MatchEntity> cachedRankedMatches;
             if (queueId != null) {
                 // Filter by specific queue (420=Solo/Duo or 440=Flex)
-                cachedRankedMatches = matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
+                cachedRankedMatches = matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
             } else {
                 // Get all ranked matches (both queues)
-                cachedRankedMatches = matchRepository.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
+                cachedRankedMatches = matchService.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
             }
             
             String queueTypeLog = determineQueueTypeLog(queueId);
@@ -726,9 +717,7 @@ public class DashboardController {
                 .map(com.tfg.tfg.model.dto.MatchHistoryDTO::getMatchId)
                 .toList();
             
-            Map<String, MatchEntity> existingMatches = matchRepository.findByMatchIdIn(matchIds)
-                .stream()
-                .collect(java.util.stream.Collectors.toMap(MatchEntity::getMatchId, m -> m));
+            Map<String, MatchEntity> existingMatches = matchService.findExistingMatchesByMatchIds(matchIds);
             
             logger.debug("💾 Batch saving: {} matches, {} already exist", matches.size(), existingMatches.size());
             
@@ -763,7 +752,7 @@ public class DashboardController {
             
             // Batch save
             if (!context.newMatches.isEmpty()) {
-                matchRepository.saveAll(context.newMatches);
+                matchService.saveAll(context.newMatches);
                 logger.info("💾 Batch saved {} new/updated matches with LP tracking", context.newMatches.size());
             }
             
@@ -823,7 +812,7 @@ public class DashboardController {
             ));
         }
         
-        Summoner summoner = summonerRepository.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
         if (summoner == null || summoner.getPuuid() == null) {
             return ResponseEntity.badRequest().body(Map.of(
                 SUCCESS_KEY, false, 

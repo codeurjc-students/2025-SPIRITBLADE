@@ -3,7 +3,6 @@ package com.tfg.tfg.unit;
 import com.tfg.tfg.controller.UserController;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.UserAvatarService;
 import com.tfg.tfg.service.UserService;
@@ -32,9 +31,6 @@ import static org.mockito.Mockito.*;
 class UserControllerUnitTest {
 
     @Mock
-    private UserModelRepository userRepository;
-
-    @Mock
     private UserService userService;
 
     @Mock
@@ -52,7 +48,7 @@ class UserControllerUnitTest {
 
     @BeforeEach
     void setUp() {
-        controller = new UserController(userRepository, userService, riotService, userAvatarService);
+        controller = new UserController(userService, riotService, userAvatarService);
 
         testUser = new UserModel();
         testUser.setId(1L);
@@ -68,7 +64,7 @@ class UserControllerUnitTest {
     void testListUsersWithoutFilters() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(userService.findAll(any(Pageable.class))).thenReturn(page);
 
         // Act
         ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, null, null);
@@ -77,15 +73,14 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalElements());
-        verify(userRepository).findAll(any(Pageable.class));
+        verify(userService).findAll(any(Pageable.class));
     }
 
     @Test
     void testListUsersWithSearchFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            anyString(), anyString(), any(Pageable.class))).thenReturn(page);
+        when(userService.findBySearch(anyString(), any(Pageable.class))).thenReturn(page);
 
         // Act
         ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, null, "test");
@@ -93,15 +88,14 @@ class UserControllerUnitTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        verify(userRepository).findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            eq("test"), eq("test"), any(Pageable.class));
+        verify(userService).findBySearch(eq("test"), any(Pageable.class));
     }
 
     @Test
     void testListUsersWithRoleAndActiveFilters() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userRepository.findByRolsContainingAndActive(anyString(), anyBoolean(), any(Pageable.class)))
+        when(userService.findByRoleAndActive(anyString(), anyBoolean(), any(Pageable.class)))
             .thenReturn(page);
 
         // Act
@@ -109,41 +103,41 @@ class UserControllerUnitTest {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userRepository).findByRolsContainingAndActive(eq("ROLE_USER"), eq(true), any(Pageable.class));
+        verify(userService).findByRoleAndActive(eq("ROLE_USER"), eq(true), any(Pageable.class));
     }
 
     @Test
     void testListUsersWithRoleFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userRepository.findByRolsContaining(anyString(), any(Pageable.class))).thenReturn(page);
+        when(userService.findByRole(anyString(), any(Pageable.class))).thenReturn(page);
 
         // Act
         ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, "ROLE_ADMIN", null, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userRepository).findByRolsContaining(eq("ROLE_ADMIN"), any(Pageable.class));
+        verify(userService).findByRole(eq("ROLE_ADMIN"), any(Pageable.class));
     }
 
     @Test
     void testListUsersWithActiveFilter() {
         // Arrange
         Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userRepository.findByActive(anyBoolean(), any(Pageable.class))).thenReturn(page);
+        when(userService.findByActive(anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         // Act
         ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, false, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userRepository).findByActive(eq(false), any(Pageable.class));
+        verify(userService).findByActive(eq(false), any(Pageable.class));
     }
 
     @Test
     void testGetUserByIdFound() {
         // Arrange
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userService.findById(1L)).thenReturn(Optional.of(testUser));
 
         // Act
         ResponseEntity<UserDTO> response = controller.getUserById(1L);
@@ -152,26 +146,26 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("testuser", response.getBody().getName());
-        verify(userRepository).findById(1L);
+        verify(userService).findById(1L);
     }
 
     @Test
     void testGetUserByIdNotFound() {
         // Arrange
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userService.findById(999L)).thenReturn(Optional.empty());
 
         // Act
         ResponseEntity<UserDTO> response = controller.getUserById(999L);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRepository).findById(999L);
+        verify(userService).findById(999L);
     }
 
     @Test
     void testGetByNameFound() {
         // Arrange
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
 
         // Act
         ResponseEntity<UserDTO> response = controller.getByName("testuser");
@@ -180,20 +174,20 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("testuser", response.getBody().getName());
-        verify(userRepository).findByName("testuser");
+        verify(userService).findByName("testuser");
     }
 
     @Test
     void testGetByNameNotFound() {
         // Arrange
-        when(userRepository.findByName("nonexistent")).thenReturn(Optional.empty());
+        when(userService.findByName("nonexistent")).thenReturn(Optional.empty());
 
         // Act
         ResponseEntity<UserDTO> response = controller.getByName("nonexistent");
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRepository).findByName("nonexistent");
+        verify(userService).findByName("nonexistent");
     }
 
     @Test
@@ -203,7 +197,7 @@ class UserControllerUnitTest {
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
 
         // Act
         ResponseEntity<UserDTO> response = controller.getMyProfile();
@@ -212,7 +206,7 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("testuser", response.getBody().getName());
-        verify(userRepository).findByName("testuser");
+        verify(userService).findByName("testuser");
     }
 
     @Test
@@ -222,7 +216,7 @@ class UserControllerUnitTest {
             "nonexistent", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        when(userRepository.findByName("nonexistent")).thenReturn(Optional.empty());
+        when(userService.findByName("nonexistent")).thenReturn(Optional.empty());
 
         // Act
         ResponseEntity<UserDTO> response = controller.getMyProfile();

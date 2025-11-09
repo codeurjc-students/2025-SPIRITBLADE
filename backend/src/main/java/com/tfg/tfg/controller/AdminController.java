@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tfg.tfg.mapper.UserMapper;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -24,16 +24,16 @@ public class AdminController {
 
     private static final String ROLE_ADMIN = "ADMIN";
 
-    private final UserModelRepository userRepository;
+    private final UserService userService;
 
-    public AdminController(UserModelRepository userRepository) {
-        this.userRepository = userRepository;
+    public AdminController(UserService userService) {
+        this.userService = userService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> listUsers() {
-        List<UserDTO> users = userRepository.findAll().stream()
+        List<UserDTO> users = userService.findAllUsers().stream()
             .map(UserMapper::toDTO)
             .toList();
 
@@ -44,7 +44,7 @@ public class AdminController {
     @PatchMapping("/users/{id}")
     public ResponseEntity<Void> setUserActive(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         boolean active = Boolean.TRUE.equals(body.get("active"));
-        var opt = userRepository.findById(id);
+        var opt = userService.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         
         UserModel u = opt.get();
@@ -54,17 +54,16 @@ public class AdminController {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        u.setActive(active);
-        userRepository.save(u);
+        userService.setUserActive(id, active);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (!userRepository.existsById(id)) return ResponseEntity.notFound().build();
+        if (!userService.existsById(id)) return ResponseEntity.notFound().build();
         
-        var opt = userRepository.findById(id);
+        var opt = userService.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         
         UserModel u = opt.get();
@@ -74,7 +73,7 @@ public class AdminController {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        userRepository.deleteById(id);
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -88,25 +87,13 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}/promote")
     public ResponseEntity<UserDTO> promoteToAdmin(@PathVariable Long id) {
-        var opt = userRepository.findById(id);
+        var opt = userService.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         
-        UserModel user = opt.get();
-        List<String> roles = user.getRols();
-        if (roles == null) {
-            roles = new java.util.ArrayList<>();
-        } else {
-            roles = new java.util.ArrayList<>(roles); // Make mutable
-        }
-        
-        // Add ADMIN role if not present
-        if (!roles.contains(ROLE_ADMIN)) {
-            roles.add(ROLE_ADMIN);
-            user.setRols(roles);
-            userRepository.save(user);
-        }
-        
-        return ResponseEntity.ok(UserMapper.toDTO(user));
+        return userService.promoteToAdmin(id)
+            .map(UserMapper::toDTO)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -119,7 +106,7 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}/demote")
     public ResponseEntity<UserDTO> demoteFromAdmin(@PathVariable Long id) {
-        var opt = userRepository.findById(id);
+        var opt = userService.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         
         UserModel user = opt.get();
@@ -129,14 +116,17 @@ public class AdminController {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        return ResponseEntity.ok(UserMapper.toDTO(user));
+        return userService.demoteFromAdmin(id)
+            .map(UserMapper::toDTO)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> systemStats() {
         Map<String, Object> stats = Map.of(
-            "users", userRepository.count()
+            "users", userService.countUsers()
         );
         return ResponseEntity.ok(stats);
     }
