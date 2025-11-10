@@ -58,6 +58,9 @@ public class UserModel{
     // Avatar URL (from file storage service)
     private String avatarUrl;
 
+    // AI Analysis cooldown tracking
+    private java.time.LocalDateTime lastAiAnalysisRequest;
+
     // Favorite summoners for quick access
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -175,6 +178,14 @@ public class UserModel{
         this.avatarUrl = avatarUrl;
     }
 
+    public java.time.LocalDateTime getLastAiAnalysisRequest() {
+        return lastAiAnalysisRequest;
+    }
+
+    public void setLastAiAnalysisRequest(java.time.LocalDateTime lastAiAnalysisRequest) {
+        this.lastAiAnalysisRequest = lastAiAnalysisRequest;
+    }
+
     public List<Summoner> getFavoriteSummoners() {
         if (favoriteSummoners == null) {
             favoriteSummoners = new java.util.ArrayList<>();
@@ -213,7 +224,7 @@ public class UserModel{
 
     private Blob uploadStandardProfilePic() {
         try {
-            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.jpg");
+            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png");
             if (imageStream != null) {
                 byte[] imageBytes = imageStream.readAllBytes();
                 return new SerialBlob(imageBytes);

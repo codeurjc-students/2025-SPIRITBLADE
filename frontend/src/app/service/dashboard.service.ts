@@ -13,6 +13,13 @@ export interface RankHistoryEntry {
   losses: number;
 }
 
+export interface AiAnalysisResponse {
+  analysis: string;
+  generatedAt: string;
+  matchesAnalyzed: number;
+  summonerName: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
@@ -46,5 +53,17 @@ export class DashboardService {
       url += `&queueId=${queueId}`;
     }
     return this.http.get<MatchHistory[]>(url);
+  }
+
+  /**
+   * Get AI-powered performance analysis
+   * Analyzes recent match history using Google Gemini AI
+   * @param matchCount Number of recent matches to analyze (default: 20, min: 5, max: 50)
+   */
+  getAiAnalysis(matchCount: number = 20): Observable<AiAnalysisResponse> {
+    return this.http.post<AiAnalysisResponse>(
+      `${API_URL}/dashboard/me/ai-analysis?matchCount=${matchCount}`,
+      {}
+    );
   }
 }

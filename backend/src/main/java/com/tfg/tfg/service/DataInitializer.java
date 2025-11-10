@@ -63,6 +63,11 @@ public class DataInitializer {
         if (userRepository.findByName(ADMIN_USERNAME).isEmpty()) {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
+            // Save first to get the ID assigned
+            admin = userRepository.save(admin);
+            // Now set the image path with the generated ID
+            admin.setImage("/users/" + admin.getId() + "/image");
+            // Save again to persist the image path
             userRepository.save(admin);
             logUserCreation(ADMIN_USERNAME, adminPassword, isProduction);
         }
@@ -73,6 +78,11 @@ public class DataInitializer {
             UserModel user = new UserModel(USER_USERNAME, passwordEncoder.encode(userPassword), "USER");
             user.setEmail("user@example.com");
             user.setActive(true);
+            // Save first to get the ID assigned
+            user = userRepository.save(user);
+            // Now set the image path with the generated ID
+            user.setImage("/users/" + user.getId() + "/image");
+            // Save again to persist the image path
             userRepository.save(user);
             logUserCreation(USER_USERNAME, userPassword, isProduction);
         }

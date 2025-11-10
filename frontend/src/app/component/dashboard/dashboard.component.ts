@@ -7,6 +7,7 @@ import { UserService } from '../../service/user.service';
 import { MatchHistory } from '../../dto/match-history.model';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { API_URL } from '../../service/api.config';
+import { MarkdownToHtmlPipe } from '../../pipes/markdown-to-html.pipe';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -14,7 +15,7 @@ Chart.register(...registerables);
 @Component({
 	selector: 'app-dashboard',
 	standalone: true,
-	imports: [CommonModule, FormsModule, RouterLink],
+	imports: [CommonModule, FormsModule, RouterLink, MarkdownToHtmlPipe],
 	templateUrl: './dashboard.component.html',
 	styleUrls: ['./dashboard.component.scss']
 })
@@ -63,6 +64,15 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	avatarUrl: string | null = null;
 	avatarUploading = false;
 	avatarError: string | null = null;
+
+	// AI Analysis
+	showAiModal = false;
+	aiAnalysis: string | null = null;
+	aiAnalysisLoading = false;
+	aiAnalysisError: string | null = null;
+	aiMatchCount = 20;
+	aiGeneratedAt: string | null = null;
+	aiMatchesAnalyzed = 0;
 
 	refresh() {
 		this.loading = true;
@@ -763,6 +773,56 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				console.error('Failed to load favorites', err);
 				this.favoritesError = 'Failed to load favorites.';
 				this.favoritesLoading = false;
+			}
+		});
+	}
+
+	/**
+	 * Open AI Analysis Modal
+	 */
+	openAiAnalysisModal() {
+		this.showAiModal = true;
+		this.aiAnalysis = null;
+		this.aiAnalysisError = null;
+	}
+
+	/**
+	 * Close AI Analysis Modal
+	 */
+	closeAiAnalysisModal() {
+		this.showAiModal = false;
+	}
+
+	/**
+	 * Generate AI-powered performance analysis
+	 */
+	generateAiAnalysis() {
+		if (!this.linkedSummoner || !this.linkedSummoner.name) {
+			this.aiAnalysisError = 'Debes vincular tu cuenta de League of Legends primero';
+			return;
+		}
+
+		if (this.aiMatchCount < 5 || this.aiMatchCount > 30) {
+			this.aiAnalysisError = 'El número de partidas debe estar entre 5 y 30';
+			return;
+		}
+
+		this.aiAnalysisLoading = true;
+		this.aiAnalysisError = null;
+		this.aiAnalysis = null;
+
+		this.dashboardService.getAiAnalysis(this.aiMatchCount).subscribe({
+			next: (response) => {
+				this.aiAnalysis = response.analysis;
+				this.aiGeneratedAt = response.generatedAt;
+				this.aiMatchesAnalyzed = response.matchesAnalyzed;
+				this.aiAnalysisLoading = false;
+				console.log('✅ AI Analysis generated successfully');
+			},
+			error: (err) => {
+				console.error('Failed to generate AI analysis:', err);
+				this.aiAnalysisError = err.error?.message || 'No se pudo generar el análisis con IA. Verifica que tienes suficientes partidas jugadas.';
+				this.aiAnalysisLoading = false;
 			}
 		});
 	}

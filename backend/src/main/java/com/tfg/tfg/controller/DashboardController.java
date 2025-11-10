@@ -82,17 +82,23 @@ public class DashboardController {
     private final MatchService matchService;
     private final UserService userService;
     private final com.tfg.tfg.service.DataDragonService dataDragonService;
+    private final com.tfg.tfg.service.AiAnalysisService aiAnalysisService;
+    private final com.tfg.tfg.service.RankHistoryService rankHistoryService;
 
     public DashboardController(SummonerService summonerService, 
                               RiotService riotService,
                               MatchService matchService,
                               UserService userService,
-                              com.tfg.tfg.service.DataDragonService dataDragonService) {
+                              com.tfg.tfg.service.DataDragonService dataDragonService,
+                              com.tfg.tfg.service.AiAnalysisService aiAnalysisService,
+                              com.tfg.tfg.service.RankHistoryService rankHistoryService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
         this.matchService = matchService;
         this.userService = userService;
         this.dataDragonService = dataDragonService;
+        this.aiAnalysisService = aiAnalysisService;
+        this.rankHistoryService = rankHistoryService;
     }
 
     @GetMapping("/me/stats")
@@ -386,214 +392,9 @@ public class DashboardController {
     }
 
     /**
-     * Get rank history for LP progression chart
-     * Returns historical data for the authenticated user's linked summoner
-     * Calculates LP backwards from current LP based on match results
-     */
-    @GetMapping("/me/rank-history")
-    public ResponseEntity<List<RankHistoryDTO>> myRankHistory() {
-        // Get the authenticated user's linked summoner
-        String username = resolveUsername();
-        String linkedSummonerName = resolveLinkedSummonerName(username);
-        
-        // ONLY show rank history if user has a linked summoner
-        // Do NOT fallback to DataInitializer summoners
-        if (linkedSummonerName == null) {
-            return ResponseEntity.ok(List.of());
-        }
-        
-        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
-        
-        if (summoner == null) {
-            return ResponseEntity.ok(List.of());
-        }
-        
-        // Get ranked matches ordered by timestamp ASC (oldest first)
-        List<MatchEntity> rankedMatches = matchService.findRankedMatchesBySummoner(summoner, "RANKED");
-        
-        // Calculate LP progression - matches are already ordered oldest first
-        List<RankHistoryDTO> dtos = calculateLPProgression(summoner, rankedMatches);
-        
-        return ResponseEntity.ok(dtos);
-    }
-    
-    /**
-     * Calculate LP progression using real match data
-     * @param summoner The summoner with current LP
-     * @param rankedMatches Matches ordered from oldest to newest
-     * @return List of RankHistoryDTO with LP progression
-     */
-    private List<RankHistoryDTO> calculateLPProgression(Summoner summoner, List<MatchEntity> rankedMatches) {
-        if (rankedMatches.isEmpty()) {
-            return createCurrentStateDTO(summoner);
-        }
-        
-        // Check if matches have real LP data stored
-        boolean hasRealLPData = rankedMatches.stream()
-            .anyMatch(m -> m.getLpAtMatch() != null && m.getTierAtMatch() != null);
-        
-        return hasRealLPData 
-            ? buildProgressionFromRealData(summoner, rankedMatches)
-            : buildProgressionFromCalculation(summoner, rankedMatches);
-    }
-    
-    /**
-     * Create single DTO with current summoner state
-     */
-    private List<RankHistoryDTO> createCurrentStateDTO(Summoner summoner) {
-        RankHistoryDTO current = new RankHistoryDTO();
-        current.setDate(java.time.LocalDateTime.now().format(DATE_FORMATTER));
-        current.setTier(summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER);
-        current.setRank(summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK);
-        current.setLeaguePoints(summoner.getLp() != null ? summoner.getLp() : MIN_LP);
-        current.setWins(summoner.getWins() != null ? summoner.getWins() : 0);
-        current.setLosses(summoner.getLosses() != null ? summoner.getLosses() : 0);
-        return java.util.Collections.singletonList(current);
-    }
-    
-    /**
-     * Build progression using real LP data stored in matches
-     */
-    private List<RankHistoryDTO> buildProgressionFromRealData(Summoner summoner, List<MatchEntity> rankedMatches) {
-        List<RankHistoryDTO> result = new java.util.ArrayList<>();
-        int cumulativeWins = 0;
-        int cumulativeLosses = 0;
-        
-        String currentTier = summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER;
-        String currentRank = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
-        int currentLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
-        
-        for (MatchEntity match : rankedMatches) {
-            if (match.isWin()) {
-                cumulativeWins++;
-            } else {
-                cumulativeLosses++;
-            }
-            
-            RankHistoryDTO dto = new RankHistoryDTO();
-            dto.setDate(match.getTimestamp().format(DATE_FORMATTER));
-            dto.setTier(match.getTierAtMatch() != null ? match.getTierAtMatch() : currentTier);
-            dto.setRank(match.getRankAtMatch() != null ? match.getRankAtMatch() : currentRank);
-            dto.setLeaguePoints(match.getLpAtMatch() != null ? match.getLpAtMatch() : currentLP);
-            dto.setWins(cumulativeWins);
-            dto.setLosses(cumulativeLosses);
-            
-            result.add(dto);
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Build progression by calculating LP backwards from current state
-     * Uses tier-based LP gain/loss estimation for more accurate results
-     */
-    private List<RankHistoryDTO> buildProgressionFromCalculation(Summoner summoner, List<MatchEntity> rankedMatches) {
-        List<RankHistoryDTO> result = new java.util.ArrayList<>();
-        
-        int calculatedLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
-        String currentTier = summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER;
-        String currentRank = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
-        
-        // Calculate wins/losses going forward, LP going backward
-        int forwardWins = 0;
-        int forwardLosses = 0;
-        
-        for (int i = 0; i < rankedMatches.size(); i++) {
-            MatchEntity match = rankedMatches.get(i);
-            
-            // Update cumulative forward count
-            if (match.isWin()) {
-                forwardWins++;
-            } else {
-                forwardLosses++;
-            }
-            
-            // Calculate LP for this point (working backwards from current LP)
-            int lpAtThisPoint = calculatedLP;
-            
-            // For LP calculation: work backwards from the end to this point
-            for (int j = rankedMatches.size() - 1; j > i; j--) {
-                MatchEntity laterMatch = rankedMatches.get(j);
-                int change = calculateLPChange(currentTier, laterMatch.isWin());
-                lpAtThisPoint -= change;
-            }
-            
-            // Create DTO with state AFTER this match
-            RankHistoryDTO dto = new RankHistoryDTO();
-            dto.setDate(match.getTimestamp().format(DATE_FORMATTER));
-            dto.setTier(currentTier);
-            dto.setRank(currentRank);
-            dto.setLeaguePoints(Math.clamp(lpAtThisPoint, MIN_LP, MAX_LP));
-            dto.setWins(forwardWins);
-            dto.setLosses(forwardLosses);
-            
-            result.add(dto);
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Calculates estimated LP gain or loss based on tier
-     * These values are based on Riot's known LP distribution patterns
-     * 
-     * @param tier Current tier (IRON, BRONZE, SILVER, etc.)
-     * @param isWin True if victory, false if defeat
-     * @return Estimated LP change (positive for win, negative for loss)
-     */
-    private int calculateLPChange(String tier, boolean isWin) {
-        if (tier == null) {
-            tier = DEFAULT_TIER;
-        }
-        
-        // LP gains are higher in lower ranks to help players climb faster
-        // LP losses are lower in lower ranks to prevent frustration
-        int lpGain;
-        int lpLoss;
-        
-        switch (tier.toUpperCase()) {
-            case "IRON":
-                lpGain = 25;  // High gains for new players
-                lpLoss = 10;  // Low losses to encourage learning
-                break;
-            case "BRONZE":
-                lpGain = 23;
-                lpLoss = 12;
-                break;
-            case "SILVER":
-                lpGain = 21;
-                lpLoss = 14;
-                break;
-            case "EMERALD":
-                lpGain = 18;
-                lpLoss = 17;
-                break;
-            case "PLATINUM":
-                lpGain = 19;
-                lpLoss = 16;
-                break;
-            case "DIAMOND":
-                lpGain = 17;
-                lpLoss = 18;  // Harder to maintain high ranks
-                break;
-            case "MASTER", "GRANDMASTER", "CHALLENGER":
-                lpGain = 15;  // Lower gains at top ranks
-                lpLoss = 20;  // Higher losses to maintain competitive integrity
-                break;
-            case DEFAULT_TIER, "GOLD":
-            default:
-                lpGain = 20;  // Standard gains
-                lpLoss = 15;  // Standard losses
-                break;
-        }
-        
-        return isWin ? lpGain : -lpLoss;
-    }
-    
-    /**
      * Get ranked match history for the linked summoner
      * Returns only RANKED_SOLO_5x5 and RANKED_FLEX_SR matches
+     * All ranked matches MUST have LP calculated and assigned
      */
     @GetMapping("/me/ranked-matches")
     public ResponseEntity<List<com.tfg.tfg.model.dto.MatchHistoryDTO>> getRankedMatches(
@@ -683,6 +484,7 @@ public class DashboardController {
     
     /**
      * Convert MatchEntity to MatchHistoryDTO
+     * VALIDATION: Ranked matches should always have LP assigned
      */
     private com.tfg.tfg.model.dto.MatchHistoryDTO convertMatchEntityToDTO(MatchEntity match) {
         com.tfg.tfg.model.dto.MatchHistoryDTO dto = new com.tfg.tfg.model.dto.MatchHistoryDTO();
@@ -698,6 +500,14 @@ public class DashboardController {
         dto.setGameTimestamp(match.getTimestamp() != null ? match.getTimestamp().toEpochSecond(java.time.ZoneOffset.UTC) : null);
         dto.setQueueId(match.getQueueId());
         dto.setLpAtMatch(match.getLpAtMatch());  // Include saved LP
+        
+        // VALIDATION: Warn if ranked match has no LP
+        boolean isRankedMatch = match.getQueueId() != null && (match.getQueueId() == 420 || match.getQueueId() == 440);
+        if (isRankedMatch && match.getLpAtMatch() == null) {
+            logger.warn("⚠️ Ranked match {} (Queue: {}) has null LP! This may cause chart issues.", 
+                match.getMatchId(), match.getQueueId());
+        }
+        
         return dto;
     }
     
@@ -705,6 +515,8 @@ public class DashboardController {
      * Save multiple matches to database in batch (optimized)
      * Calculates and saves LP at match time for accurate historical tracking
      * Also updates the input DTOs with calculated LP values
+     * CRITICAL: All ranked matches MUST have LP assigned before saving
+     * OPTIMIZATION: Only calculates LP for new matches without it
      */
     private void saveMatchesToDatabase(Summoner summoner, List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches) {
         if (matches.isEmpty()) {
@@ -719,7 +531,29 @@ public class DashboardController {
             
             Map<String, MatchEntity> existingMatches = matchService.findExistingMatchesByMatchIds(matchIds);
             
-            logger.debug("💾 Batch saving: {} matches, {} already exist", matches.size(), existingMatches.size());
+            // Count how many need LP calculation
+            long matchesNeedingLP = matches.stream()
+                .filter(m -> {
+                    MatchEntity existing = existingMatches.get(m.getMatchId());
+                    return existing == null || existing.getLpAtMatch() == null || existing.getLpAtMatch() == 0;
+                })
+                .count();
+            
+            logger.debug("💾 Batch processing: {} matches, {} already exist, {} need LP calculation", 
+                matches.size(), existingMatches.size(), matchesNeedingLP);
+            
+            // OPTIMIZATION: If all matches already have LP, skip calculation
+            if (matchesNeedingLP == 0) {
+                logger.info("✅ All matches already have LP, skipping calculation");
+                // Still populate DTOs with cached LP
+                for (com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO : matches) {
+                    MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
+                    if (existing != null && existing.getLpAtMatch() != null) {
+                        matchDTO.setLpAtMatch(existing.getLpAtMatch());
+                    }
+                }
+                return;
+            }
             
             // Sort matches by timestamp (oldest first) for LP calculation
             List<com.tfg.tfg.model.dto.MatchHistoryDTO> sortedMatches = new java.util.ArrayList<>(matches);
@@ -728,13 +562,29 @@ public class DashboardController {
                 b.getGameTimestamp() != null ? b.getGameTimestamp() : 0
             ));
             
-            // Calculate LP progression starting from current LP and working backwards
+            // Validate that summoner has rank data for LP calculation
             String currentTier = summoner.getTier() != null ? summoner.getTier() : DEFAULT_TIER;
             String currentDivision = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
             int currentLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
             
-            logger.info("🎯 Starting LP calculation - Current LP: {}, Tier: {}, Division: {}, Matches: {}", 
-                currentLP, currentTier, currentDivision, sortedMatches.size());
+            // Check if this is a ranked summoner with valid LP data
+            boolean isRankedSummoner = !DEFAULT_TIER.equals(currentTier) && currentLP >= 0;
+            
+            if (!isRankedSummoner) {
+                logger.warn("⚠️ Cannot calculate LP for unranked summoner {} (Tier: {}, LP: {})", 
+                    summoner.getName(), currentTier, currentLP);
+                // Still save matches, but without LP data
+                for (com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO : sortedMatches) {
+                    MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
+                    MatchEntity match = buildMatchEntity(existing, matchDTO, summoner, 0);
+                    match.setLpAtMatch(null); // Explicitly null for unranked
+                    matchService.saveAll(List.of(match));
+                }
+                return;
+            }
+            
+            logger.info("🎯 Starting LP calculation - Current LP: {}, Tier: {}, Matches needing LP: {}/{}", 
+                currentLP, currentTier, matchesNeedingLP, sortedMatches.size());
             
             // Track LP and division as we go BACKWARDS in time
             int lpTracker = currentLP;
@@ -750,7 +600,16 @@ public class DashboardController {
             logger.info("📈 LP calculation complete: Traced back to approximately {} LP (from current {})", 
                 lpTracker, currentLP);
             
-            // Batch save
+            // VALIDATION: Ensure ALL matches have LP assigned
+            for (MatchEntity match : context.newMatches) {
+                if (match.getLpAtMatch() == null) {
+                    logger.error("❌ CRITICAL: Ranked match {} has null LP! This should never happen.", 
+                        match.getMatchId());
+                    throw new IllegalStateException("Ranked match must have LP assigned: " + match.getMatchId());
+                }
+            }
+            
+            // Batch save only matches that need updating
             if (!context.newMatches.isEmpty()) {
                 matchService.saveAll(context.newMatches);
                 logger.info("💾 Batch saved {} new/updated matches with LP tracking", context.newMatches.size());
@@ -761,11 +620,13 @@ public class DashboardController {
                 Integer calculatedLP = context.lpByMatchId.get(matchDTO.getMatchId());
                 if (calculatedLP != null) {
                     matchDTO.setLpAtMatch(calculatedLP);
+                } else {
+                    logger.warn("⚠️ Match {} did not get LP assigned in processing", matchDTO.getMatchId());
                 }
             }
             
         } catch (Exception e) {
-            logger.warn("⚠️ Could not batch save matches to database: {}", e.getMessage());
+            logger.error("⚠️ Error batch saving matches to database: {}", e.getMessage(), e);
         }
     }
     
@@ -970,25 +831,32 @@ public class DashboardController {
     /**
      * Process matches backwards in time to calculate LP progression
      * Returns updated lpTracker after processing all matches
+     * OPTIMIZATION: Only recalculates LP for matches that don't have it yet (null or 0)
      */
     private int processMatchesBackwards(MatchProcessingContext ctx) {
         int updatedLpTracker = ctx.lpTracker;
+        int recalculatedCount = 0;
+        int skippedCount = 0;
         
         for (int i = ctx.sortedMatches.size() - 1; i >= 0; i--) {
             com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO = ctx.sortedMatches.get(i);
             MatchEntity existing = ctx.existingMatches.get(matchDTO.getMatchId());
             
-            // If match exists with valid LP data, use it
+            // OPTIMIZATION: Skip recalculation if match already has valid LP
             if (existing != null && existing.getLpAtMatch() != null && existing.getLpAtMatch() > 0) {
+                // Use existing LP and sync tracker with it
+                updatedLpTracker = existing.getLpAtMatch();
                 ctx.lpByMatchId.put(matchDTO.getMatchId(), existing.getLpAtMatch());
+                skippedCount++;
+                
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Match {} (existing): LP={}", 
+                    logger.debug("Match {} (cached): LP={}", 
                         getMatchIdSuffix(matchDTO.getMatchId()), existing.getLpAtMatch());
                 }
                 continue;
             }
             
-            // LP at the START of this match
+            // Calculate LP for this match
             int lpAtMatchStart = updatedLpTracker;
             boolean won = matchDTO.getWin() != null && matchDTO.getWin();
             int lpChange = won ? -20 : +15;
@@ -998,13 +866,283 @@ public class DashboardController {
             MatchEntity match = buildMatchEntity(existing, matchDTO, ctx.summoner, lpAtMatchStart);
             
             if (logger.isDebugEnabled()) {
-                logger.debug("Match {} (new): Win={}, LPAtStart={}, Change={}, LPBefore={}", 
+                logger.debug("Match {} (calculated): Win={}, LPAtStart={}, Change={}, LPBefore={}", 
                     getMatchIdSuffix(matchDTO.getMatchId()), won, lpAtMatchStart, lpChange, updatedLpTracker);
             }
             
             ctx.lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
             ctx.newMatches.add(match);
+            recalculatedCount++;
         }
+        
+        if (recalculatedCount > 0 || skippedCount > 0) {
+            logger.info("📊 LP processing: {} recalculated, {} cached (total: {})", 
+                recalculatedCount, skippedCount, ctx.sortedMatches.size());
+        }
+        
         return updatedLpTracker;
+    }
+    
+    /**
+     * AI-powered performance analysis endpoint.
+     * Analyzes player's recent RANKED match history using Google Gemini AI.
+     * 
+     * RATE LIMITING: Users can only request 1 analysis every 5 minutes to prevent API abuse
+     * 
+     * @param matchCount Number of recent matches to analyze (default: 20, max: 30)
+     * @return AI-generated performance analysis
+     */
+    @PostMapping("/me/ai-analysis")
+    public ResponseEntity<?> generateAiAnalysis(@RequestParam(defaultValue = "20") int matchCount) {
+        try {
+            // Validate match count
+            if (matchCount < 5) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "At least 5 matches are required for analysis"
+                ));
+            }
+            if (matchCount > 30) {
+                matchCount = 30; // Cap at 30 matches
+            }
+            
+            // Get authenticated user
+            String username = resolveUsername();
+            if (GUEST.equals(username)) {
+                return ResponseEntity.status(401).body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "You must be logged in to use AI analysis"
+                ));
+            }
+            
+            // Get user and check cooldown
+            UserModel user = userService.findByName(username).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "User not found"
+                ));
+            }
+            
+            // RATE LIMITING: Check cooldown (5 minutes)
+            final int COOLDOWN_MINUTES = 5;
+            if (user.getLastAiAnalysisRequest() != null) {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime cooldownEnds = user.getLastAiAnalysisRequest().plusMinutes(COOLDOWN_MINUTES);
+                
+                if (now.isBefore(cooldownEnds)) {
+                    long minutesRemaining = java.time.Duration.between(now, cooldownEnds).toMinutes();
+                    long secondsRemaining = java.time.Duration.between(now, cooldownEnds).toSeconds() % 60;
+                    
+                    return ResponseEntity.status(429).body(Map.of(
+                        SUCCESS_KEY, false,
+                        MESSAGE_KEY, String.format("You must wait %d minutes and %d seconds before requesting another analysis", 
+                            minutesRemaining, secondsRemaining),
+                        "cooldownEnds", cooldownEnds.toString(),
+                        "remainingSeconds", java.time.Duration.between(now, cooldownEnds).toSeconds()
+                    ));
+                }
+            }
+            
+            // Get linked summoner
+            if (user.getLinkedSummonerName() == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "You must link your League of Legends account first"
+                ));
+            }
+            
+            // Get summoner
+            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
+                .orElse(null);
+            
+            if (summoner == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "The linked summoner account was not found"
+                ));
+            }
+            
+            // Get recent RANKED matches only (queueId 420 = Solo/Duo, 440 = Flex)
+            List<MatchEntity> allMatches = matchService.findRecentMatches(
+                summoner, 
+                LocalDateTime.now().minusMonths(2)
+            );
+            
+            // Filter only RANKED matches
+            List<MatchEntity> rankedMatches = allMatches.stream()
+                .filter(match -> {
+                    Integer queueId = match.getQueueId();
+                    return queueId != null && (queueId == 420 || queueId == 440);
+                })
+                .limit(matchCount)
+                .toList();
+            
+            if (rankedMatches.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                    SUCCESS_KEY, true,
+                    "analysis", "No recent ranked matches were found for analysis. Play some ranked matches and try again."
+                ));
+            }
+            
+            if (rankedMatches.size() < 5) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, String.format("Only %d ranked matches were found. At least 5 are required for analysis.", rankedMatches.size())
+                ));
+            }
+            
+            logger.info("Generating AI analysis for user {} ({} ranked matches out of {} total)", 
+                username, rankedMatches.size(), allMatches.size());
+            
+            // Update cooldown timestamp BEFORE calling AI service (prevent parallel requests)
+            user.setLastAiAnalysisRequest(LocalDateTime.now());
+            userService.save(user);
+            
+            // Generate AI analysis
+            com.tfg.tfg.dto.AiAnalysisResponseDto analysis = aiAnalysisService.analyzePerformance(summoner, rankedMatches);
+            
+            return ResponseEntity.ok(analysis);
+            
+        } catch (IllegalStateException e) {
+            logger.error("AI service not configured: {}", e.getMessage());
+            return ResponseEntity.status(503).body(Map.of(
+                SUCCESS_KEY, false,
+                MESSAGE_KEY, "The AI analysis service is currently unavailable"
+            ));
+        } catch (Exception e) {
+            logger.error("Error generating AI analysis: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of(
+                SUCCESS_KEY, false,
+                MESSAGE_KEY, "Error generating AI analysis: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Get rank history for the authenticated user's linked summoner.
+     * Returns a timeline of rank progression over time.
+     * 
+     * @param queueType Optional queue type (default: RANKED_SOLO_5x5)
+     * @return List of rank history entries
+     */
+    @GetMapping("/me/rank-history")
+    public ResponseEntity<?> getMyRankHistory(
+            @RequestParam(defaultValue = "RANKED_SOLO_5x5") String queueType) {
+        
+        try {
+            String username = resolveUsername();
+            
+            if (GUEST.equals(username)) {
+                return ResponseEntity.status(401).body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "Authentication required"
+                ));
+            }
+            
+            // Get user and linked summoner
+            UserModel user = userService.findByName(username).orElse(null);
+            
+            if (user == null || user.getLinkedSummonerName() == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "No linked League of Legends account found"
+                ));
+            }
+            
+            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
+                .orElse(null);
+            
+            if (summoner == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "Linked summoner not found"
+                ));
+            }
+            
+            // Get rank history
+            List<RankHistoryDTO> rankHistory = rankHistoryService.getRankHistory(summoner, queueType);
+            
+            logger.info("Retrieved {} rank history entries for user {}", rankHistory.size(), username);
+            
+            return ResponseEntity.ok(Map.of(
+                SUCCESS_KEY, true,
+                "rankHistory", rankHistory,
+                "totalEntries", rankHistory.size(),
+                "queueType", queueType
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error fetching rank history: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of(
+                SUCCESS_KEY, false,
+                MESSAGE_KEY, "Error fetching rank history: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Get rank progression data (chronologically ordered for charts).
+     * 
+     * @param queueType Optional queue type (default: RANKED_SOLO_5x5)
+     * @return List of rank history entries in chronological order
+     */
+    @GetMapping("/me/rank-progression")
+    public ResponseEntity<?> getMyRankProgression(
+            @RequestParam(defaultValue = "RANKED_SOLO_5x5") String queueType) {
+        
+        try {
+            String username = resolveUsername();
+            
+            if (GUEST.equals(username)) {
+                return ResponseEntity.status(401).body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "Authentication required"
+                ));
+            }
+            
+            UserModel user = userService.findByName(username).orElse(null);
+            
+            if (user == null || user.getLinkedSummonerName() == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "No linked account"
+                ));
+            }
+            
+            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
+                .orElse(null);
+            
+            if (summoner == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    SUCCESS_KEY, false,
+                    MESSAGE_KEY, "Summoner not found"
+                ));
+            }
+            
+            // Get rank progression (chronologically ordered)
+            List<RankHistoryDTO> progression = rankHistoryService.getRankProgression(summoner.getId(), queueType);
+            
+            // Get peak rank
+            java.util.Optional<RankHistoryDTO> peakRank = rankHistoryService.getPeakRank(summoner, queueType);
+            
+            logger.info("Retrieved rank progression with {} entries for user {}", progression.size(), username);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put(SUCCESS_KEY, true);
+            response.put("progression", progression);
+            response.put("totalEntries", progression.size());
+            response.put("queueType", queueType);
+            peakRank.ifPresent(peak -> response.put("peakRank", peak));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error fetching rank progression: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of(
+                SUCCESS_KEY, false,
+                MESSAGE_KEY, "Error fetching rank progression: " + e.getMessage()
+            ));
+        }
     }
 }

@@ -34,6 +34,7 @@ services:
       SERVER_PORT: "443"
       JWT_SECRET: "${JWT_SECRET:-change-this-secret-key}"
       RIOT_API_KEY: "${RIOT_API_KEY}"
+      GOOGLE_AI_API_KEY: "${GOOGLE_AI_API_KEY:-}"
     ports:
       - "443:443"
 

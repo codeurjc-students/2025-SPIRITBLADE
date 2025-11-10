@@ -84,6 +84,11 @@
       "name": "springdoc.show-actuator",
       "type": "java.lang.Boolean",
       "description": "Show Spring Boot Actuator endpoints in Swagger"
+    },
+    {
+      "name": "google.ai.api.key",
+      "type": "java.lang.String",
+      "description": "Google AI API key for performance analysis features"
     }
   ]
 }
