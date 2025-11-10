@@ -15,9 +15,11 @@ import com.tfg.tfg.repository.MatchRepository;
 public class MatchService {
 
     private final MatchRepository matchRepository;
+    private final RankHistoryService rankHistoryService;
 
-    public MatchService(MatchRepository matchRepository) {
+    public MatchService(MatchRepository matchRepository, RankHistoryService rankHistoryService) {
         this.matchRepository = matchRepository;
+        this.rankHistoryService = rankHistoryService;
     }
 
     public List<MatchEntity> findBySummonerOrderByTimestampDesc(Summoner summoner) {
@@ -60,10 +62,24 @@ public class MatchService {
     }
 
     public MatchEntity save(MatchEntity match) {
-        return matchRepository.save(match);
+        MatchEntity saved = matchRepository.save(match);
+        
+        // Automatically record rank snapshot if match has rank data
+        if (saved.getTierAtMatch() != null && saved.getSummoner() != null) {
+            rankHistoryService.recordRankSnapshot(saved.getSummoner(), saved);
+        }
+        
+        return saved;
     }
 
     public List<MatchEntity> saveAll(List<MatchEntity> matches) {
-        return matchRepository.saveAll(matches);
+        List<MatchEntity> saved = matchRepository.saveAll(matches);
+        
+        // Record rank snapshots for all matches with rank data
+        saved.stream()
+                .filter(m -> m.getTierAtMatch() != null && m.getSummoner() != null)
+                .forEach(m -> rankHistoryService.recordRankSnapshot(m.getSummoner(), m));
+        
+        return saved;
     }
 }

@@ -76,6 +76,7 @@ services:
       
       # Riot API Configuration
       RIOT_API_KEY: "${RIOT_API_KEY}"
+      GOOGLE_AI_API_KEY: "${GOOGLE_AI_API_KEY:-}"
       
       # MinIO Configuration
       MINIO_ENDPOINT: "http://minio:9000"
