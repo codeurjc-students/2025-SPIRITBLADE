@@ -11,12 +11,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.tfg.tfg.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.service.AiAnalysisService;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 /**
  * Unit tests for AiAnalysisService.
@@ -137,5 +140,66 @@ class AiAnalysisServiceUnitTest {
         assertEquals(now, dto.getGeneratedAt());
         assertEquals(matchCount, dto.getMatchesAnalyzed());
         assertEquals(summonerName, dto.getSummonerName());
+    }
+
+    @Test
+    void testBuildStatsPromptWithMatchesUsesAllFields() throws Exception {
+        // Call private buildStatsPrompt to exercise the large prompt-building logic
+        java.lang.reflect.Method m = AiAnalysisService.class.getDeclaredMethod("buildStatsPrompt", Summoner.class, List.class);
+        m.setAccessible(true);
+
+        String prompt = (String) m.invoke(service, testSummoner, testMatches);
+
+        assertNotNull(prompt);
+        assertTrue(prompt.contains("TestPlayer"));
+        assertTrue(prompt.contains("Total Matches"));
+        // Should include at least the first match block and a champion name
+        assertTrue(prompt.contains("MATCH 1"));
+        assertTrue(prompt.contains("Champion0") || prompt.contains("Champion1"));
+        // KDA appears formatted
+        assertTrue(prompt.contains("KDA") || prompt.toLowerCase().contains("kda"));
+    }
+
+    @Test
+    void testCallGeminiApi_successAndErrorPaths() throws Exception {
+        // Prepare a mock WebClient chain
+        WebClient webClient = mock(WebClient.class);
+        WebClient.RequestBodyUriSpec uriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestHeadersSpec<?> headersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        doReturn(uriSpec).when(webClient).post();
+        doReturn(uriSpec).when(uriSpec).uri(anyString());
+        doReturn(uriSpec).when(uriSpec).header(anyString(), anyString());
+        // Use doReturn to avoid generic capture issues with Mockito
+        doReturn(headersSpec).when(uriSpec).bodyValue(any());
+        doReturn(responseSpec).when(headersSpec).retrieve();
+
+        // Successful response
+        String successJson = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"AI-OUT\"}]},\"finishReason\":\"STOP\"}]}";
+    doReturn(Mono.just(successJson)).when(responseSpec).bodyToMono(String.class);
+
+        ReflectionTestUtils.setField(service, "webClient", webClient);
+        ReflectionTestUtils.setField(service, "geminiApiKey", "key");
+
+        java.lang.reflect.Method m = AiAnalysisService.class.getDeclaredMethod("callGeminiApi", String.class);
+        m.setAccessible(true);
+
+        String out = (String) m.invoke(service, "prompt");
+        assertEquals("AI-OUT", out);
+
+        // Error response should throw IOException
+        String errJson = "{\"error\":{\"message\":\"bad key\"}}";
+    doReturn(Mono.just(errJson)).when(responseSpec).bodyToMono(String.class);
+
+        Exception ex = assertThrows(Exception.class, () -> {
+            try {
+                m.invoke(service, "prompt2");
+            } catch (java.lang.reflect.InvocationTargetException ite) {
+                // unwrap
+                throw ite.getCause();
+            }
+        });
+        assertTrue(ex.getMessage().contains("Gemini API error") || ex.getMessage().contains("bad key"));
     }
 }

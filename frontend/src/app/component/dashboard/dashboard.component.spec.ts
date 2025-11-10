@@ -102,7 +102,7 @@ describe('DashboardComponent - Unit Tests', () => {
       // Assert
       expect(component.loading).toBeFalse();
       expect(component.stats).toBeNull();
-      expect(component.error).toBe('No se pudieron obtener las estadísticas del dashboard.');
+  expect(component.error).toBe('Failed to load dashboard statistics.');
       expect(component.favorites).toEqual(mockFavorites);
     });
 
@@ -121,7 +121,7 @@ describe('DashboardComponent - Unit Tests', () => {
       // Assert
       expect(component.stats).toEqual(mockStats);
       expect(component.favoritesLoading).toBeFalse();
-      expect(component.favoritesError).toBe('No se pudieron obtener los favoritos.');
+  expect(component.favoritesError).toBe('Failed to load favorites.');
       expect(component.favorites).toEqual([]);
     });
 
@@ -358,7 +358,7 @@ describe('DashboardComponent - Unit Tests', () => {
 
       // Assert
       expect(component.chartLoading).toBeFalse();
-      expect(component.chartError).toBe('No se pudo cargar el historial de partidas ranked');
+    expect(component.chartError).toBe('Failed to load ranked match history');
     });
   });
 });

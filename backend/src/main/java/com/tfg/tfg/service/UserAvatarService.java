@@ -51,6 +51,8 @@ public class UserAvatarService {
             } catch (Exception e) {
                 // Log but don't fail if old avatar deletion fails
                 // Old avatar will be orphaned but user can still upload new one
+                org.slf4j.LoggerFactory.getLogger(UserAvatarService.class)
+                    .warn("Failed to delete old avatar for user {}: {}", username, e.getMessage());
             }
         }
 
@@ -123,8 +125,12 @@ public class UserAvatarService {
      * @throws IOException if deletion fails
      */
     private void deleteAvatarByUrl(String avatarUrl) throws IOException {
-        // Extract file identifier from URL (format: https://localhost:443/api/v1/files/{fileId})
-        String fileId = avatarUrl.substring(avatarUrl.lastIndexOf("/files/") + 7);
+        // Extract file identifier from URL (expected to contain '/files/{fileId}')
+        int idx = avatarUrl.lastIndexOf("/files/");
+        if (idx < 0 || idx + 7 >= avatarUrl.length()) {
+            throw new IOException("Invalid avatar URL format, cannot extract file identifier: " + avatarUrl);
+        }
+        String fileId = avatarUrl.substring(idx + 7);
         storageService.delete(fileId);
     }
 }

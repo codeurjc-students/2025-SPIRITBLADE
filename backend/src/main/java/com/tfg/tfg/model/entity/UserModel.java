@@ -20,7 +20,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 
 @Entity
@@ -41,9 +40,6 @@ public class UserModel{
     private String email;
 
     private boolean active = true;
-
-    @Lob
-    private Blob profilePic;
 
     private String encodedPassword;
 
@@ -78,8 +74,7 @@ public class UserModel{
         this.name = name;
         this.encodedPassword = encodedPassword;
         this.rols = rols != null ? new java.util.ArrayList<>(List.of(rols)) : new java.util.ArrayList<>();
-        this.image = "/users/" + this.id + "/image";
-        this.profilePic= uploadStandardProfilePic();
+        this.image = null;
     }
 
     public boolean isActive() {
@@ -94,16 +89,8 @@ public class UserModel{
         return id;
     }
 
-    public void setProfilePic(Blob profilePic) {
-        this.profilePic = profilePic;
-    }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Blob getProfilePic() {
-        return profilePic;
     }
 
     public String getImage() {
@@ -138,6 +125,13 @@ public class UserModel{
         this.encodedPassword = encodedPassword;
     }
 
+    /**
+     * Backwards-compatible alias used throughout the codebase.
+     */
+    public void setEncodedPassword(String encodedPassword) {
+        setPass(encodedPassword);
+    }
+
     public List<String> getRols() {
         return rols;
     }
@@ -145,6 +139,17 @@ public class UserModel{
     public void setRols(List<String> rols) {
         this.rols = rols;
     }  
+
+    /**
+     * New clearer accessor name. Keeps compatibility with existing field name.
+     */
+    public List<String> getRoles() {
+        return getRols();
+    }
+
+    public void setRoles(List<String> roles) {
+        setRols(roles);
+    }
 
     public String getLinkedSummonerPuuid() {
         return linkedSummonerPuuid;

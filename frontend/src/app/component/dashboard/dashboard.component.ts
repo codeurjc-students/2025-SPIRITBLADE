@@ -70,7 +70,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	aiAnalysis: string | null = null;
 	aiAnalysisLoading = false;
 	aiAnalysisError: string | null = null;
-	aiMatchCount = 20;
+	aiMatchCount = 10;
 	aiGeneratedAt: string | null = null;
 	aiMatchesAnalyzed = 0;
 
@@ -84,7 +84,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			},
 			error: (err: any) => {
 				console.debug('Failed to refresh dashboard', err);
-				this.error = 'No se pudieron obtener las estadísticas del dashboard.';
+				this.error = 'Failed to load dashboard statistics.';
 				this.loading = false;
 			}
 		});
@@ -99,7 +99,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			},
 			error: (err: any) => {
 				console.debug('Failed to load favorites', err);
-				this.favoritesError = 'No se pudieron obtener los favoritos.';
+				this.favoritesError = 'Failed to load favorites.';
 				this.favoritesLoading = false;
 			}
 		});
@@ -146,7 +146,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			},
 			error: (err) => {
 				console.error('Failed to load ranked match history', err);
-				this.chartError = 'No se pudo cargar el historial de partidas ranked';
+				this.chartError = 'Failed to load ranked match history';
 				this.matchesLoading = false;
 				this.chartLoading = false;
 			}
@@ -190,7 +190,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			if (isNaN(date.getTime())) {
 				return 'Unknown';
 			}
-			return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+			return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 		});
 
 		// Calculate win/loss streak for visual context
@@ -303,7 +303,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 								const index = context[0].dataIndex;
 								const match = sortedMatches[index];
 								const date = new Date((match.gameTimestamp || 0) * 1000);
-								return date.toLocaleString('es-ES');
+								return date.toLocaleString('en-US');
 							},
 							label: (context) => {
 								const index = context.dataIndex;
@@ -314,14 +314,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 									return `Win Rate: ${(context.parsed.y || 0).toFixed(1)}%`;
 								} else {
 									// LP dataset - show ORIGINAL LP (0-100), not cumulative
-									const result = match.win ? 'Victoria' : 'Derrota';
+									const result = match.win ? 'Victory' : 'Defeat';
 									const kda = `${match.kills}/${match.deaths}/${match.assists}`;
 									const originalLP = match.lpAtMatch || 0; // Original LP in current division
 									return [
 										`${result} - ${match.championName}`,
 										`KDA: ${kda}`,
 										`LP: ${originalLP}`, // Show original LP, not cumulative
-										`Duración: ${Math.floor((match.gameDuration || 0) / 60)}m`
+										`Duration: ${Math.floor((match.gameDuration || 0) / 60)}m`
 									];
 								}
 							}
@@ -511,7 +511,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 * Unlink the current League of Legends account
 	 */
 	unlinkAccount() {
-		if (!confirm('¿Estás seguro de que quieres desvincular tu cuenta de League of Legends?')) {
+		if (!confirm('Are you sure you want to unlink your League of Legends account?')) {
 			return;
 		}
 
@@ -531,12 +531,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					}
 					// Refresh stats to show "Unranked" state
 					this.refresh();
-					alert('Cuenta desvinculada correctamente');
+					alert('Account unlinked successfully');
 				}
 			},
 			error: (err) => {
 				this.linkedSummonerLoading = false;
-				alert('Error al desvincular la cuenta');
+				alert('Error unlinking the account');
 				console.error(err);
 			}
 		});
@@ -798,12 +798,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 */
 	generateAiAnalysis() {
 		if (!this.linkedSummoner || !this.linkedSummoner.name) {
-			this.aiAnalysisError = 'Debes vincular tu cuenta de League of Legends primero';
+			this.aiAnalysisError = 'You must link your League of Legends account first';
 			return;
 		}
 
-		if (this.aiMatchCount < 5 || this.aiMatchCount > 30) {
-			this.aiAnalysisError = 'El número de partidas debe estar entre 5 y 30';
+		if (this.aiMatchCount < 10 || this.aiMatchCount > 10) {
+			this.aiAnalysisError = 'The number of matches must be 10';
 			return;
 		}
 
@@ -821,7 +821,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			},
 			error: (err) => {
 				console.error('Failed to generate AI analysis:', err);
-				this.aiAnalysisError = err.error?.message || 'No se pudo generar el análisis con IA. Verifica que tienes suficientes partidas jugadas.';
+				this.aiAnalysisError = err.error?.message || 'Failed to generate AI analysis. Please make sure you have enough matches played.';
 				this.aiAnalysisLoading = false;
 			}
 		});

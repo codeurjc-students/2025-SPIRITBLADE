@@ -215,12 +215,12 @@
 						type="number" 
 						id="matchCount" 
 						[(ngModel)]="aiMatchCount" 
-						min="5" 
-						max="30"
-						placeholder="20"
+						min="10" 
+						max="10"
+						placeholder="10"
 					/>
 				</div>
-				<small>Minimum 5, maximum 30 matches</small>
+				<small>Due to rate limits only 10 matches are analyzed</small>
 				<div style="margin-top: 20px;">
 					<button class="btn-primary generate-btn" (click)="generateAiAnalysis()">
 						Generate Analysis
@@ -247,9 +247,6 @@
 					<p><strong>Generated:</strong> {{ aiGeneratedAt | date:'short' }}</p>
 				</div>
 				<div class="analysis-content" [innerHTML]="aiAnalysis | markdownToHtml"></div>
-				<button class="btn-secondary" (click)="generateAiAnalysis()">
-					Generate New Analysis
-				</button>
 			</div>
 		</div>
 		

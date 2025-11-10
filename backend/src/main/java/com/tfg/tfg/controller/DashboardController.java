@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,6 @@ public class DashboardController {
     private static final String UNKNOWN = "Unknown";
     private static final String SUCCESS_KEY = "success";
     private static final String MESSAGE_KEY = "message";
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
     /**
      * Helper class to encapsulate match processing context
@@ -75,7 +73,6 @@ public class DashboardController {
     private static final String DEFAULT_TIER = "UNRANKED";
     private static final String DEFAULT_RANK = "I";
     private static final int MIN_LP = 0;
-    private static final int MAX_LP = 100;
     
     private final SummonerService summonerService;
     private final RiotService riotService;
@@ -130,7 +127,12 @@ public class DashboardController {
     private String resolveUsername() {
         try {
             var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            if (auth != null && auth.isAuthenticated()) {
+                Object principal = auth.getPrincipal();
+                // Principal can be a String "anonymousUser" or a UserDetails instance
+                if (principal instanceof String s && "anonymousUser".equals(s)) {
+                    return GUEST;
+                }
                 return auth.getName();
             }
         } catch (Exception ex) {
@@ -198,7 +200,8 @@ public class DashboardController {
                 return masteries.get(0).getChampionName();
             }
         } catch (Exception e) {
-            // If API fails, return null
+            // If API fails, return null but log at debug level for investigation
+            logger.debug("Failed to fetch champion masteries for {}: {}", summoner.getName(), e.getMessage());
         }
         return null;
     }
@@ -842,7 +845,7 @@ public class DashboardController {
             com.tfg.tfg.model.dto.MatchHistoryDTO matchDTO = ctx.sortedMatches.get(i);
             MatchEntity existing = ctx.existingMatches.get(matchDTO.getMatchId());
             
-            // OPTIMIZATION: Skip recalculation if match already has valid LP
+            // Skip recalculation if match already has valid LP
             if (existing != null && existing.getLpAtMatch() != null && existing.getLpAtMatch() > 0) {
                 // Use existing LP and sync tracker with it
                 updatedLpTracker = existing.getLpAtMatch();
@@ -859,7 +862,8 @@ public class DashboardController {
             // Calculate LP for this match
             int lpAtMatchStart = updatedLpTracker;
             boolean won = matchDTO.getWin() != null && matchDTO.getWin();
-            int lpChange = won ? -20 : +15;
+            int randomOffset = java.util.concurrent.ThreadLocalRandom.current().nextInt(-3, 4); // -3..+3
+            int lpChange = won ? -17 : 15 + randomOffset;
             updatedLpTracker = calculateBackwardsLpChange(updatedLpTracker, won, ctx.currentTier, ctx.divisionTracker);
             
             // Create/update match entity
@@ -889,21 +893,21 @@ public class DashboardController {
      * 
      * RATE LIMITING: Users can only request 1 analysis every 5 minutes to prevent API abuse
      * 
-     * @param matchCount Number of recent matches to analyze (default: 20, max: 30)
+     * @param matchCount Number of recent matches to analyze (default: 10, max: 10)
      * @return AI-generated performance analysis
      */
     @PostMapping("/me/ai-analysis")
-    public ResponseEntity<?> generateAiAnalysis(@RequestParam(defaultValue = "20") int matchCount) {
+    public ResponseEntity<?> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
         try {
             // Validate match count
-            if (matchCount < 5) {
+            if (matchCount < 10) {
                 return ResponseEntity.badRequest().body(Map.of(
                     SUCCESS_KEY, false,
-                    MESSAGE_KEY, "At least 5 matches are required for analysis"
+                    MESSAGE_KEY, "At least 10 matches are required for analysis"
                 ));
             }
-            if (matchCount > 30) {
-                matchCount = 30; // Cap at 30 matches
+            if (matchCount > 10) {
+                matchCount = 10; // Cap at 10 matches
             }
             
             // Get authenticated user

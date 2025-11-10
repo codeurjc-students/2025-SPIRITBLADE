@@ -91,15 +91,6 @@ class UserModelUnitTest {
     }
 
     @Test
-    void testProfilePicHandling() {
-        assertNull(userModel.getProfilePic());
-        
-        // Test setter
-        userModel.setProfilePic(null);
-        assertNull(userModel.getProfilePic());
-    }
-
-    @Test
     void testUserWithOnlyUserRole() {
         UserModel user = new UserModel("user", "pass", "USER");
         assertEquals("Registered User", user.determineUserType());

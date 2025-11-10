@@ -19,6 +19,7 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataInitializer;
+import com.tfg.tfg.service.storage.MinioStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class DataInitializerUnitTest {
@@ -33,6 +34,9 @@ class DataInitializerUnitTest {
     private SummonerRepository summonerRepository;
 
     @Mock
+    private MinioStorageService minioStorageService;
+
+    @Mock
     private MatchRepository matchRepository;
 
     private DataInitializer dataInitializer;
@@ -41,7 +45,8 @@ class DataInitializerUnitTest {
     void setUp() {
         dataInitializer = new DataInitializer(
             userRepository, 
-            passwordEncoder
+            passwordEncoder,
+            minioStorageService
         );
     }
 
@@ -51,18 +56,29 @@ class DataInitializerUnitTest {
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
         when(userRepository.findByName("user")).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock save to return user with ID set (simulating DB behavior)
+        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
+            UserModel user = invocation.getArgument(0);
+            if (user.getId() == null) {
+                // Simulate first save setting the ID
+                user.setId(user.getName().equals("admin") ? 1L : 2L);
+            }
+            return user;
+        });
 
         // When
         dataInitializer.init();
 
-        // Then - Should create both users
+        // Then - Should save both users twice each (double-save pattern for image path)
+        verify(userRepository, times(4)).save(any(UserModel.class));
+        
         ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
-        verify(userRepository, times(2)).save(captor.capture());
+        verify(userRepository, atLeast(2)).save(captor.capture());
         
         var savedUsers = captor.getAllValues();
         
-        // Verify admin user
+        // Verify admin user (final save has image path)
         UserModel admin = savedUsers.stream()
             .filter(u -> "admin".equals(u.getName()))
             .findFirst()
@@ -71,7 +87,7 @@ class DataInitializerUnitTest {
         assertEquals("admin@example.com", admin.getEmail());
         assertTrue(admin.getRols().contains("ADMIN"));
         
-        // Verify regular user
+        // Verify regular user (final save has image path)
         UserModel user = savedUsers.stream()
             .filter(u -> "user".equals(u.getName()))
             .findFirst()
@@ -86,42 +102,68 @@ class DataInitializerUnitTest {
     void testInitDoesNotCreateAdminWhenExists() {
         // Given - Admin already exists
         UserModel existingAdmin = new UserModel("admin", "encoded-password", "ADMIN");
+        existingAdmin.setId(1L);
         when(userRepository.findByName("admin")).thenReturn(Optional.of(existingAdmin));
         when(userRepository.findByName("user")).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock save to return user with ID set (simulating DB behavior)
+        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
+            UserModel user = invocation.getArgument(0);
+            if (user.getId() == null) {
+                user.setId(2L); // User ID
+            }
+            return user;
+        });
 
         // When
         dataInitializer.init();
 
-        // Then - Should only create user (not admin)
-        ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
-        verify(userRepository, times(1)).save(captor.capture());
+        // Then - Should only create user (not admin), with double-save
+        verify(userRepository, times(2)).save(any(UserModel.class));
         
-        UserModel savedUser = captor.getValue();
-        assertEquals("user", savedUser.getName());
-        assertNotEquals("admin", savedUser.getName());
+        ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
+        verify(userRepository, atLeastOnce()).save(captor.capture());
+        
+        // All saves should be for "user", not "admin"
+        captor.getAllValues().forEach(savedUser -> {
+            assertEquals("user", savedUser.getName());
+            assertNotEquals("admin", savedUser.getName());
+        });
     }
 
     @Test
     void testInitDoesNotCreateUserWhenExists() {
         // Given - User already exists
         UserModel existingUser = new UserModel("user", "encoded-password", "USER");
+        existingUser.setId(2L);
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
         when(userRepository.findByName("user")).thenReturn(Optional.of(existingUser));
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock save to return user with ID set (simulating DB behavior)
+        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
+            UserModel user = invocation.getArgument(0);
+            if (user.getId() == null) {
+                user.setId(1L); // Admin ID
+            }
+            return user;
+        });
 
         // When
         dataInitializer.init();
 
-        // Then - Should only create admin (not user)
-        ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
-        verify(userRepository, times(1)).save(captor.capture());
+        // Then - Should only create admin (not user), with double-save
+        verify(userRepository, times(2)).save(any(UserModel.class));
         
-        UserModel savedAdmin = captor.getValue();
-        assertEquals("admin", savedAdmin.getName());
-        assertNotEquals("user", savedAdmin.getName());
+        ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
+        verify(userRepository, atLeastOnce()).save(captor.capture());
+        
+        // All saves should be for "admin", not "user"
+        captor.getAllValues().forEach(savedUser -> {
+            assertEquals("admin", savedUser.getName());
+            assertNotEquals("user", savedUser.getName());
+        });
     }
 
     @Test

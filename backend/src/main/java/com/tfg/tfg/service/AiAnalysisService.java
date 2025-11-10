@@ -32,7 +32,7 @@ public class AiAnalysisService {
     private final WebClient webClient;
     private final Gson gson;
     
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     
     public AiAnalysisService() {
         this.webClient = WebClient.builder().build();
@@ -48,11 +48,15 @@ public class AiAnalysisService {
      * @throws IOException if API call fails
      */
     public AiAnalysisResponseDto analyzePerformance(Summoner summoner, List<MatchEntity> matches) throws IOException {
+        if (summoner == null) {
+            throw new IllegalArgumentException("Summoner must not be null");
+        }
+
         if (geminiApiKey == null || geminiApiKey.isEmpty()) {
             throw new IllegalStateException("Google AI API key not configured");
         }
         
-        if (matches.isEmpty()) {
+        if (matches == null || matches.isEmpty()) {
             return new AiAnalysisResponseDto(
                 "**Insufficient Match Data**\n\nThere are not enough matches to generate a meaningful analysis. Please play at least 5 ranked matches and try again.\n\n*Analysis requires a minimum match history to provide accurate insights.*",
                 LocalDateTime.now(),
@@ -63,7 +67,7 @@ public class AiAnalysisService {
         
         logger.info("Generating AI analysis for summoner: {} with {} matches", summoner.getName(), matches.size());
         
-        // Build statistics summary
+    // Build statistics summary
         String statsPrompt = buildStatsPrompt(summoner, matches);
         
         // Call Gemini API
@@ -86,9 +90,12 @@ public class AiAnalysisService {
         long losses = totalMatches - wins;
         double winRate = (wins * 100.0) / totalMatches;
         
-        // Build detailed match history with ALL available data from each match
+    // Build detailed match history with ALL available data from each match
+    // Guard against excessively large payloads by truncating to a reasonable max
+    final int MAX_MATCH_DETAILS = 50;
+    int detailLimit = Math.min(matches.size(), MAX_MATCH_DETAILS);
         StringBuilder matchDetails = new StringBuilder();
-        for (int i = 0; i < matches.size(); i++) {
+        for (int i = 0; i < detailLimit; i++) {
             MatchEntity match = matches.get(i);
             double kda = match.getDeaths() > 0 
                 ? (double)(match.getKills() + match.getAssists()) / match.getDeaths() 
@@ -161,7 +168,7 @@ public class AiAnalysisService {
             winRate,
             losses,
             (losses * 100.0) / totalMatches,
-            matchDetails.toString()
+                matchDetails.toString()
         );
     }
     
@@ -232,8 +239,8 @@ public class AiAnalysisService {
             requestBody.add("safetySettings", safetySettings);
             
             String requestJson = gson.toJson(requestBody);
-            logger.debug("Sending request to Gemini API");
-            
+            logger.debug("Sending request to Gemini API (request body size: {} chars)", requestJson.length());
+
             String response = webClient.post()
                 .uri(GEMINI_API_URL + "?key=" + geminiApiKey)
                 .header("Content-Type", "application/json")
@@ -249,8 +256,8 @@ public class AiAnalysisService {
             // Parse response
             JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
             
-            // Log the full response for debugging
-            logger.info("Gemini API response: {}", response);
+            // Log the full response for debugging at DEBUG level (avoid info with large payloads)
+            logger.debug("Gemini API response: {}", response);
             
             // Check for error in response
             if (jsonResponse.has("error")) {
