@@ -4,7 +4,7 @@ import java.time.Duration;
 
 public enum TokenType {
 
-    ACCESS(Duration.ofMinutes(5), "AuthToken"),
+    ACCESS(Duration.ofMinutes(10), "AuthToken"),
     REFRESH(Duration.ofDays(7), "RefreshToken");
 
     /**

@@ -1,12 +1,7 @@
 package com.tfg.tfg.model.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.List;
 
-import javax.sql.rowset.serial.SerialBlob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 
 @Entity
@@ -42,9 +36,6 @@ public class UserModel{
 
     private boolean active = true;
 
-    @Lob
-    private Blob profilePic;
-
     private String encodedPassword;
 
 	@ElementCollection(fetch = FetchType.EAGER)
@@ -57,6 +48,9 @@ public class UserModel{
 
     // Avatar URL (from file storage service)
     private String avatarUrl;
+
+    // AI Analysis cooldown tracking
+    private java.time.LocalDateTime lastAiAnalysisRequest;
 
     // Favorite summoners for quick access
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -75,8 +69,7 @@ public class UserModel{
         this.name = name;
         this.encodedPassword = encodedPassword;
         this.rols = rols != null ? new java.util.ArrayList<>(List.of(rols)) : new java.util.ArrayList<>();
-        this.image = "/users/" + this.id + "/image";
-        this.profilePic= uploadStandardProfilePic();
+        this.image = null;
     }
 
     public boolean isActive() {
@@ -91,16 +84,8 @@ public class UserModel{
         return id;
     }
 
-    public void setProfilePic(Blob profilePic) {
-        this.profilePic = profilePic;
-    }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Blob getProfilePic() {
-        return profilePic;
     }
 
     public String getImage() {
@@ -135,6 +120,13 @@ public class UserModel{
         this.encodedPassword = encodedPassword;
     }
 
+    /**
+     * Backwards-compatible alias used throughout the codebase.
+     */
+    public void setEncodedPassword(String encodedPassword) {
+        setPass(encodedPassword);
+    }
+
     public List<String> getRols() {
         return rols;
     }
@@ -142,6 +134,17 @@ public class UserModel{
     public void setRols(List<String> rols) {
         this.rols = rols;
     }  
+
+    /**
+     * New clearer accessor name. Keeps compatibility with existing field name.
+     */
+    public List<String> getRoles() {
+        return getRols();
+    }
+
+    public void setRoles(List<String> roles) {
+        setRols(roles);
+    }
 
     public String getLinkedSummonerPuuid() {
         return linkedSummonerPuuid;
@@ -173,6 +176,14 @@ public class UserModel{
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public java.time.LocalDateTime getLastAiAnalysisRequest() {
+        return lastAiAnalysisRequest;
+    }
+
+    public void setLastAiAnalysisRequest(java.time.LocalDateTime lastAiAnalysisRequest) {
+        this.lastAiAnalysisRequest = lastAiAnalysisRequest;
     }
 
     public List<Summoner> getFavoriteSummoners() {
@@ -210,20 +221,4 @@ public class UserModel{
             return "Unknown";
         }
     }
-
-    private Blob uploadStandardProfilePic() {
-        try {
-            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.jpg");
-            if (imageStream != null) {
-                byte[] imageBytes = imageStream.readAllBytes();
-                return new SerialBlob(imageBytes);
-            }
-            return null;
-        } catch (IOException | SQLException e) {
-            logger.warn("Failed to load default profile picture: {}", e.getMessage());
-            logger.debug("Stacktrace:", e);
-            return null;
-        }
-    }
-    
 }

@@ -1359,3 +1359,12 @@ footer {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.analysis-content,
+.analysis-content * {
+  color: var(--text-primary) !important;
+  text-decoration: none !important; 
+}
+
+/* Import dashboard big styles globally to avoid component style budget overflow */
+@import './app/component/dashboard/dashboard.component.extra.scss';

@@ -30,10 +30,14 @@ import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.UserAvatarService;
 import com.tfg.tfg.service.UserService;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private static final String SUCCESS_KEY = "success";
     private static final String MESSAGE_KEY = "message";
@@ -329,6 +333,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            logger.warn("Failed to link summoner for user {}: {}", username, e.getMessage(), e);
             Map<String, Object> error = new HashMap<>();
             error.put(SUCCESS_KEY, false);
             error.put(MESSAGE_KEY, "Failed to link account: " + e.getMessage());
@@ -361,6 +366,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            logger.warn("Failed to unlink summoner for user {}: {}", username, e.getMessage(), e);
             Map<String, Object> error = new HashMap<>();
             error.put(SUCCESS_KEY, false);
             error.put(MESSAGE_KEY, "Failed to unlink account: " + e.getMessage());
@@ -400,6 +406,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            logger.error("Error retrieving linked summoner for user {}: {}", username, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

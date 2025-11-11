@@ -29,7 +29,7 @@
 				<div *ngIf="linkedSummonerLoading" class="loading-text">Loading account info...</div>
 				<div *ngIf="!linkedSummonerLoading && linkedSummoner" class="linked-account-info">
 					<p class="linked-label">Linked Account:</p>
-					<p class="linked-summoner">{{ linkedSummoner.name }} ({{ linkedSummoner.region }})</p>
+					<a [routerLink]="['/summoner', linkedSummoner.name]"><p class="linked-summoner">{{ linkedSummoner.name }} ({{ linkedSummoner.region }})</p></a>
 					<button class="unlink-btn" (click)="unlinkAccount()">Unlink Account</button>
 				</div>
 				<div *ngIf="!linkedSummonerLoading && !linkedSummoner">
@@ -83,8 +83,17 @@
 	</div>
 
 	<section class="personal-stats">
-		<h2>Your Performance</h2>
-		<div *ngIf="loading">Cargando estadísticas...</div>
+		<div class="stats-header">
+			<h2>Your Performance</h2>
+			<button 
+				*ngIf="linkedSummoner" 
+				class="ai-analysis-btn" 
+				(click)="openAiAnalysisModal()"
+				title="Get AI-powered performance analysis">
+				Analyze with AI
+			</button>
+		</div>
+		<div *ngIf="loading">Loading stats...</div>
 		<div *ngIf="error" class="error">{{ error }}</div>
 		<div *ngIf="stats" class="stats-grid">
 			<div class="stat-card">
@@ -189,3 +198,62 @@
 	</div>
 </div>
 
+<!-- AI Analysis Modal -->
+<div class="modal-overlay" *ngIf="showAiModal" (click)="closeAiAnalysisModal()" (keydown.escape)="closeAiAnalysisModal()">
+	<div class="modal-content ai-modal" [class.ai-has-result]="aiAnalysis && !aiAnalysisLoading" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>AI Analysis</h2>
+			<button class="close-btn" (click)="closeAiAnalysisModal()">&times;</button>
+		</div>
+		
+		<div class="modal-body">
+			<!-- Configuration Section -->
+			<div class="ai-config" *ngIf="!aiAnalysis && !aiAnalysisLoading">
+				<div class="form-group" style="margin-bottom: 1rem;">
+					<label for="matchCount">Number of Matches:</label>
+					<input 
+						type="number" 
+						id="matchCount" 
+						[(ngModel)]="aiMatchCount" 
+						min="10" 
+						max="10"
+						placeholder="10"
+					/>
+				</div>
+				<small style="color: var(--text-secondary)">Due to rate limits only 10 matches are analyzed</small>
+				<div style="margin-top: 20px;">
+					<button class="btn-primary generate-btn" (click)="generateAiAnalysis()">
+						Generate Analysis
+					</button>
+				</div>
+			</div>
+			
+			<!-- Loading State -->
+			<div class="ai-loading" *ngIf="aiAnalysisLoading">
+				<div class="spinner"></div>
+				<p>Analyzing your last {{ aiMatchCount }} matches...</p>
+				<p class="loading-subtitle">This may take a few seconds</p>
+			</div>
+			
+			<!-- Error State -->
+			<div *ngIf="aiAnalysisError" class="error-message">
+				{{ aiAnalysisError }}
+			</div>
+			
+			<!-- Analysis Result -->
+			<div class="ai-result" *ngIf="aiAnalysis && !aiAnalysisLoading">
+				<div class="analysis-meta">
+					<p><strong>Matches Analyzed:</strong> {{ aiMatchesAnalyzed }}</p>
+					<p><strong>Generated:</strong> {{ aiGeneratedAt | date:'short' }}</p>
+				</div>
+				<div class="analysis-content" [innerHTML]="aiAnalysis | markdownToHtml"></div>
+			</div>
+		</div>
+		
+		<div class="modal-footer" *ngIf="!aiAnalysisLoading">
+			<button class="cancel-btn" (click)="closeAiAnalysisModal()">
+				Close
+			</button>
+		</div>
+	</div>
+</div>

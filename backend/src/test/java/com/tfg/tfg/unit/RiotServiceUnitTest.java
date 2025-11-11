@@ -669,8 +669,10 @@ class RiotServiceUnitTest {
             assertEquals("Ahri", saved.getChampionName());
             assertEquals(true, saved.isWin());
             assertEquals(10, saved.getKills());
-            assertEquals(85, saved.getLpAtMatch());
-            assertEquals("GOLD", saved.getTierAtMatch());
+            // LP is now calculated later by DashboardController, not saved immediately
+            assertNull(saved.getLpAtMatch());
+            assertNull(saved.getTierAtMatch());
+            assertNull(saved.getRankAtMatch());
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
         }

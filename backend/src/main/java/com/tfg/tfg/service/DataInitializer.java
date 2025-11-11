@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.storage.MinioStorageService;
 
 import jakarta.annotation.PostConstruct;
 
@@ -22,11 +23,14 @@ public class DataInitializer {
     
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MinioStorageService minioStorageService;
 
-    public DataInitializer(UserModelRepository userRepository, 
-                          PasswordEncoder passwordEncoder) {
+    public DataInitializer(UserModelRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          MinioStorageService minioStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.minioStorageService = minioStorageService;
     }
 
     @PostConstruct
@@ -63,7 +67,18 @@ public class DataInitializer {
         if (userRepository.findByName(ADMIN_USERNAME).isEmpty()) {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
-            userRepository.save(admin);
+            admin = userRepository.save(admin);
+
+            // Upload default avatar to storage (MinIO) and set avatarUrl
+            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png")) {
+                String key = minioStorageService.store(is, "default-profile.png", "image/png", "avatars");
+                String publicUrl = minioStorageService.getPublicUrl(key);
+                admin.setAvatarUrl(publicUrl);
+                userRepository.save(admin);
+            } catch (Exception e) {
+                logger.warn("Failed to upload default avatar for admin user: {}", e.getMessage());
+            }
+
             logUserCreation(ADMIN_USERNAME, adminPassword, isProduction);
         }
     }
@@ -73,7 +88,18 @@ public class DataInitializer {
             UserModel user = new UserModel(USER_USERNAME, passwordEncoder.encode(userPassword), "USER");
             user.setEmail("user@example.com");
             user.setActive(true);
-            userRepository.save(user);
+            user = userRepository.save(user);
+
+            // Upload default avatar to storage (MinIO) and set avatarUrl
+            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png")) {
+                String key = minioStorageService.store(is, "default-profile.png", "image/png", "avatars");
+                String publicUrl = minioStorageService.getPublicUrl(key);
+                user.setAvatarUrl(publicUrl);
+                userRepository.save(user);
+            } catch (Exception e) {
+                logger.warn("Failed to upload default avatar for regular user: {}", e.getMessage());
+            }
+
             logUserCreation(USER_USERNAME, userPassword, isProduction);
         }
     }

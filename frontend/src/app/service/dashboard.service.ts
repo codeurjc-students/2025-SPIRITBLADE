@@ -13,6 +13,13 @@ export interface RankHistoryEntry {
   losses: number;
 }
 
+export interface AiAnalysisResponse {
+  analysis: string;
+  generatedAt: string;
+  matchesAnalyzed: number;
+  summonerName: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
@@ -23,14 +30,6 @@ export class DashboardService {
 
   getFavoritesOverview(): Observable<any> {
     return this.http.get(`${API_URL}/dashboard/me/favorites`);
-  }
-
-  /**
-   * Get rank history for LP progression chart
-   * Returns historical data of LP changes over time
-   */
-  getRankHistory(): Observable<RankHistoryEntry[]> {
-    return this.http.get<RankHistoryEntry[]>(`${API_URL}/dashboard/me/rank-history`);
   }
 
   /**
@@ -46,5 +45,17 @@ export class DashboardService {
       url += `&queueId=${queueId}`;
     }
     return this.http.get<MatchHistory[]>(url);
+  }
+
+  /**
+   * Get AI-powered performance analysis
+   * Analyzes recent match history using Google Gemini AI
+   * @param matchCount Number of recent matches to analyze (default: 20, min: 5, max: 50)
+   */
+  getAiAnalysis(matchCount: number = 20): Observable<AiAnalysisResponse> {
+    return this.http.post<AiAnalysisResponse>(
+      `${API_URL}/dashboard/me/ai-analysis?matchCount=${matchCount}`,
+      {}
+    );
   }
 }

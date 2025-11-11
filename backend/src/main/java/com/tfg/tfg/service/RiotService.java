@@ -406,16 +406,15 @@ public class RiotService {
             matchEntity.setSummonerName(participant.getSummonerName());
             matchEntity.setCachedAt(java.time.LocalDateTime.now());
             
-            // Save current LP, tier, and rank for accurate historical tracking
-            // This enables real LP progression charts instead of estimation
-            Summoner summoner = summonerOpt.get();
-            matchEntity.setLpAtMatch(summoner.getLp());
-            matchEntity.setTierAtMatch(summoner.getTier());
-            matchEntity.setRankAtMatch(summoner.getRank());
+            // DO NOT set LP here - it will be calculated correctly by DashboardController.saveMatchesToDatabase()
+            // which calculates historical LP progression working backwards from current LP
+            // Setting it here would give all matches the same current LP, making charts flat
+            matchEntity.setLpAtMatch(null);
+            matchEntity.setTierAtMatch(null);
+            matchEntity.setRankAtMatch(null);
             
             matchRepository.save(matchEntity);
-            logger.info("Saved match {} to database cache with LP tracking (LP: {}, Tier: {}, Rank: {})", 
-                matchId, summoner.getLp(), summoner.getTier(), summoner.getRank());
+            logger.debug("Saved match {} to database cache (LP will be calculated on first ranked matches request)", matchId);
             
         } catch (Exception e) {
             // Fully handled: log and swallow - match caching failure shouldn't stop processing
