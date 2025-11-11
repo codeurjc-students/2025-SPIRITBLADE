@@ -1,5 +1,6 @@
 /* Dashboard component specific styles - only non-global rules from wireframe */
-@import './dashboard.component.extra.scss';
+/* Note: bulk dashboard styles were moved to a global file to keep this
+	component stylesheet below the Angular size budget. */
 /* Ensure page content clears the fixed header/footer */
 .dashboard-container {
 	margin-top: 80px; /* space for fixed header */
