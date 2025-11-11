@@ -23,7 +23,6 @@ import com.tfg.tfg.security.jwt.UnauthorizedHandlerJwt;
 import com.tfg.tfg.security.jwt.CustomAccessDeniedHandler;
 import com.tfg.tfg.service.RepositoryUserDetailsService;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 
 
@@ -50,20 +49,19 @@ public class SecurityConfiguration {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
-	}
+	}  
 
 	@Bean
-	public CorsFilter corsFilter() {
+	public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
-		// Allow both HTTP and HTTPS from frontend
-		config.addAllowedOrigin("http://localhost:4200");
-		config.addAllowedOrigin("https://localhost:4200");
+		config.setAllowedOrigins(List.of("http://localhost:4200", "https://localhost:4200"));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-		config.addAllowedHeader("*");
+		config.setAllowedHeaders(List.of("*"));
+		config.setMaxAge(3600L);
 		source.registerCorsConfiguration("/**", config);
-		return new CorsFilter(source);
+		return source;
 	}
 
 	@Bean
@@ -86,8 +84,8 @@ public class SecurityConfiguration {
 		
 		http.authenticationProvider(authenticationProvider());
 
-		// CORS is handled by the CorsFilter bean defined above, so we can use default configuration
-		http.cors(cors -> {});
+	// Use explicit CorsConfigurationSource so Spring Security applies the same CORS rules
+	http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 		
 		http
 			.securityMatcher("/api/v1/**")

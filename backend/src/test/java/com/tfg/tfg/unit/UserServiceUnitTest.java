@@ -152,7 +152,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testCreateUser_Success() {
+    void testCreateUserSuccess() {
         when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -166,24 +166,24 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testCreateUser_WithNullUserDTO() {
+    void testCreateUserWithNullUserDTO() {
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(null));
     }
 
     @Test
-    void testCreateUser_WithNullUsername() {
+    void testCreateUserWithNullUsername() {
         testUserDTO.setName(null);
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUserDTO));
     }
 
     @Test
-    void testCreateUser_WithNullPassword() {
+    void testCreateUserWithNullPassword() {
         testUserDTO.setPassword(null);
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUserDTO));
     }
 
     @Test
-    void testCreateUser_UserAlreadyExists() {
+    void testCreateUserUserAlreadyExists() {
         when(userRepository.findByName("newuser")).thenReturn(Optional.of(testUser));
 
         assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(testUserDTO));
@@ -192,7 +192,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testCreateUser_WithDefaultRoles() {
+    void testCreateUserWithDefaultRoles() {
         testUserDTO.setRoles(null);
         when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
@@ -205,7 +205,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testCreateUser_WithEmptyRoles() {
+    void testCreateUserWithEmptyRoles() {
         testUserDTO.setRoles(new ArrayList<>());
         when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
@@ -218,7 +218,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUser_Success() {
+    void testUpdateUserSuccess() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -230,7 +230,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUser_WithNewPassword() {
+    void testUpdateUserWithNewPassword() {
         testUserDTO.setPassword("newPassword");
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
@@ -243,7 +243,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUser_WithEmptyPassword() {
+    void testUpdateUserWithEmptyPassword() {
         testUserDTO.setPassword("");
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -255,7 +255,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUser_NotFound() {
+    void testUpdateUserNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.updateUser(1L, testUserDTO);
@@ -265,7 +265,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUserProfile_Success() {
+    void testUpdateUserProfileSuccess() {
         testUserDTO.setAvatarUrl("http://example.com/avatar.png");
         when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -278,7 +278,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUpdateUserProfile_NotFound() {
+    void testUpdateUserProfileNotFound() {
         when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.updateUserProfile("testuser", testUserDTO);
@@ -288,7 +288,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testChangeUserRole_Success() {
+    void testChangeUserRoleSuccess() {
         List<String> newRoles = Arrays.asList("ADMIN", "USER");
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -300,7 +300,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testChangeUserRole_NotFound() {
+    void testChangeUserRoleNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.changeUserRole(1L, Arrays.asList("ADMIN"));
@@ -309,7 +309,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDeleteUser_Success() {
+    void testDeleteUserSuccess() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         doNothing().when(userRepository).delete(testUser);
 
@@ -320,7 +320,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDeleteUser_NotFound() {
+    void testDeleteUserNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         boolean result = userService.deleteUser(1L);
@@ -330,7 +330,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testToggleUserActive_FromActiveToInactive() {
+    void testToggleUserActiveFromActiveToInactive() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -341,7 +341,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testToggleUserActive_NotFound() {
+    void testToggleUserActiveNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.toggleUserActive(1L);
@@ -350,7 +350,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testSetUserActive_ToActive() {
+    void testSetUserActiveToActive() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -361,7 +361,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testSetUserActive_ToInactive() {
+    void testSetUserActiveToInactive() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -372,7 +372,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testSetUserActive_NotFound() {
+    void testSetUserActiveNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.setUserActive(1L, true);
@@ -381,7 +381,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testLinkSummoner_Success() {
+    void testLinkSummonerSuccess() {
         when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -392,7 +392,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testLinkSummoner_NotFound() {
+    void testLinkSummonerNotFound() {
         when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.linkSummoner("testuser", "puuid123", "summonerName", "EUW1");
@@ -401,7 +401,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUnlinkSummoner_Success() {
+    void testUnlinkSummonerSuccess() {
         when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
@@ -412,7 +412,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testUnlinkSummoner_NotFound() {
+    void testUnlinkSummonerNotFound() {
         when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.unlinkSummoner("testuser");
@@ -432,7 +432,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testExistsById_True() {
+    void testExistsByIdTrue() {
         when(userRepository.existsById(1L)).thenReturn(true);
 
         boolean result = userService.existsById(1L);
@@ -442,7 +442,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testExistsById_False() {
+    void testExistsByIdFalse() {
         when(userRepository.existsById(1L)).thenReturn(false);
 
         boolean result = userService.existsById(1L);
@@ -462,7 +462,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testPromoteToAdmin_Success() {
+    void testPromoteToAdminSuccess() {
         testUser.setRols(new ArrayList<>(Arrays.asList("USER")));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -474,7 +474,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testPromoteToAdmin_AlreadyAdmin() {
+    void testPromoteToAdminAlreadyAdmin() {
         testUser.setRols(new ArrayList<>(Arrays.asList("USER", "ADMIN")));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
@@ -485,7 +485,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testPromoteToAdmin_WithNullRoles() {
+    void testPromoteToAdminWithNullRoles() {
         testUser.setRols(null);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -497,7 +497,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testPromoteToAdmin_NotFound() {
+    void testPromoteToAdminNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.promoteToAdmin(1L);
@@ -506,7 +506,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDemoteFromAdmin_Success() {
+    void testDemoteFromAdminSuccess() {
         testUser.setRols(new ArrayList<>(Arrays.asList("USER", "ADMIN")));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -518,7 +518,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDemoteFromAdmin_OnlyAdminRole() {
+    void testDemoteFromAdminOnlyAdminRole() {
         testUser.setRols(new ArrayList<>(Arrays.asList("ADMIN")));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
@@ -530,7 +530,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDemoteFromAdmin_WithNullRoles() {
+    void testDemoteFromAdminWithNullRoles() {
         testUser.setRols(null);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
@@ -541,7 +541,7 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void testDemoteFromAdmin_NotFound() {
+    void testDemoteFromAdminNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.demoteFromAdmin(1L);

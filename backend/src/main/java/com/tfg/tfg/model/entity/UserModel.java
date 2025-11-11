@@ -1,12 +1,7 @@
 package com.tfg.tfg.model.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.List;
 
-import javax.sql.rowset.serial.SerialBlob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,20 +221,4 @@ public class UserModel{
             return "Unknown";
         }
     }
-
-    private Blob uploadStandardProfilePic() {
-        try {
-            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png");
-            if (imageStream != null) {
-                byte[] imageBytes = imageStream.readAllBytes();
-                return new SerialBlob(imageBytes);
-            }
-            return null;
-        } catch (IOException | SQLException e) {
-            logger.warn("Failed to load default profile picture: {}", e.getMessage());
-            logger.debug("Stacktrace:", e);
-            return null;
-        }
-    }
-    
 }

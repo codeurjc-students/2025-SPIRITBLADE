@@ -1359,3 +1359,9 @@ footer {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.analysis-content,
+.analysis-content * {
+  color: var(--text-primary) !important;
+  text-decoration: none !important; 
+}
