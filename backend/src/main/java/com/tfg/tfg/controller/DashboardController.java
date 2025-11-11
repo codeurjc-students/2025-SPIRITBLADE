@@ -1024,68 +1024,6 @@ public class DashboardController {
     }
 
     /**
-     * Get rank history for the authenticated user's linked summoner.
-     * Returns a timeline of rank progression over time.
-     * 
-     * @param queueType Optional queue type (default: RANKED_SOLO_5x5)
-     * @return List of rank history entries
-     */
-    @GetMapping("/me/rank-history")
-    public ResponseEntity<?> getMyRankHistory(
-            @RequestParam(defaultValue = "RANKED_SOLO_5x5") String queueType) {
-        
-        try {
-            String username = resolveUsername();
-            
-            if (GUEST.equals(username)) {
-                return ResponseEntity.status(401).body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "Authentication required"
-                ));
-            }
-            
-            // Get user and linked summoner
-            UserModel user = userService.findByName(username).orElse(null);
-            
-            if (user == null || user.getLinkedSummonerName() == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "No linked League of Legends account found"
-                ));
-            }
-            
-            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
-                .orElse(null);
-            
-            if (summoner == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "Linked summoner not found"
-                ));
-            }
-            
-            // Get rank history
-            List<RankHistoryDTO> rankHistory = rankHistoryService.getRankHistory(summoner, queueType);
-            
-            logger.info("Retrieved {} rank history entries for user {}", rankHistory.size(), username);
-            
-            return ResponseEntity.ok(Map.of(
-                SUCCESS_KEY, true,
-                "rankHistory", rankHistory,
-                "totalEntries", rankHistory.size(),
-                "queueType", queueType
-            ));
-            
-        } catch (Exception e) {
-            logger.error("Error fetching rank history: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of(
-                SUCCESS_KEY, false,
-                MESSAGE_KEY, "Error fetching rank history: " + e.getMessage()
-            ));
-        }
-    }
-
-    /**
      * Get rank progression data (chronologically ordered for charts).
      * 
      * @param queueType Optional queue type (default: RANKED_SOLO_5x5)

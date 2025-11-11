@@ -33,14 +33,6 @@ export class DashboardService {
   }
 
   /**
-   * Get rank history for LP progression chart
-   * Returns historical data of LP changes over time
-   */
-  getRankHistory(): Observable<RankHistoryEntry[]> {
-    return this.http.get<RankHistoryEntry[]>(`${API_URL}/dashboard/me/rank-history`);
-  }
-
-  /**
    * Get ranked match history for the linked summoner
    * Returns only RANKED matches (Solo/Duo and Flex)
    * @param page Page number

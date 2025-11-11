@@ -30,7 +30,6 @@ describe('DashboardComponent - Unit Tests', () => {
     // Set default return values for all mocks to prevent errors during ngOnInit
     mockDashboardService.getPersonalStats.and.returnValue(of({} as any));
     mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
-    mockDashboardService.getRankHistory.and.returnValue(of([]));
     mockDashboardService.getRankedMatches.and.returnValue(of([]));
     mockUserService.getProfile.and.returnValue(of({} as any));
     mockUserService.getLinkedSummoner.and.returnValue(of({} as any));

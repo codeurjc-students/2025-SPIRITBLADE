@@ -141,19 +141,6 @@ class DashboardSystemTest {
     }
 
     @Test
-    void testGetRankHistoryWithoutLinkedSummonerReturnsEmptyList() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/dashboard/me/rank-history")
-        .then()
-            .statusCode(200)
-            .body("size()", equalTo(0));
-    }
-
-    @Test
     void testGetFavoritesReturnsUserFavorites() {
         given()
             .port(port)

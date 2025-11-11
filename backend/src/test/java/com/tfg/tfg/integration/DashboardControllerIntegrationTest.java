@@ -52,7 +52,6 @@ class DashboardControllerIntegrationTest {
 
     private static final String TEST_PLAYER = "TestPlayer";
     private static final String STATS_URL = "/api/v1/dashboard/me/stats";
-    private static final String RANK_HISTORY_URL = "/api/v1/dashboard/me/rank-history";
     private static final String RANKED_MATCHES_URL = "/api/v1/dashboard/me/ranked-matches";
     private static final String JSON_LP_7_DAYS = "$.lp7days";
     private static final String JSON_MAIN_ROLE = "$.mainRole";
@@ -227,25 +226,6 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankHistoryWithLinkedSummonerExecutesLpProgressionLogic() throws Exception {
-        // This test triggers:
-        // - calculateLPProgression()
-        // - buildProgressionFromRealData() OR buildProgressionFromCalculation()
-        // - calculateLPChange()
-        
-        mockMvc.perform(get(RANK_HISTORY_URL))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$[0].tier", notNullValue()))
-                .andExpect(jsonPath("$[0].rank", notNullValue()))
-                .andExpect(jsonPath("$[0].leaguePoints", notNullValue()))
-                .andExpect(jsonPath("$[0].wins", greaterThanOrEqualTo(0)))
-                .andExpect(jsonPath("$[0].losses", greaterThanOrEqualTo(0)))
-                .andExpect(jsonPath("$[0].date", notNullValue()));
-    }
-
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
     void testGetRankedMatchesExecutesSaveMatchesToDatabase() throws Exception {
         // This test triggers:
         // - saveMatchesToDatabase()
@@ -372,30 +352,6 @@ class DashboardControllerIntegrationTest {
     void testGetPersonalStatsUnauthorized() throws Exception {
         mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetRankHistoryCalculatesLpChangeForDifferentTiers() throws Exception {
-        // Test that calculateLPChange handles different tier logic
-        // Update summoner to different tiers
-        testSummoner.setTier("IRON");
-        summonerRepository.save(testSummoner);
-
-        mockMvc.perform(get(RANK_HISTORY_URL))
-                .andExpect(status().isOk());
-
-        testSummoner.setTier("DIAMOND");
-        summonerRepository.save(testSummoner);
-
-        mockMvc.perform(get(RANK_HISTORY_URL))
-                .andExpect(status().isOk());
-
-        testSummoner.setTier("MASTER");
-        summonerRepository.save(testSummoner);
-
-        mockMvc.perform(get(RANK_HISTORY_URL))
-                .andExpect(status().isOk());
     }
 
     @Test
