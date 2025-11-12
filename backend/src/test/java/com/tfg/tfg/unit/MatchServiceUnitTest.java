@@ -23,11 +23,11 @@ import com.tfg.tfg.service.MatchService;
 import com.tfg.tfg.service.RankHistoryService;
 
 /**
- * Unit tests for MatchService to achieve maximum code coverage.
+ * Unit tests for MatchService.
  * Tests all repository delegations, filtering logic, and rank snapshot integration.
  */
 @ExtendWith(MockitoExtension.class)
-public class MatchServiceUnitTest {
+class MatchServiceUnitTest {
 
     @Mock
     private MatchRepository matchRepository;
@@ -45,7 +45,7 @@ public class MatchServiceUnitTest {
     private MatchEntity matchWithoutLane;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         testSummoner = new Summoner();
         testSummoner.setId(1L);
         testSummoner.setName("TestPlayer");
@@ -81,7 +81,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindBySummonerOrderByTimestampDesc() {
+    void testFindBySummonerOrderByTimestampDesc() {
         List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithoutRank);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(matches);
 
@@ -92,7 +92,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRankedMatchesBySummoner() {
+    void testFindRankedMatchesBySummoner() {
         String queueType = "RANKED_SOLO_5x5";
         List<MatchEntity> matches = Arrays.asList(matchWithRank);
         when(matchRepository.findRankedMatchesBySummoner(testSummoner, queueType)).thenReturn(matches);
@@ -104,7 +104,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc() {
+    void testFindRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc() {
         Integer queueId = 420;
         List<MatchEntity> matches = Arrays.asList(matchWithRank);
         when(matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, queueId))
@@ -117,7 +117,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRankedMatchesBySummonerOrderByTimestampDesc() {
+    void testFindRankedMatchesBySummonerOrderByTimestampDesc() {
         List<MatchEntity> matches = Arrays.asList(matchWithRank);
         when(matchRepository.findRankedMatchesBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(matches);
 
@@ -128,7 +128,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesFiltersAndSorts() {
+    void testFindRecentMatchesFiltersAndSorts() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
         
         MatchEntity oldMatch = new MatchEntity();
@@ -157,7 +157,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesFiltersOutNullTimestamp() {
+    void testFindRecentMatchesFiltersOutNullTimestamp() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
         
         MatchEntity matchWithNullTimestamp = new MatchEntity();
@@ -180,7 +180,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesFiltersOutNullLp() {
+    void testFindRecentMatchesFiltersOutNullLp() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
         
         MatchEntity matchWithNullLp = new MatchEntity();
@@ -203,7 +203,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesForRoleAnalysisLimitsAndFilters() {
+    void testFindRecentMatchesForRoleAnalysisLimitsAndFilters() {
         List<MatchEntity> allMatches = Arrays.asList(matchWithLane, matchWithoutLane, matchWithRank, matchWithoutRank);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(allMatches);
 
@@ -214,7 +214,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesForRoleAnalysisFiltersEmptyLane() {
+    void testFindRecentMatchesForRoleAnalysisFiltersEmptyLane() {
         matchWithoutLane.setLane("");
         List<MatchEntity> allMatches = Arrays.asList(matchWithoutLane);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(allMatches);
@@ -225,7 +225,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindRecentMatchesForRoleAnalysisFiltersNullLane() {
+    void testFindRecentMatchesForRoleAnalysisFiltersNullLane() {
         matchWithoutLane.setLane(null);
         List<MatchEntity> allMatches = Arrays.asList(matchWithoutLane);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(allMatches);
@@ -236,7 +236,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testFindExistingMatchesByMatchIds() {
+    void testFindExistingMatchesByMatchIds() {
         List<String> matchIds = Arrays.asList("EUW1_123", "EUW1_124", "EUW1_125");
         List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithoutRank, matchWithLane);
         when(matchRepository.findByMatchIdIn(matchIds)).thenReturn(matches);
@@ -251,7 +251,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveWithRankDataRecordsSnapshot() {
+    void testSaveWithRankDataRecordsSnapshot() {
         when(matchRepository.save(matchWithRank)).thenReturn(matchWithRank);
 
         MatchEntity result = matchService.save(matchWithRank);
@@ -262,7 +262,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveWithoutRankDataDoesNotRecordSnapshot() {
+    void testSaveWithoutRankDataDoesNotRecordSnapshot() {
         when(matchRepository.save(matchWithoutRank)).thenReturn(matchWithoutRank);
 
         MatchEntity result = matchService.save(matchWithoutRank);
@@ -273,7 +273,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveWithoutSummonerDoesNotRecordSnapshot() {
+    void testSaveWithoutSummonerDoesNotRecordSnapshot() {
         matchWithRank.setSummoner(null);
         when(matchRepository.save(matchWithRank)).thenReturn(matchWithRank);
 
@@ -285,7 +285,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveAllWithRankDataRecordsSnapshots() {
+    void testSaveAllWithRankDataRecordsSnapshots() {
         List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithLane);
         when(matchRepository.saveAll(matches)).thenReturn(matches);
 
@@ -298,7 +298,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveAllWithMixedDataRecordsOnlyValidSnapshots() {
+    void testSaveAllWithMixedDataRecordsOnlyValidSnapshots() {
         matchWithLane.setTierAtMatch("PLATINUM");
         List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithoutRank, matchWithLane);
         when(matchRepository.saveAll(matches)).thenReturn(matches);
@@ -313,7 +313,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveAllWithNoRankDataDoesNotRecordSnapshots() {
+    void testSaveAllWithNoRankDataDoesNotRecordSnapshots() {
         List<MatchEntity> matches = Arrays.asList(matchWithoutRank);
         when(matchRepository.saveAll(matches)).thenReturn(matches);
 
@@ -325,7 +325,7 @@ public class MatchServiceUnitTest {
     }
 
     @Test
-    public void testSaveAllWithEmptyList() {
+    void testSaveAllWithEmptyList() {
         List<MatchEntity> matches = Arrays.asList();
         when(matchRepository.saveAll(matches)).thenReturn(matches);
 

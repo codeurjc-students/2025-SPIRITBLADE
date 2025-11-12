@@ -1,4 +1,4 @@
-package com.tfg.tfg.dto;
+package com.tfg.tfg.model.dto;
 
 import java.time.LocalDateTime;
 

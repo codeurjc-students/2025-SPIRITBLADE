@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.tfg.tfg.dto.AiAnalysisResponseDto;
+import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.service.AiAnalysisService;

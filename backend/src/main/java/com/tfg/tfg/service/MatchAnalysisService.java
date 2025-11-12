@@ -82,21 +82,6 @@ public class MatchAnalysisService {
     }
     
     /**
-     * EXAMPLE 5: Multi-table JOIN (REMOVED)
-     * This method was removed because the MatchEntity doesn't have a notes relationship.
-     * This was an educational example that doesn't apply to the current data model.
-     * 
-     * @deprecated This method no longer works because notes feature is not implemented
-     * @param summonerId The summoner's ID
-     * @return Empty list (feature not implemented)
-     */
-    @Deprecated
-    public List<MatchEntity> getMatchesWithNotes(Long summonerId) {
-        // Feature not implemented - notes relationship doesn't exist in current model
-        return List.of();
-    }
-    
-    /**
      * EXAMPLE 6: Subquery with aggregation
      * Finds active summoners (those with many matches).
      */

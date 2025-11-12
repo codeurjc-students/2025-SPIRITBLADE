@@ -38,7 +38,7 @@ public class MatchEntity {
     private String lane;
     private Long gameDuration;
     private String gameMode;
-    private Integer queueId;  // Queue ID (420=Ranked Solo, 440=Ranked Flex)
+    private Integer queueId;  // Queue ID 
     private Integer totalDamageDealt;
     private Integer goldEarned;
     private Integer champLevel;

@@ -17,7 +17,7 @@ import com.tfg.tfg.model.dto.riot.RiotLeagueEntryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.mapper.SummonerMapper;
+import com.tfg.tfg.model.mapper.SummonerMapper;
 import com.tfg.tfg.repository.SummonerRepository;
 
 import org.slf4j.Logger;

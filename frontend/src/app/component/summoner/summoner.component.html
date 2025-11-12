@@ -168,8 +168,12 @@
 								
 								<div class="participant-row" *ngFor="let participant of team.participants">
 									<div class="col-player">
-										<span class="player-name">{{ participant.riotIdGameName || participant.summonerName || 'Unknown' }}</span>
-										<span class="player-tag" *ngIf="participant.riotIdTagline">#{{ participant.riotIdTagline }}</span>
+										<a class="player-link"
+											   [routerLink]="['/summoner', formatSummonerParam(participant)]"
+											   title="View summoner profile" style="text-decoration: none; color: inherit;">
+											<span class="player-name">{{ participant.riotIdGameName || participant.summonerName || 'Unknown' }}</span>
+											<span class="player-tag" *ngIf="participant.riotIdTagline">#{{ participant.riotIdTagline }}</span>
+										</a>
 									</div>
 									
 									<div class="col-champion">

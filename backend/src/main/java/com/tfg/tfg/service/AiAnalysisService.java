@@ -12,7 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.tfg.tfg.dto.AiAnalysisResponseDto;
+import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 
@@ -159,7 +159,7 @@ public class AiAnalysisService {
             
             Be specific, constructive, and motivating. Reference actual match data to support your conclusions. 
             Use Markdown formatting with headers, bullet points, and bold text for emphasis.
-            Make sure to answer the question directly and concisely. It's important that the information presented to the end user is brief and valuable.
+            It's important that the information presented to the end user is somewhat brief and valuable.
             """,
             summoner.getName(),
             totalMatches,

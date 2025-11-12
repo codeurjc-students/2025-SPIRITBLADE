@@ -5,8 +5,9 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.mapper.SummonerMapper;
 import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.mapper.SummonerMapper;
+
 import java.time.LocalDateTime;
 
 @Data

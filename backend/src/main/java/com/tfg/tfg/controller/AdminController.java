@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tfg.tfg.mapper.UserMapper;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
+import com.tfg.tfg.model.mapper.UserMapper;
 import com.tfg.tfg.service.UserService;
 
 @RestController
@@ -44,36 +44,28 @@ public class AdminController {
     @PatchMapping("/users/{id}")
     public ResponseEntity<Void> setUserActive(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         boolean active = Boolean.TRUE.equals(body.get("active"));
-        var opt = userService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        
-        UserModel u = opt.get();
+        UserModel user = userService.getUserById(id);
         
         // Prevent actions on admin users
-        if (u.getRols() != null && u.getRols().contains(ROLE_ADMIN)) {
+        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        userService.setUserActive(id, active);
+        userService.setUserActiveOrThrow(id, active);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (!userService.existsById(id)) return ResponseEntity.notFound().build();
-        
-        var opt = userService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        
-        UserModel u = opt.get();
+        UserModel user = userService.getUserById(id);
         
         // Prevent deletion of admin users
-        if (u.getRols() != null && u.getRols().contains(ROLE_ADMIN)) {
+        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        userService.deleteUser(id);
+        userService.deleteUserOrThrow(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -83,17 +75,13 @@ public class AdminController {
      * 
      * @param id User ID to promote
      * @return Success response
+     * @throws UserNotFoundException if user doesn't exist
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}/promote")
     public ResponseEntity<UserDTO> promoteToAdmin(@PathVariable Long id) {
-        var opt = userService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        
-        return userService.promoteToAdmin(id)
-            .map(UserMapper::toDTO)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        UserModel user = userService.promoteToAdminOrThrow(id);
+        return ResponseEntity.ok(UserMapper.toDTO(user));
     }
 
     /**
@@ -102,24 +90,20 @@ public class AdminController {
      * 
      * @param id User ID to demote
      * @return Success response
+     * @throws UserNotFoundException if user doesn't exist
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}/demote")
     public ResponseEntity<UserDTO> demoteFromAdmin(@PathVariable Long id) {
-        var opt = userService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        
-        UserModel user = opt.get();
+        UserModel user = userService.getUserById(id);
         
         // Prevent demotion of admin users (they cannot demote each other)
         if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
             return ResponseEntity.status(403).build(); // Forbidden
         }
         
-        return userService.demoteFromAdmin(id)
-            .map(UserMapper::toDTO)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        UserModel demoted = userService.demoteFromAdminOrThrow(id);
+        return ResponseEntity.ok(UserMapper.toDTO(demoted));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

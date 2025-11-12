@@ -13,7 +13,7 @@ import com.tfg.tfg.model.dto.RankHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.RankHistory;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.mapper.RankHistoryMapper;
+import com.tfg.tfg.model.mapper.RankHistoryMapper;
 import com.tfg.tfg.repository.RankHistoryRepository;
 
 /**

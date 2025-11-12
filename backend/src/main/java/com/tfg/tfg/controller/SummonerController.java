@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tfg.tfg.model.dto.SummonerDTO;
-import com.tfg.tfg.mapper.SummonerMapper;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.mapper.SummonerMapper;
 import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.SummonerService;
 import com.tfg.tfg.service.DataDragonService;
@@ -60,21 +60,16 @@ public class SummonerController {
 
     @GetMapping("/name/{name}")
     public ResponseEntity<SummonerDTO> getSummoner(@PathVariable String name) {
-        // Use Riot API service to get live data
+        // RiotService will throw SummonerNotFoundException if not found
+        // GlobalExceptionHandler will handle it and return 404
         SummonerDTO dto = riotService.getSummonerByName(name);
-        if (dto != null) {
-            return ResponseEntity.ok(dto);
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
     }
     
     @GetMapping("/name/{name}/masteries")
     public ResponseEntity<List<RiotChampionMasteryDTO>> getTopChampions(@PathVariable String name) {
-        // First get summoner to obtain PUUID
+        // Get summoner (throws SummonerNotFoundException if not found)
         SummonerDTO summoner = riotService.getSummonerByName(name);
-        if (summoner == null || summoner.getPuuid() == null) {
-            return ResponseEntity.notFound().build();
-        }
         
         // Get champion masteries using PUUID (with champion names enriched)
         List<RiotChampionMasteryDTO> masteries = riotService.getTopChampionMasteries(summoner.getPuuid(), 3);
@@ -86,11 +81,8 @@ public class SummonerController {
             @PathVariable String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        // First get summoner to obtain PUUID
+        // Get summoner (throws SummonerNotFoundException if not found)
         SummonerDTO summoner = riotService.getSummonerByName(name);
-        if (summoner == null || summoner.getPuuid() == null) {
-            return ResponseEntity.notFound().build();
-        }
         
         // Calculate start index for pagination
         int start = page * size;
@@ -103,10 +95,11 @@ public class SummonerController {
     @GetMapping("/matches/{matchId}")
     public ResponseEntity<com.tfg.tfg.model.dto.MatchDetailDTO> getMatchDetails(@PathVariable String matchId) {
         com.tfg.tfg.model.dto.MatchDetailDTO matchDetails = riotService.getMatchDetails(matchId);
-        if (matchDetails != null) {
-            return ResponseEntity.ok(matchDetails);
+        // If match details is null, throw a domain exception so GlobalExceptionHandler returns 404
+        if (matchDetails == null) {
+            throw new com.tfg.tfg.exception.MatchNotFoundException("Match details not found for ID: " + matchId);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(matchDetails);
     }
 
     @GetMapping("/{id}")

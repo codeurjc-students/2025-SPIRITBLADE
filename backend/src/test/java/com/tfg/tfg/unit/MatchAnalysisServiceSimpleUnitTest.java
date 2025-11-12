@@ -135,17 +135,6 @@ class MatchAnalysisServiceSimpleUnitTest {
     }
     
     @Test
-    void testGetMatchesWithNotesReturnsEmpty() {
-        // This test now validates that the deprecated method returns empty list
-        Long summonerId = 1L;
-        
-        List<MatchEntity> result = service.getMatchesWithNotes(summonerId);
-        
-        assertNotNull(result);
-        assertEquals(0, result.size(), "Deprecated method should return empty list");
-    }
-    
-    @Test
     void testGetActiveSummonersSuccess() {
         long minMatches = 10;
         Summoner summoner = new Summoner();
