@@ -2,6 +2,7 @@ package com.tfg.tfg.model.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -36,7 +37,10 @@ public class RankHistory {
 
     // Rank information
     private String tier;           // IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER, CHALLENGER
+    
+    @Column(name = "division_rank")
     private String rank;           // I, II, III, IV (null for MASTER+)
+    
     private Integer leaguePoints;  // 0-100 (or higher for MASTER+)
 
     // Stats at that moment

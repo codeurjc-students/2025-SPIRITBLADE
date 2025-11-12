@@ -20,7 +20,10 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.service.DashboardService;
 import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.MatchService;
+import com.tfg.tfg.service.RankHistoryService;
 import com.tfg.tfg.service.RiotService;
+
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceCoverageTest {
@@ -34,6 +37,9 @@ class DashboardServiceCoverageTest {
     @Mock
     DataDragonService dataDragonService;
 
+    @Mock
+    RankHistoryService rankHistoryService;
+
     @InjectMocks
     DashboardService dashboardService;
 
@@ -44,14 +50,15 @@ class DashboardServiceCoverageTest {
         s.setName("cacheUser");
 
         MatchEntity cached = new MatchEntity();
+        cached.setId(1L);
         cached.setMatchId("m1");
         cached.setChampionName("Ahri");
         cached.setChampionId(103);
-        cached.setLpAtMatch(30);
         cached.setTimestamp(LocalDateTime.now());
         cached.setQueueId(420);
 
         when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(eq(s))).thenReturn(List.of(cached));
+        when(rankHistoryService.getLpForMatch(1L)).thenReturn(Optional.of(30));
 
         // Simulate API returning the same most-recent match id so cache is considered fresh
         MatchHistoryDTO apiLatest = new MatchHistoryDTO();
@@ -94,8 +101,17 @@ class DashboardServiceCoverageTest {
 
     lenient().when(dataDragonService.getChampionIconUrl(anyLong())).thenReturn("http://img/champ.png");
 
-    // Capture saveAll to avoid real DB work
-    lenient().doAnswer(invocation -> null).when(matchService).saveAll(anyList());
+    // Mock saveAll to return saved entities with IDs
+    lenient().when(matchService.saveAll(anyList())).thenAnswer(invocation -> {
+        List<MatchEntity> matches = invocation.getArgument(0);
+        for (int i = 0; i < matches.size(); i++) {
+            matches.get(i).setId((long) (i + 1));
+        }
+        return matches;
+    });
+    
+    // Mock rankHistoryService to simulate LP being saved (recordRankSnapshot returns RankHistory, so return null)
+    lenient().when(rankHistoryService.recordRankSnapshot(any(), any(), anyString(), anyString(), anyInt())).thenReturn(null);
 
         var res = dashboardService.getRankedMatchesWithLP(s, null, 0, 2);
 

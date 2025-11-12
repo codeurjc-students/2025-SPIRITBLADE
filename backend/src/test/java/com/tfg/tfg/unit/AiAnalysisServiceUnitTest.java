@@ -18,8 +18,10 @@ import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.service.AiAnalysisService;
+import com.tfg.tfg.service.RankHistoryService;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import org.mockito.Mock;
 
 /**
  * Unit tests for AiAnalysisService.
@@ -31,9 +33,12 @@ class AiAnalysisServiceUnitTest {
     private Summoner testSummoner;
     private List<MatchEntity> testMatches;
     
+    @Mock
+    private RankHistoryService rankHistoryService;
+
     @BeforeEach
     void setUp() {
-        service = new AiAnalysisService();
+        service = new AiAnalysisService(rankHistoryService);
         
         // Setup test summoner
         testSummoner = new Summoner();

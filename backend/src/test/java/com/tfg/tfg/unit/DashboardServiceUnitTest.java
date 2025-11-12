@@ -20,6 +20,7 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.DashboardService;
 import com.tfg.tfg.service.MatchService;
+import com.tfg.tfg.service.RankHistoryService;
 import com.tfg.tfg.service.RiotService;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +34,9 @@ class DashboardServiceUnitTest {
 
     @Mock
     DataDragonService dataDragonService;
+    
+    @Mock
+    RankHistoryService rankHistoryService;
 
     @InjectMocks
     DashboardService dashboardService;
@@ -63,12 +67,13 @@ class DashboardServiceUnitTest {
         assertEquals(0, dashboardService.calculateLPGainedLast7Days(s));
 
         MatchEntity m = new MatchEntity();
-        m.setLpAtMatch(100);
+        m.setId(1L);
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m));
+        when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.of(100));
         assertEquals(20, dashboardService.calculateLPGainedLast7Days(s));
 
-        // Null values should return 0
-        m.setLpAtMatch(null);
+        // No RankHistory should return 0
+        when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.empty());
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m));
         assertEquals(0, dashboardService.calculateLPGainedLast7Days(s));
     }

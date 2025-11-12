@@ -31,12 +31,14 @@ public class AiAnalysisService {
     
     private final WebClient webClient;
     private final Gson gson;
+    private final RankHistoryService rankHistoryService;
     
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     
-    public AiAnalysisService() {
+    public AiAnalysisService(RankHistoryService rankHistoryService) {
         this.webClient = WebClient.builder().build();
         this.gson = new Gson();
+        this.rankHistoryService = rankHistoryService;
     }
     
     /**
@@ -103,6 +105,12 @@ public class AiAnalysisService {
             
             long durationMinutes = match.getGameDuration() != null ? match.getGameDuration() / 60 : 0;
             
+            // Get rank info from RankHistory
+            String rankInfo = rankHistoryService.getRankForMatch(match.getId())
+                    .map(rh -> String.format("%s %s (%d LP)", 
+                            rh.getTier(), rh.getRank(), rh.getLeaguePoints()))
+                    .orElse("Unranked");
+            
             matchDetails.append(String.format("""
                 
                 MATCH %d:
@@ -131,7 +139,7 @@ public class AiAnalysisService {
                 getQueueTypeName(match.getQueueId()),
                 match.getGoldEarned() != null ? String.format("%,d gold", match.getGoldEarned()) : "N/A",
                 match.getTotalDamageDealt() != null ? String.format("%,d damage", match.getTotalDamageDealt()) : "N/A",
-                getRankString(match.getTierAtMatch(), match.getRankAtMatch(), match.getLpAtMatch()),
+                rankInfo,
                 match.getTimestamp() != null ? match.getTimestamp().toString() : "Unknown"
             ));
         }
@@ -189,16 +197,6 @@ public class AiAnalysisService {
     
     /**
      * Helper method to format rank string
-     */
-    private String getRankString(String tier, String rank, Integer lp) {
-        if (tier == null) return "Unranked";
-        String rankStr = tier + (rank != null ? " " + rank : "");
-        if (lp != null) {
-            rankStr += String.format(" (%d LP)", lp);
-        }
-        return rankStr;
-    }
-    
     /**
      * Makes API call to Google Gemini.
      */

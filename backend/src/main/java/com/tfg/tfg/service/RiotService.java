@@ -62,14 +62,17 @@ public class RiotService {
     private final SummonerRepository summonerRepository;
     private final com.tfg.tfg.repository.MatchEntityRepository matchRepository;
     private final DataDragonService dataDragonService;
+    private final RankHistoryService rankHistoryService;
     private final RestTemplate restTemplate;
 
     public RiotService(SummonerRepository summonerRepository, 
                       com.tfg.tfg.repository.MatchEntityRepository matchRepository,
-                      DataDragonService dataDragonService) {
+                      DataDragonService dataDragonService,
+                      RankHistoryService rankHistoryService) {
         this.summonerRepository = summonerRepository;
         this.matchRepository = matchRepository;
         this.dataDragonService = dataDragonService;
+        this.rankHistoryService = rankHistoryService;
         this.restTemplate = new RestTemplate();
     }
     
@@ -406,15 +409,8 @@ public class RiotService {
             matchEntity.setSummonerName(participant.getSummonerName());
             matchEntity.setCachedAt(java.time.LocalDateTime.now());
             
-            // DO NOT set LP here - it will be calculated correctly by DashboardController.saveMatchesToDatabase()
-            // which calculates historical LP progression working backwards from current LP
-            // Setting it here would give all matches the same current LP, making charts flat
-            matchEntity.setLpAtMatch(null);
-            matchEntity.setTierAtMatch(null);
-            matchEntity.setRankAtMatch(null);
-            
             matchRepository.save(matchEntity);
-            logger.debug("Saved match {} to database cache (LP will be calculated on first ranked matches request)", matchId);
+            logger.debug("Saved match {} to database cache", matchId);
             
         } catch (Exception e) {
             // Fully handled: log and swallow - match caching failure shouldn't stop processing
@@ -441,7 +437,10 @@ public class RiotService {
         dto.setGameTimestamp(match.getTimestamp().atZone(java.time.ZoneId.systemDefault())
             .toInstant().getEpochSecond());
         dto.setQueueId(match.getQueueId());
-        dto.setLpAtMatch(match.getLpAtMatch());  // Include saved LP for historical tracking
+        
+        // Load LP from RankHistory if available
+        rankHistoryService.getLpForMatch(match.getId())
+                .ifPresent(dto::setLpAtMatch);
         
         // Enrich with champion icon from DataDragon
         if (match.getChampionId() != null) {

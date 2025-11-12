@@ -338,16 +338,19 @@ class DashboardControllerUnitTest {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         
         MatchEntity oldMatch = new MatchEntity();
+        oldMatch.setId(1L);
         oldMatch.setTimestamp(sevenDaysAgo.plusHours(1));
-        oldMatch.setLpAtMatch(30); // Started at 30 LP
         
         MatchEntity recentMatch = new MatchEntity();
+        recentMatch.setId(2L);
         recentMatch.setTimestamp(LocalDateTime.now().minusHours(1));
-        recentMatch.setLpAtMatch(45);
         
         // findRecentMatches devuelve en orden cronológico (primero el más antiguo)
         when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class)))
             .thenReturn(List.of(oldMatch, recentMatch));
+        
+        // Mock RankHistory for LP data
+        when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.of(30)); // Started at 30 LP
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));

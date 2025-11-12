@@ -38,18 +38,22 @@ public class RankHistoryService {
      * 
      * @param summoner The summoner
      * @param match The match that triggered this snapshot
+     * @param tier The tier at the time of the match
+     * @param rank The rank at the time of the match
+     * @param leaguePoints The LP at the time of the match
      * @return The created RankHistory entry
      */
     @Transactional
-    public RankHistory recordRankSnapshot(Summoner summoner, MatchEntity match) {
+    public RankHistory recordRankSnapshot(Summoner summoner, MatchEntity match, 
+                                          String tier, String rank, Integer leaguePoints) {
         if (summoner == null || match == null) {
             logger.warn("Cannot record rank snapshot: summoner or match is null");
             return null;
         }
 
-        // Skip if match doesn't have rank data
-        if (match.getTierAtMatch() == null) {
-            logger.debug("Skipping rank snapshot: no rank data in match {}", match.getMatchId());
+        // Skip if no rank data provided
+        if (tier == null) {
+            logger.debug("Skipping rank snapshot: no rank data provided for match {}", match.getMatchId());
             return null;
         }
 
@@ -59,9 +63,9 @@ public class RankHistoryService {
         rankHistory.setSummoner(summoner);
         rankHistory.setTriggeringMatch(match);
         rankHistory.setTimestamp(match.getTimestamp() != null ? match.getTimestamp() : LocalDateTime.now());
-        rankHistory.setTier(match.getTierAtMatch());
-        rankHistory.setRank(match.getRankAtMatch());
-        rankHistory.setLeaguePoints(match.getLpAtMatch());
+        rankHistory.setTier(tier);
+        rankHistory.setRank(rank);
+        rankHistory.setLeaguePoints(leaguePoints);
         rankHistory.setQueueType(queueType);
 
         // Calculate LP change from previous entry
@@ -70,14 +74,13 @@ public class RankHistoryService {
 
         if (previousEntry.isPresent()) {
             Integer previousLp = previousEntry.get().getLeaguePoints();
-            Integer currentLp = match.getLpAtMatch();
             
-            if (previousLp != null && currentLp != null) {
-                int lpChange = currentLp - previousLp;
+            if (previousLp != null && leaguePoints != null) {
+                int lpChange = leaguePoints - previousLp;
                 rankHistory.setLpChange(lpChange);
                 logger.debug("Rank snapshot: {} LP change for {} ({} -> {})", 
                         lpChange > 0 ? "+" + lpChange : lpChange, 
-                        summoner.getName(), previousLp, currentLp);
+                        summoner.getName(), previousLp, leaguePoints);
             }
         } else {
             logger.debug("First rank snapshot for {} in {}", summoner.getName(), queueType);
@@ -88,6 +91,27 @@ public class RankHistoryService {
                 summoner.getName(), saved.getTier(), saved.getRank(), saved.getLeaguePoints());
         
         return saved;
+    }
+
+    /**
+     * Gets the rank data (tier, rank, LP) for a specific match.
+     * 
+     * @param matchId The match ID
+     * @return Optional containing the RankHistory if it exists
+     */
+    public Optional<RankHistory> getRankForMatch(Long matchId) {
+        return rankHistoryRepository.findByMatchId(matchId);
+    }
+
+    /**
+     * Gets the LP at the time of a specific match.
+     * 
+     * @param matchId The match ID
+     * @return Optional containing the LP if found
+     */
+    public Optional<Integer> getLpForMatch(Long matchId) {
+        return rankHistoryRepository.findByMatchId(matchId)
+                .map(RankHistory::getLeaguePoints);
     }
 
     /**
