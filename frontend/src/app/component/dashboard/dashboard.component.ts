@@ -17,7 +17,7 @@ Chart.register(...registerables);
 	standalone: true,
 	imports: [CommonModule, FormsModule, RouterLink, MarkdownToHtmlPipe],
 	templateUrl: './dashboard.component.html',
-	styleUrls: ['./dashboard.component.scss']
+	styleUrls: ['./dashboard.component.scss', './dashboard.component.extra.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	private dashboardService = inject(DashboardService);
@@ -157,6 +157,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 * Change queue filter and reload matches
 	 */
 	onQueueChange(queueId: number | null) {
+		// Prevent switching queue while data is being loaded
+		if (this.chartLoading || this.matchesLoading) {
+			console.debug('Queue change ignored while data is loading');
+			return;
+		}
+		// Only proceed if the queue changed
+		if (this.selectedQueue === queueId) return;
 		this.selectedQueue = queueId;
 		this.loadRankHistory();
 	}

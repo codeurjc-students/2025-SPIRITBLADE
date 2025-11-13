@@ -59,6 +59,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(MatchNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMatchNotFound(MatchNotFoundException ex, WebRequest request) {
+        log.warn("Match not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            "Match Not Found",
+            ex.getMessage(),
+            request.getDescription(false).replace("uri=", "")
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler({BadCredentialsException.class, InvalidCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(Exception ex, WebRequest request) {
         log.warn("Invalid credentials: {}", ex.getMessage());

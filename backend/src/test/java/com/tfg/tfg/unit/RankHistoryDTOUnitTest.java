@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.tfg.tfg.model.dto.RankHistoryDTO;
 
 /**
- * Unit tests for RankHistoryDTO to achieve maximum code coverage.
+ * Unit tests for RankHistoryDTO.
  * Tests all constructors, getters, setters, calculated fields, and edge cases.
  */
 public class RankHistoryDTOUnitTest {

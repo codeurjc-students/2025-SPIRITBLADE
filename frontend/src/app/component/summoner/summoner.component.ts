@@ -315,6 +315,25 @@ export class SummonerComponent implements OnInit {
 		const ratio = (kills + assists) / deaths;
 		return ratio.toFixed(2);
 	}
+
+	/**
+	 * Format a participant into the route parameter used by the Summoner page.
+	 * Preferred: use Riot ID (gameName#tagLine) when available. Fallback to summonerName.
+	 */
+	formatSummonerParam(participant: ParticipantDTO): string {
+		if (!participant) return '';
+		// If Riot ID components exist, prefer them (gameName + # + tagline)
+		if (participant.riotIdGameName) {
+			const tag = participant.riotIdTagline ? participant.riotIdTagline : '';
+			return tag ? `${participant.riotIdGameName}#${tag}` : participant.riotIdGameName;
+		}
+		// If summonerName already contains a hashtag, assume it's correctly formatted
+		if (participant.summonerName && participant.summonerName.includes('#')) {
+			return participant.summonerName;
+		}
+		// Otherwise return summonerName
+		return participant.summonerName || '';
+	}
 	
 	/**
 	 * Get team name (Blue/Red)

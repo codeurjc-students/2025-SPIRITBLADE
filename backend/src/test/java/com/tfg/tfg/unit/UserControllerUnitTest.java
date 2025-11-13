@@ -137,7 +137,7 @@ class UserControllerUnitTest {
     @Test
     void testGetUserByIdFound() {
         // Arrange
-        when(userService.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userService.getUserById(1L)).thenReturn(testUser);
 
         // Act
         ResponseEntity<UserDTO> response = controller.getUserById(1L);
@@ -146,26 +146,23 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("testuser", response.getBody().getName());
-        verify(userService).findById(1L);
+        verify(userService).getUserById(1L);
     }
 
     @Test
     void testGetUserByIdNotFound() {
         // Arrange
-        when(userService.findById(999L)).thenReturn(Optional.empty());
+        when(userService.getUserById(999L)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
 
-        // Act
-        ResponseEntity<UserDTO> response = controller.getUserById(999L);
-
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService).findById(999L);
+        // Act & Assert
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> controller.getUserById(999L));
+        verify(userService).getUserById(999L);
     }
 
     @Test
     void testGetByNameFound() {
         // Arrange
-        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userService.getUserByName("testuser")).thenReturn(testUser);
 
         // Act
         ResponseEntity<UserDTO> response = controller.getByName("testuser");
@@ -174,20 +171,17 @@ class UserControllerUnitTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("testuser", response.getBody().getName());
-        verify(userService).findByName("testuser");
+        verify(userService).getUserByName("testuser");
     }
 
     @Test
     void testGetByNameNotFound() {
         // Arrange
-        when(userService.findByName("nonexistent")).thenReturn(Optional.empty());
+        when(userService.getUserByName("nonexistent")).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
 
-        // Act
-        ResponseEntity<UserDTO> response = controller.getByName("nonexistent");
-
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService).findByName("nonexistent");
+        // Act & Assert
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> controller.getByName("nonexistent"));
+        verify(userService).getUserByName("nonexistent");
     }
 
     @Test

@@ -126,4 +126,13 @@ public interface RankHistoryRepository extends JpaRepository<RankHistory, Long> 
      * @param cutoffDate The date before which entries should be deleted
      */
     void deleteByTimestampBefore(LocalDateTime cutoffDate);
+
+    /**
+     * Find rank history entry associated with a specific match.
+     * 
+     * @param matchId The match ID
+     * @return Optional containing the rank history if it exists
+     */
+    @Query("SELECT rh FROM RankHistory rh WHERE rh.triggeringMatch.id = :matchId")
+    Optional<RankHistory> findByMatchId(@Param("matchId") Long matchId);
 }

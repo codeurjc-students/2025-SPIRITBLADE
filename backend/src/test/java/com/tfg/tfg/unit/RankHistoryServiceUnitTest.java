@@ -36,37 +36,33 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void recordRankSnapshot_returnsNullWhenNullParams() {
-        assertNull(service.recordRankSnapshot(null, null));
+    void recordRankSnapshotreturnsNullWhenNullParams() {
+        assertNull(service.recordRankSnapshot(null, null, null, null, null));
 
         Summoner s = new Summoner();
         s.setName("X");
-        assertNull(service.recordRankSnapshot(s, null));
-        assertNull(service.recordRankSnapshot(null, new MatchEntity()));
+        assertNull(service.recordRankSnapshot(s, null, "GOLD", "II", 50));
+        assertNull(service.recordRankSnapshot(null, new MatchEntity(), "GOLD", "II", 50));
     }
 
     @Test
-    void recordRankSnapshot_skipsWhenNoTier() {
+    void recordRankSnapshotskipsWhenNoTier() {
         Summoner s = new Summoner();
         s.setName("S");
         MatchEntity m = new MatchEntity();
         m.setMatchId("M1");
-        m.setTierAtMatch(null); // no tier
 
-        assertNull(service.recordRankSnapshot(s, m));
+        assertNull(service.recordRankSnapshot(s, m, null, null, null));
         verifyNoInteractions(repo);
     }
 
     @Test
-    void recordRankSnapshot_firstEntrySavesWithoutLpChangeAndDefaultQueue() {
+    void recordRankSnapshotfirstEntrySavesWithoutLpChangeAndDefaultQueue() {
         Summoner s = new Summoner();
         s.setName("Player");
 
         MatchEntity m = new MatchEntity();
         m.setMatchId("M2");
-        m.setTierAtMatch("GOLD");
-        m.setRankAtMatch("II");
-        m.setLpAtMatch(50);
         m.setTimestamp(LocalDateTime.of(2025, 1, 1, 12, 0));
         m.setQueueId(null); // should default to RANKED_SOLO_5x5
 
@@ -76,7 +72,7 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory saved = service.recordRankSnapshot(s, m);
+        RankHistory saved = service.recordRankSnapshot(s, m, "GOLD", "II", 50);
 
         assertNotNull(saved);
         RankHistory captured = captor.getValue();
@@ -88,15 +84,12 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void recordRankSnapshot_withPreviousCalculatesLpChange() {
+    void recordRankSnapshotwithPreviousCalculatesLpChange() {
         Summoner s = new Summoner();
         s.setName("Player2");
 
         MatchEntity m = new MatchEntity();
         m.setMatchId("M3");
-        m.setTierAtMatch("PLATINUM");
-        m.setRankAtMatch("I");
-        m.setLpAtMatch(120);
         m.setTimestamp(LocalDateTime.now());
         m.setQueueId(420);
 
@@ -109,7 +102,7 @@ class RankHistoryServiceUnitTest {
 
         when(repo.save(any(RankHistory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "PLATINUM", "I", 120);
 
         assertNotNull(result);
         assertEquals(20, result.getLpChange());
@@ -117,7 +110,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void calculateAverageLpChange_returnsZeroOnEmptyAndCorrectAverage() {
+    void calculateAverageLpChangereturnsZeroOnEmptyAndCorrectAverage() {
         Summoner s = new Summoner();
         s.setName("AvgPlayer");
 
@@ -141,7 +134,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getEntryCount_delegatesToRepository() {
+    void getEntryCountdelegatesToRepository() {
         Summoner s = new Summoner();
         when(repo.countBySummoner(eq(s))).thenReturn(7L);
 
@@ -150,7 +143,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getRankHistory_defaultQueue() {
+    void getRankHistorydefaultQueue() {
         Summoner s = new Summoner();
         s.setName("TestPlayer");
 
@@ -171,7 +164,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getRankHistory_specificQueue() {
+    void getRankHistoryspecificQueue() {
         Summoner s = new Summoner();
         s.setName("FlexPlayer");
 
@@ -207,7 +200,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getCurrentRank_found() {
+    void getCurrentRankfound() {
         Summoner s = new Summoner();
         RankHistory rh = new RankHistory();
         rh.setTier("MASTER");
@@ -223,7 +216,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getCurrentRank_notFound() {
+    void getCurrentRanknotFound() {
         Summoner s = new Summoner();
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5")))
@@ -235,7 +228,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getPeakRank_found() {
+    void getPeakRankfound() {
         Summoner s = new Summoner();
         RankHistory rh = new RankHistory();
         rh.setTier("CHALLENGER");
@@ -275,14 +268,12 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void recordRankSnapshot_flexQueueId() {
+    void recordRankSnapshotflexQueueId() {
         Summoner s = new Summoner();
         s.setName("FlexPlayer");
 
         MatchEntity m = new MatchEntity();
         m.setMatchId("FLEX_M");
-        m.setTierAtMatch("SILVER");
-        m.setLpAtMatch(20);
         m.setTimestamp(LocalDateTime.now());
         m.setQueueId(440); // Flex queue
 
@@ -292,18 +283,16 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "SILVER", "III", 20);
 
         assertNotNull(result);
         assertEquals("RANKED_FLEX_SR", captor.getValue().getQueueType());
     }
 
     @Test
-    void recordRankSnapshot_unknownQueueIdDefaultsToSolo() {
+    void recordRankSnapshotunknownQueueIdDefaultsToSolo() {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
-        m.setTierAtMatch("BRONZE");
-        m.setLpAtMatch(5);
         m.setTimestamp(LocalDateTime.now());
         m.setQueueId(999); // Unknown queue
 
@@ -313,18 +302,16 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "BRONZE", "IV", 5);
 
         assertNotNull(result);
         assertEquals("RANKED_SOLO_5x5", captor.getValue().getQueueType());
     }
 
     @Test
-    void recordRankSnapshot_nullTimestampUsesNow() {
+    void recordRankSnapshotnullTimestampUsesNow() {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
-        m.setTierAtMatch("IRON");
-        m.setLpAtMatch(0);
         m.setTimestamp(null); // null timestamp
         m.setQueueId(420);
 
@@ -334,18 +321,16 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "IRON", "IV", 0);
 
         assertNotNull(result);
         assertNotNull(captor.getValue().getTimestamp());
     }
 
     @Test
-    void recordRankSnapshot_previousWithNullLpDoesntCalculateChange() {
+    void recordRankSnapshotpreviousWithNullLpDoesntCalculateChange() {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
-        m.setTierAtMatch("GOLD");
-        m.setLpAtMatch(60);
         m.setTimestamp(LocalDateTime.now());
         m.setQueueId(420);
 
@@ -358,18 +343,16 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "GOLD", "III", 60);
 
         assertNotNull(result);
         assertNull(captor.getValue().getLpChange());
     }
 
     @Test
-    void recordRankSnapshot_currentWithNullLpDoesntCalculateChange() {
+    void recordRankSnapshotcurrentWithNullLpDoesntCalculateChange() {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
-        m.setTierAtMatch("GOLD");
-        m.setLpAtMatch(null); // null current LP
         m.setTimestamp(LocalDateTime.now());
         m.setQueueId(420);
 
@@ -382,7 +365,7 @@ class RankHistoryServiceUnitTest {
         ArgumentCaptor<RankHistory> captor = ArgumentCaptor.forClass(RankHistory.class);
         when(repo.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RankHistory result = service.recordRankSnapshot(s, m);
+        RankHistory result = service.recordRankSnapshot(s, m, "GOLD", "II", null);
 
         assertNotNull(result);
         assertNull(captor.getValue().getLpChange());

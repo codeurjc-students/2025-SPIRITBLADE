@@ -22,7 +22,7 @@ public class DataDragonService {
     private static final Logger logger = LoggerFactory.getLogger(DataDragonService.class);
     
     // Data Dragon version - update periodically or fetch dynamically
-    private static final String DATA_DRAGON_VERSION = "14.1.1";
+    private static final String DATA_DRAGON_VERSION = "15.22.1";
     private static final String DATA_DRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
     private static final String CDN_BASE = DATA_DRAGON_BASE_URL + "/cdn/" + DATA_DRAGON_VERSION;
     private static final String CHAMPION_JSON_URL = CDN_BASE + "/data/en_US/champion.json";
@@ -32,6 +32,8 @@ public class DataDragonService {
     
     // Cache: championId -> championName
     private final Map<Long, String> championIdToName = new HashMap<>();
+    // Cache: championId -> championKey (the key used by DataDragon filenames, e.g. "Aatrox", "Khazix")
+    private final Map<Long, String> championIdToKey = new HashMap<>();
     // Cache: championKey (string ID) -> championName
     private final Map<String, String> championKeyToName = new HashMap<>();
     
@@ -59,8 +61,11 @@ public class DataDragonService {
                     
                     String name = championInfo.get("name").asText(); // e.g., "Aatrox"
                     long id = championInfo.get("key").asLong(); // e.g., 266
-                    
+
+                    // Store both name and key mappings. The JSON key (championKey) is the
+                    // identifier Data Dragon uses for image filenames (no punctuation/spaces).
                     championIdToName.put(id, name);
+                    championIdToKey.put(id, championKey);
                     championKeyToName.put(championKey, name);
                 });
                 
@@ -106,11 +111,18 @@ public class DataDragonService {
      * @return URL to champion icon image
      */
     public String getChampionIconUrl(Long championId) {
-        String championName = championIdToName.get(championId);
-        if (championName == null) {
-            return "";
+        if (championId == null) return "";
+
+        String championKey = championIdToKey.get(championId);
+        if (championKey != null && !championKey.isEmpty()) {
+            return CDN_BASE + "/img/champion/" + championKey + ".png";
         }
-        return CDN_BASE + "/img/champion/" + championName + ".png";
+
+        // Fallback: use the stored name but sanitize it (remove spaces and apostrophes)
+        String championName = championIdToName.get(championId);
+        if (championName == null || championName.isEmpty()) return "";
+        String sanitized = championName.replaceAll("[^A-Za-z0-9]", "");
+        return CDN_BASE + "/img/champion/" + sanitized + ".png";
     }
     
     /**

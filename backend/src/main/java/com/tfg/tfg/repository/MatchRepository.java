@@ -18,12 +18,13 @@ public interface MatchRepository extends JpaRepository<MatchEntity, Long> {
     List<MatchEntity> findBySummonerOrderByTimestampAsc(Summoner summoner);
     
     /**
-     * Find ranked matches for a summoner ordered by timestamp ascending
-     * Used for LP progression tracking
+     * Find ranked matches for a summoner ordered by timestamp ascending.
+     * Ranked matches are identified by queueId (420 = Solo/Duo, 440 = Flex).
+     * Used for LP progression tracking with RankHistory.
      */
     @Query("SELECT m FROM MatchEntity m WHERE m.summoner = :summoner " +
         "AND m.gameMode LIKE %:mode% " +
-        "AND m.tierAtMatch IS NOT NULL " +
+        "AND (m.queueId = 420 OR m.queueId = 440) " +
         "ORDER BY m.timestamp ASC")
     List<MatchEntity> findRankedMatchesBySummoner(@Param("summoner") Summoner summoner, @Param("mode") String mode);
     

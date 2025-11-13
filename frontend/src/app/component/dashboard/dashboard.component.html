@@ -122,13 +122,15 @@
 					<button 
 						class="toggle-btn" 
 						[class.active]="selectedQueue === 420"
-						(click)="onQueueChange(420)">
+						(click)="onQueueChange(420)"
+						[disabled]="chartLoading || matchesLoading">
 						Solo/Duo
 					</button>
 					<button 
 						class="toggle-btn" 
 						[class.active]="selectedQueue === 440"
-						(click)="onQueueChange(440)">
+						(click)="onQueueChange(440)"
+						[disabled]="chartLoading || matchesLoading">
 						Flex
 					</button>
 				</div>

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tfg.tfg.exception.UserAlreadyExistsException;
+import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -30,6 +31,24 @@ public class UserService {
 
     public Optional<UserModel> findById(Long id) {
         return userRepository.findById(id);
+    }
+
+    /**
+     * Get user by ID or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel getUserById(Long id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException("User with ID '" + id + "' not found"));
+    }
+
+    /**
+     * Get user by username or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel getUserByName(String username) {
+        return userRepository.findByName(username)
+            .orElseThrow(() -> new UserNotFoundException("User '" + username + "' not found"));
     }
 
     public Optional<UserModel> findFirstUser() {
@@ -103,6 +122,30 @@ public class UserService {
         });
     }
 
+    /**
+     * Update user or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel updateUserOrThrow(Long id, UserDTO userDTO) {
+        UserModel user = getUserById(id);
+        
+        if (userDTO.getName() != null) {
+            user.setName(userDTO.getName());
+        }
+        if (userDTO.getEmail() != null) {
+            user.setEmail(userDTO.getEmail());
+        }
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
+            user.setPass(passwordEncoder.encode(userDTO.getPassword()));
+        }
+        if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
+            user.setRols(userDTO.getRoles());
+        }
+        user.setActive(userDTO.isActive());
+        
+        return userRepository.save(user);
+    }
+
     public Optional<UserModel> updateUserProfile(String username, UserDTO userDTO) {
         return userRepository.findByName(username).map(user -> {
             if (userDTO.getEmail() != null) {
@@ -129,6 +172,15 @@ public class UserService {
         }).orElse(false);
     }
 
+    /**
+     * Delete user or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public void deleteUserOrThrow(Long id) {
+        UserModel user = getUserById(id);
+        userRepository.delete(user);
+    }
+
     public Optional<UserModel> toggleUserActive(Long id) {
         return userRepository.findById(id).map(user -> {
             user.setActive(!user.isActive());
@@ -141,6 +193,16 @@ public class UserService {
             user.setActive(active);
             return userRepository.save(user);
         });
+    }
+
+    /**
+     * Set user active status or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel setUserActiveOrThrow(Long id, boolean active) {
+        UserModel user = getUserById(id);
+        user.setActive(active);
+        return userRepository.save(user);
     }
 
     public Optional<UserModel> linkSummoner(String username, String puuid, String summonerName, String region) {
@@ -192,6 +254,28 @@ public class UserService {
         });
     }
 
+    /**
+     * Promote user to ADMIN or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel promoteToAdminOrThrow(Long id) {
+        UserModel user = getUserById(id);
+        List<String> roles = user.getRols();
+        if (roles == null) {
+            roles = new java.util.ArrayList<>();
+        } else {
+            roles = new java.util.ArrayList<>(roles); // Make mutable
+        }
+        
+        // Add ADMIN role if not present
+        if (!roles.contains("ADMIN")) {
+            roles.add("ADMIN");
+            user.setRols(roles);
+            return userRepository.save(user);
+        }
+        return user;
+    }
+
     public Optional<UserModel> demoteFromAdmin(Long id) {
         return userRepository.findById(id).map(user -> {
             List<String> roles = user.getRols();
@@ -207,6 +291,26 @@ public class UserService {
             }
             return user;
         });
+    }
+
+    /**
+     * Demote user from ADMIN or throw exception if not found
+     * @throws UserNotFoundException if user doesn't exist
+     */
+    public UserModel demoteFromAdminOrThrow(Long id) {
+        UserModel user = getUserById(id);
+        List<String> roles = user.getRols();
+        if (roles != null) {
+            roles = new java.util.ArrayList<>(roles); // Make mutable
+            roles.remove("ADMIN");
+            // Keep at least USER role
+            if (roles.isEmpty()) {
+                roles.add("USER");
+            }
+            user.setRols(roles);
+            return userRepository.save(user);
+        }
+        return user;
     }
 
     public UserModel save(UserModel user) {

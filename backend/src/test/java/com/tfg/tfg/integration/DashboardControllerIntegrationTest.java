@@ -19,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
+import com.tfg.tfg.model.entity.RankHistory;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.MatchRepository;
+import com.tfg.tfg.repository.RankHistoryRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
@@ -70,6 +72,9 @@ class DashboardControllerIntegrationTest {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    private RankHistoryRepository rankHistoryRepository;
+
     @MockitoBean
     private RiotService riotService;
 
@@ -80,6 +85,7 @@ class DashboardControllerIntegrationTest {
     void setupRealisticData() {
         // Clean up
         userRepository.deleteAll();
+        rankHistoryRepository.deleteAll();
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
 
@@ -99,13 +105,16 @@ class DashboardControllerIntegrationTest {
         LocalDateTime now = LocalDateTime.now();
         
         // Last 7 days - 15 matches with LP progression
-        for (int i = 0; i < 15; i++) {
+        // Start with LP 65 seven days ago, progress forward in time
+        int lpTracker = 65; // Starting LP (7 days ago)
+        for (int i = 14; i >= 0; i--) {  // Reverse order - oldest first (14 days ago to now)
             MatchEntity match = new MatchEntity();
             match.setMatchId("EUW1_recent_" + i);
             match.setSummoner(testSummoner);
             match.setChampionName(getChampionName(i));
             match.setChampionId(getChampionId(i));
-            match.setWin(i % 3 != 0); // 66% winrate
+            boolean won = i % 3 != 0; // 66% winrate
+            match.setWin(won);
             match.setKills(6 + i);
             match.setDeaths(4);
             match.setAssists(8 + i);
@@ -113,11 +122,29 @@ class DashboardControllerIntegrationTest {
             match.setQueueId(420); // Ranked Solo/Duo
             match.setGameMode("RANKED");
             match.setLane(getLane(i)); // Varied lanes
-            match.setTimestamp(now.minusDays(i % 7).minusHours(i * 2L));
-            match.setLpAtMatch(70 + i); // LP progression
-            match.setTierAtMatch("GOLD");
-            match.setRankAtMatch("III");
-            matchRepository.save(match);
+            // Ensure chronological ordering: i runs 14..0 so this gives 14 days ago -> now
+            match.setTimestamp(now.minusDays(i));
+            MatchEntity savedMatch = matchRepository.save(match);
+            
+            // Create RankHistory for LP tracking
+            RankHistory rankHistory = new RankHistory();
+            rankHistory.setSummoner(testSummoner);
+            rankHistory.setTriggeringMatch(savedMatch);
+            rankHistory.setTimestamp(savedMatch.getTimestamp());
+            rankHistory.setTier("GOLD");
+            rankHistory.setRank("III");
+            rankHistory.setLeaguePoints(lpTracker);
+            rankHistory.setQueueType("RANKED_SOLO_5x5");
+            rankHistory.setLpChange(won ? 20 : -15);
+            rankHistoryRepository.save(rankHistory);
+            
+            // Update LP for next match (moving forward in time)
+            lpTracker += won ? 20 : -15;
+            if (lpTracker > 100) {
+                lpTracker = 100;
+            } else if (lpTracker < 0) {
+                lpTracker = 0;
+            }
         }
         
         // Older matches (7-14 days) - 15 matches
@@ -136,9 +163,6 @@ class DashboardControllerIntegrationTest {
             match.setGameMode("RANKED");
             match.setLane("MIDDLE"); // Consistent lane for main role
             match.setTimestamp(now.minusDays(7 + (long) (i - 15)));
-            match.setLpAtMatch(55 + (i - 15) * 2);
-            match.setTierAtMatch("GOLD");
-            match.setRankAtMatch("IV");
             matchRepository.save(match);
         }
 
@@ -148,6 +172,23 @@ class DashboardControllerIntegrationTest {
         testUser.setActive(true);
         testUser.setLinkedSummonerName(TEST_PLAYER);
         testUser = userRepository.save(testUser);
+
+        // Ensure summoner current LP is greater than the oldest LP inside the last 7 days
+        LocalDateTime sevenDaysAgo = now.minusDays(7);
+        List<RankHistory> recentRankHistory = rankHistoryRepository.findBySummonerAndQueueTypeOrderByTimestampDesc(testSummoner, "RANKED_SOLO_5x5");
+        // Filter entries that are within the last 7 days (strictly after sevenDaysAgo)
+        RankHistory earliestInWindow = recentRankHistory.stream()
+                .filter(rh -> rh.getTimestamp() != null && rh.getTimestamp().isAfter(sevenDaysAgo))
+                .min(java.util.Comparator.comparing(RankHistory::getTimestamp))
+                .orElse(null);
+
+        if (earliestInWindow != null) {
+            int needed = (earliestInWindow.getLeaguePoints() != null ? earliestInWindow.getLeaguePoints() : 0) + 20;
+            if (testSummoner.getLp() == null || testSummoner.getLp() < needed) {
+                testSummoner.setLp(needed);
+                summonerRepository.save(testSummoner);
+            }
+        }
 
         // Mock RiotService to return champion mastery
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();

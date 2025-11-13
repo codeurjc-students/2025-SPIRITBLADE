@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,31 +61,29 @@ class AdminControllerUnitTest {
         user.setId(userId);
         user.setActive(false);
         
-        when(userService.findById(userId)).thenReturn(Optional.of(user));
-        when(userService.setUserActive(userId, true)).thenReturn(Optional.of(user));
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(userService.setUserActiveOrThrow(userId, true)).thenReturn(user);
         
         // When
         ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", true));
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userService).findById(userId);
-        verify(userService).setUserActive(userId, true);
+        verify(userService).getUserById(userId);
+        verify(userService).setUserActiveOrThrow(userId, true);
     }
 
     @Test
     void testSetUserActiveUserNotFound() {
         // Given
         Long userId = 999L;
-        when(userService.findById(userId)).thenReturn(Optional.empty());
-        
-        // When
-        ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", true));
-        
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService).findById(userId);
-        verify(userService, never()).setUserActive(anyLong(), anyBoolean());
+        when(userService.getUserById(userId)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
+
+        // Act & Assert: controller delegates exception handling to GlobalExceptionHandler; at unit level the exception will be thrown
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () ->
+            adminController.setUserActive(userId, Map.of("active", true)));
+        verify(userService).getUserById(userId);
+        verify(userService, never()).setUserActiveOrThrow(anyLong(), anyBoolean());
     }
 
     @Test
@@ -97,16 +94,16 @@ class AdminControllerUnitTest {
         user.setId(userId);
         user.setActive(true);
         
-        when(userService.findById(userId)).thenReturn(Optional.of(user));
-        when(userService.setUserActive(userId, false)).thenReturn(Optional.of(user));
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(userService.setUserActiveOrThrow(userId, false)).thenReturn(user);
         
         // When
         ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", false));
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userService).findById(userId);
-        verify(userService).setUserActive(userId, false);
+        verify(userService).getUserById(userId);
+        verify(userService).setUserActiveOrThrow(userId, false);
     }
 
     @Test
@@ -116,29 +113,26 @@ class AdminControllerUnitTest {
         UserModel user = new UserModel("testuser", "password", "USER");
         user.setId(userId);
         
-        when(userService.existsById(userId)).thenReturn(true);
-        when(userService.findById(userId)).thenReturn(Optional.of(user));
+        when(userService.getUserById(userId)).thenReturn(user);
+        doNothing().when(userService).deleteUserOrThrow(userId);
         
         // When
         ResponseEntity<Void> response = adminController.deleteUser(userId);
         
         // Then
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userService).deleteUser(userId);
+        verify(userService).deleteUserOrThrow(userId);
     }
 
     @Test
     void testDeleteUserNotFound() {
         // Given
         Long userId = 999L;
-        when(userService.existsById(userId)).thenReturn(false);
-        
-        // When
-        ResponseEntity<Void> response = adminController.deleteUser(userId);
-        
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService, never()).deleteUser(any());
+        when(userService.getUserById(userId)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
+
+        // Act & Assert
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> adminController.deleteUser(userId));
+        verify(userService, never()).deleteUserOrThrow(anyLong());
     }
 
     @Test

@@ -1,9 +1,7 @@
 package com.tfg.tfg.unit;
 
 import com.tfg.tfg.controller.DashboardController;
-import com.tfg.tfg.model.dto.RankHistoryDTO;
 import com.tfg.tfg.model.dto.SummonerDTO;
-import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
@@ -18,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,6 +36,7 @@ import static org.mockito.Mockito.*;
  * Tests basic dashboard functionality step by step.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DashboardControllerUnitTest {
 
     @Mock
@@ -52,6 +53,15 @@ class DashboardControllerUnitTest {
 
     @Mock
     private DataDragonService dataDragonService;
+
+    @Mock
+    private com.tfg.tfg.service.DashboardService dashboardService;
+
+    @Mock
+    private com.tfg.tfg.service.AiAnalysisService aiAnalysisService;
+
+    @Mock
+    private com.tfg.tfg.service.RankHistoryService rankHistoryService;
 
     @InjectMocks
     private DashboardController dashboardController;
@@ -76,12 +86,23 @@ class DashboardControllerUnitTest {
         testUser.setName("testuser");
         testUser.setLinkedSummonerName("TestSummoner");
         testUser.setFavoriteSummoners(new ArrayList<>());
+
+        // No global stubbing here; tests will stub the dashboardService per-case to reflect service responsibilities
     }
+
 
     @Test
     void testMyStatsAsGuest() {
         // Clear security context (guest user)
         SecurityContextHolder.clearContext();
+
+        // dashboardService should return default guest stats for null summoner
+        Map<String, Object> guestStats = new HashMap<>();
+        guestStats.put("currentRank", "Unranked");
+        guestStats.put("lp7days", 0);
+        guestStats.put("mainRole", "Unknown");
+        guestStats.put("favoriteChampion", null);
+        when(dashboardService.getPersonalStats(null)).thenReturn(guestStats);
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
@@ -112,6 +133,12 @@ class DashboardControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         testUser.setLinkedSummonerName(null);
 
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("currentRank", "Unranked");
+    stats.put("lp7days", 0);
+    stats.put("mainRole", "Unknown");
+    when(dashboardService.getPersonalStats(null)).thenReturn(stats);
+
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
 
@@ -141,17 +168,15 @@ class DashboardControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
-        // Mock champion mastery
-        RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
-        mastery.setChampionName("Yasuo");
-        mastery.setChampionPoints(100000);
-        when(riotService.getTopChampionMasteries("test-puuid-123", 1)).thenReturn(List.of(mastery));
-        
-        // Mock match history for LP calculation
-        when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class))).thenReturn(List.of());
+        // dashboardService should compute and return personal stats for the summoner
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("currentRank", "GOLD II");
+    stats.put("favoriteChampion", "Yasuo");
+    stats.put("lp7days", 0);
+    when(dashboardService.getPersonalStats(testSummoner)).thenReturn(stats);
 
-        // Execute
-        ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
+    // Execute
+    ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
 
         // Verify
         assertNotNull(response);
@@ -288,8 +313,9 @@ class DashboardControllerUnitTest {
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
-        when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class))).thenReturn(List.of());
-        when(riotService.getTopChampionMasteries(anyString(), anyInt())).thenReturn(List.of());
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("lp7days", 0);
+    when(dashboardService.getPersonalStats(testSummoner)).thenReturn(stats);
 
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
         
@@ -312,22 +338,28 @@ class DashboardControllerUnitTest {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         
         MatchEntity oldMatch = new MatchEntity();
+        oldMatch.setId(1L);
         oldMatch.setTimestamp(sevenDaysAgo.plusHours(1));
-        oldMatch.setLpAtMatch(30); // Started at 30 LP
         
         MatchEntity recentMatch = new MatchEntity();
+        recentMatch.setId(2L);
         recentMatch.setTimestamp(LocalDateTime.now().minusHours(1));
-        recentMatch.setLpAtMatch(45);
         
         // findRecentMatches devuelve en orden cronológico (primero el más antiguo)
         when(matchService.findRecentMatches(eq(testSummoner), any(LocalDateTime.class)))
             .thenReturn(List.of(oldMatch, recentMatch));
+        
+        // Mock RankHistory for LP data
+        when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.of(30)); // Started at 30 LP
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
-        when(riotService.getTopChampionMasteries(anyString(), anyInt())).thenReturn(List.of());
         
         testSummoner.setLp(50); // Current LP is 50
+
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("lp7days", 20);
+    when(dashboardService.getPersonalStats(testSummoner)).thenReturn(stats);
 
         ResponseEntity<Map<String, Object>> response = dashboardController.myStats();
         
@@ -489,6 +521,17 @@ class DashboardControllerUnitTest {
         when(riotService.getMatchHistory(eq(testSummoner.getPuuid()), anyInt(), anyInt()))
             .thenReturn(List.of(apiMatch));
         
+        // dashboardService should return combined/converted MatchHistoryDTO with LP
+    com.tfg.tfg.model.dto.MatchHistoryDTO expectedDto = new com.tfg.tfg.model.dto.MatchHistoryDTO();
+    expectedDto.setMatchId("EUW1_123");
+    expectedDto.setChampionName("Ahri");
+    expectedDto.setWin(true);
+    expectedDto.setKills(10);
+    expectedDto.setDeaths(2);
+    expectedDto.setAssists(8);
+    expectedDto.setQueueId(420);
+    when(dashboardService.getRankedMatchesWithLP(testSummoner, null, 0, 30)).thenReturn(List.of(expectedDto));
+
         // Execute
         ResponseEntity<List<com.tfg.tfg.model.dto.MatchHistoryDTO>> response = 
             dashboardController.getRankedMatches(0, 30, null);
@@ -499,14 +542,14 @@ class DashboardControllerUnitTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         
-        com.tfg.tfg.model.dto.MatchHistoryDTO dto = response.getBody().get(0);
+    com.tfg.tfg.model.dto.MatchHistoryDTO dto = response.getBody().get(0);
         assertEquals("EUW1_123", dto.getMatchId());
         assertEquals("Ahri", dto.getChampionName());
         assertEquals(true, dto.getWin());
         assertEquals(10, dto.getKills());
         assertEquals(420, dto.getQueueId());
         
-        verify(riotService).getMatchHistory(eq(testSummoner.getPuuid()), anyInt(), anyInt());
+    verify(dashboardService).getRankedMatchesWithLP(testSummoner, null, 0, 30);
         
         // Cleanup
         SecurityContextHolder.clearContext();
@@ -536,7 +579,13 @@ class DashboardControllerUnitTest {
         
         when(riotService.getMatchHistory(eq(testSummoner.getPuuid()), anyInt(), anyInt()))
             .thenReturn(List.of(flexMatch));
-        
+        com.tfg.tfg.model.dto.MatchHistoryDTO flexDto = new com.tfg.tfg.model.dto.MatchHistoryDTO();
+        flexDto.setMatchId("EUW1_456");
+        flexDto.setChampionName("Zed");
+        flexDto.setQueueId(440);
+        flexDto.setWin(false);
+        when(dashboardService.getRankedMatchesWithLP(testSummoner, 440, 0, 30)).thenReturn(List.of(flexDto));
+
         // Execute with queueId filter
         ResponseEntity<List<com.tfg.tfg.model.dto.MatchHistoryDTO>> response = 
             dashboardController.getRankedMatches(0, 30, 440);
@@ -548,7 +597,7 @@ class DashboardControllerUnitTest {
         assertEquals(1, response.getBody().size());
         assertEquals(440, response.getBody().get(0).getQueueId());
         
-        verify(riotService).getMatchHistory(eq(testSummoner.getPuuid()), anyInt(), anyInt());
+    verify(dashboardService).getRankedMatchesWithLP(testSummoner, 440, 0, 30);
         
         // Cleanup
         SecurityContextHolder.clearContext();

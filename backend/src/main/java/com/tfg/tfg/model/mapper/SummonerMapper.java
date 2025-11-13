@@ -1,4 +1,4 @@
-package com.tfg.tfg.mapper;
+package com.tfg.tfg.model.mapper;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.dto.SummonerDTO;

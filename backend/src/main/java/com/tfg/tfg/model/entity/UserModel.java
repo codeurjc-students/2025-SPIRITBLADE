@@ -1,10 +1,6 @@
 package com.tfg.tfg.model.entity;
 
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -19,8 +15,6 @@ import jakarta.persistence.ManyToMany;
 
 @Entity
 public class UserModel{
-
-    private static final Logger logger = LoggerFactory.getLogger(UserModel.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

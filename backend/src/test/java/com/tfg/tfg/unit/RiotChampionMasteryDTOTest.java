@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for RiotChampionMasteryDTO to improve coverage.
+ * Unit tests for RiotChampionMasteryDTO.
  * Tests remaining getters and setters not covered by existing tests.
  */
-class RiotChampionMasteryDTOCoverageTest {
+class RiotChampionMasteryDTOTest {
 
     @Test
     void testAllGettersAndSetters() {

@@ -38,16 +38,11 @@ public class MatchEntity {
     private String lane;
     private Long gameDuration;
     private String gameMode;
-    private Integer queueId;  // Queue ID (420=Ranked Solo, 440=Ranked Flex)
+    private Integer queueId;  // Queue ID 
     private Integer totalDamageDealt;
     private Integer goldEarned;
     private Integer champLevel;
     private String summonerName;  // Denormalized for quick access
-    
-    // Rank information at the time of the match (for LP progression tracking)
-    private String tierAtMatch;      // e.g., "GOLD", "SILVER"
-    private String rankAtMatch;      // e.g., "I", "II", "III", "IV"
-    private Integer lpAtMatch;       // League Points at match time (0-100)
     
     // Timestamps for cache management
     private LocalDateTime cachedAt;
@@ -223,29 +218,5 @@ public class MatchEntity {
 
     public void setCachedAt(LocalDateTime cachedAt) {
         this.cachedAt = cachedAt;
-    }
-
-    public String getTierAtMatch() {
-        return tierAtMatch;
-    }
-
-    public void setTierAtMatch(String tierAtMatch) {
-        this.tierAtMatch = tierAtMatch;
-    }
-
-    public String getRankAtMatch() {
-        return rankAtMatch;
-    }
-
-    public void setRankAtMatch(String rankAtMatch) {
-        this.rankAtMatch = rankAtMatch;
-    }
-
-    public Integer getLpAtMatch() {
-        return lpAtMatch;
-    }
-
-    public void setLpAtMatch(Integer lpAtMatch) {
-        this.lpAtMatch = lpAtMatch;
     }
 }

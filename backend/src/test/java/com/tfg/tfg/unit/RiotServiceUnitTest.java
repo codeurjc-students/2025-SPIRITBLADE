@@ -32,6 +32,7 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchEntityRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.RankHistoryService;
 import com.tfg.tfg.service.RiotService;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,13 +48,16 @@ class RiotServiceUnitTest {
     private DataDragonService dataDragonService;
     
     @Mock
+    private RankHistoryService rankHistoryService;
+    
+    @Mock
     private RestTemplate restTemplate;
     
     private RiotService riotService;
     
     @BeforeEach
     void setUp() throws Exception {
-        riotService = new RiotService(summonerRepository, matchRepository, dataDragonService);
+        riotService = new RiotService(summonerRepository, matchRepository, dataDragonService, rankHistoryService);
         
         // Inject mocked RestTemplate using reflection
         Field restTemplateField = RiotService.class.getDeclaredField("restTemplate");
@@ -669,10 +673,7 @@ class RiotServiceUnitTest {
             assertEquals("Ahri", saved.getChampionName());
             assertEquals(true, saved.isWin());
             assertEquals(10, saved.getKills());
-            // LP is now calculated later by DashboardController, not saved immediately
-            assertNull(saved.getLpAtMatch());
-            assertNull(saved.getTierAtMatch());
-            assertNull(saved.getRankAtMatch());
+            // Rank data is no longer stored in MatchEntity, but in RankHistory
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
         }

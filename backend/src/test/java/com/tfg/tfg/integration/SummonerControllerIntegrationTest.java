@@ -31,7 +31,7 @@ import com.tfg.tfg.service.DataDragonService;
 
 /**
  * Strategic Integration Tests for SummonerController
- * Goal: Increase coverage from 59% to 80%+ by testing all branches
+ *
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -206,12 +206,12 @@ class SummonerControllerIntegrationTest {
 
     @Test
     void testGetSummonerByNameNotFound() throws Exception {
-        when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
+    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-        mockMvc.perform(get("/api/v1/summoners/name/NonExistent"))
-                .andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/v1/summoners/name/NonExistent"))
+        .andExpect(status().isNotFound());
 
-        verify(riotService).getSummonerByName("NonExistent");
+    verify(riotService).getSummonerByName("NonExistent");
     }
 
     @Test
@@ -247,13 +247,13 @@ class SummonerControllerIntegrationTest {
 
     @Test
     void testGetTopChampionsSummonerNotFound() throws Exception {
-        when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
+    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-        mockMvc.perform(get("/api/v1/summoners/name/NonExistent/masteries"))
-                .andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/v1/summoners/name/NonExistent/masteries"))
+        .andExpect(status().isNotFound());
 
-        verify(riotService).getSummonerByName("NonExistent");
-        verify(riotService, never()).getTopChampionMasteries(anyString(), anyInt());
+    verify(riotService).getSummonerByName("NonExistent");
+    verify(riotService, never()).getTopChampionMasteries(anyString(), anyInt());
     }
 
     @Test
@@ -264,11 +264,15 @@ class SummonerControllerIntegrationTest {
 
         when(riotService.getSummonerByName("NoPuuid")).thenReturn(mockSummoner);
 
-        mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/masteries"))
-                .andExpect(status().isNotFound());
+    // If PUUID is null the service should not proceed; mock the subsequent call to throw so controller returns 404
+    when(riotService.getTopChampionMasteries(isNull(), anyInt()))
+        .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-        verify(riotService).getSummonerByName("NoPuuid");
-        verify(riotService, never()).getTopChampionMasteries(anyString(), anyInt());
+    mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/masteries"))
+        .andExpect(status().isNotFound());
+
+    verify(riotService).getSummonerByName("NoPuuid");
+    verify(riotService).getTopChampionMasteries(isNull(), anyInt());
     }
 
     @Test
@@ -319,12 +323,12 @@ class SummonerControllerIntegrationTest {
 
     @Test
     void testGetRecentMatchesSummonerNotFound() throws Exception {
-        when(riotService.getSummonerByName("NonExistent")).thenReturn(null);
+    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-        mockMvc.perform(get("/api/v1/summoners/name/NonExistent/matches"))
-                .andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/v1/summoners/name/NonExistent/matches"))
+        .andExpect(status().isNotFound());
 
-        verify(riotService, never()).getMatchHistory(anyString(), anyInt(), anyInt());
+    verify(riotService, never()).getMatchHistory(anyString(), anyInt(), anyInt());
     }
 
     @Test
@@ -335,10 +339,15 @@ class SummonerControllerIntegrationTest {
 
         when(riotService.getSummonerByName("NoPuuid")).thenReturn(mockSummoner);
 
-        mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/matches"))
-                .andExpect(status().isNotFound());
+    // If PUUID is null the service should not proceed; mock the subsequent call to throw so controller returns 404
+    when(riotService.getMatchHistory(isNull(), anyInt(), anyInt()))
+        .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-        verify(riotService, never()).getMatchHistory(anyString(), anyInt(), anyInt());
+    mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/matches"))
+        .andExpect(status().isNotFound());
+
+    verify(riotService).getSummonerByName("NoPuuid");
+    verify(riotService).getMatchHistory(isNull(), anyInt(), anyInt());
     }
 
     @Test
