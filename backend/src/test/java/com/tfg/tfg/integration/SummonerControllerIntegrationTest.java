@@ -25,7 +25,9 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
+import com.tfg.tfg.repository.RankHistoryRepository;
 import com.tfg.tfg.repository.SummonerRepository;
+import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.DataDragonService;
 
@@ -47,6 +49,12 @@ class SummonerControllerIntegrationTest {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    private RankHistoryRepository rankHistoryRepository;
+
+    @Autowired
+    private UserModelRepository userModelRepository;
+
     @MockitoBean
     private RiotService riotService;
 
@@ -55,7 +63,16 @@ class SummonerControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        // Clean up in correct order (matches first due to foreign key)
+        // Clean up in correct order due to foreign key constraints
+        // user_favorite_summoners (many-to-many) -> rank_history -> matches -> summoners -> users
+        
+        // Clear favorite summoners relationships
+        userModelRepository.findAll().forEach(user -> {
+            user.getFavoriteSummoners().clear();
+            userModelRepository.save(user);
+        });
+        
+        rankHistoryRepository.deleteAll();
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
         

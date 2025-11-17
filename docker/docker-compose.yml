@@ -1,13 +1,13 @@
-version: '3.8'
-
 services:
   # MySQL Database - Production
   mysql:
+    env_file:
+      - .env
     image: mysql:8.0
     container_name: spiritblade-mysql-prod
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-1234}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-spiritblade}
     volumes:
       - mysql_data:/var/lib/mysql
@@ -24,13 +24,15 @@ services:
 
   # MinIO Object Storage (S3-compatible)
   minio:
+    env_file:
+      - .env
     image: minio/minio:latest
     container_name: spiritblade-minio-prod
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
       - "9000:9000"  # API port
       - "9001:9001"  # Console port (web UI)
@@ -47,6 +49,8 @@ services:
 
   # SPIRITBLADE Application
   app:
+    env_file:
+      - .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -62,13 +66,13 @@ services:
       # Database Configuration
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       SPRING_DATASOURCE_USERNAME: "root"
-      SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD:-1234}"
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
       
       # Server Configuration
       SERVER_PORT: "443"
       SERVER_SSL_ENABLED: "${SERVER_SSL_ENABLED:-true}"
-      SERVER_SSL_KEY_STORE_PASSWORD: "${SSL_PASSWORD:-spiritblade}"
+      SERVER_SSL_KEY_STORE_PASSWORD: "${SSL_PASSWORD}"
       
       # Security Configuration
       JWT_SECRET: "${JWT_SECRET}"
@@ -76,12 +80,12 @@ services:
       
       # Riot API Configuration
       RIOT_API_KEY: "${RIOT_API_KEY}"
-      GOOGLE_AI_API_KEY: "${GOOGLE_AI_API_KEY:-}"
+      GOOGLE_AI_API_KEY: "${GOOGLE_AI_API_KEY}"
       
       # MinIO Configuration
       MINIO_ENDPOINT: "http://minio:9000"
-      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:-minioadmin}"
-      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:-minioadmin123}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
       MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME:-spiritblade-uploads}"
       
       # Logging Configuration

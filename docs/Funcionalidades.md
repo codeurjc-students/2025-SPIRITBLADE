@@ -1,379 +1,379 @@
-# Features - SPIRITBLADE v0.1
+# Funcionalidades - SPIRITBLADE v0.1
 
-This document describes the features implemented in SPIRITBLADE v0.1, illustrated with screenshots and detailed behavior descriptions.
-
----
-
-## 📑 Contents
-1. [Anonymous user](#anonymous-user)
-2. [Registered user](#registered-user)
-3. [Administrator](#administrator)
+Este documento describe las funcionalidades implementadas en SPIRITBLADE v0.1, ilustradas con capturas y descripciones detalladas del comportamiento.
 
 ---
 
-## Anonymous user
+## 📑 Contenido
+1. [Usuario anónimo](#usuario-anónimo)
+2. [Usuario registrado](#usuario-registrado)
+3. [Administrador](#administrador)
 
-Anonymous visitors can use the search and view features without registering.
+---
 
-> **Update note (October 2025)**: The features in this document were adjusted to match the project's refocused scope and available development time. See [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) for details.
+## Usuario anónimo
 
-### Core features
-- Search summoners and view their profile and rank
-- View public match history with a caching layer
-- Access basic champion statistics (mastery, most played champions, basic performance metrics)
+Los visitantes anónimos pueden usar la búsqueda y ver contenidos sin registrarse.
 
-### 1.1 Summoner search
+> **Nota de actualización (octubre 2025)**: Las funcionalidades en este documento se ajustaron para coincidir con el nuevo alcance del proyecto y el tiempo de desarrollo disponible. Ver [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para más detalles.
 
-Description: Users can search any League of Legends summoner using their Riot ID in the format `gameName#tagLine`.
+### Funciones principales
+- Buscar invocadores y ver su perfil y clasificación
+- Ver historial público de partidas con capa de caché
+- Acceder a estadísticas básicas de campeones (maestría, campeones más jugados, métricas básicas de rendimiento)
 
-Screenshot:
+### 1.1 Búsqueda de invocador
+
+Descripción: Los usuarios pueden buscar cualquier invocador de League of Legends usando su Riot ID en el formato `gameName#tagLine`.
+
+Captura:
 ![Home - Search](https://github.com/user-attachments/assets/f63da861-eb8b-41fe-9487-c8177f8054c9)
 
-Behavior:
-- Search field on the home page
-- Input format validation (must include `#`)
-- Recent searches shown on the home page
-- Automatic redirect to the found summoner profile
+Comportamiento:
+- Campo de búsqueda en la página de inicio
+- Validación del formato de entrada (debe incluir `#`)
+- Búsquedas recientes mostradas en la página de inicio
+- Redirección automática al perfil del invocador encontrado
 
-Example:
-1. Open the home page
-2. Enter a Riot ID: `Player#EUW`
-3. Press Enter or click "Search"
-4. The system redirects to the summoner profile
+Ejemplo:
+1. Abrir la página de inicio
+2. Ingresar un Riot ID: `Player#EUW`
+3. Presionar Enter o hacer clic en "Search"
+4. El sistema redirige al perfil del invocador
 
 ---
 
-### 1.2 Summoner profile
+### 1.2 Perfil del invocador
 
-Description: Shows the summoner's full information including level, rank, statistics and champion masteries.
+Descripción: Muestra la información completa del invocador incluyendo nivel, rango, estadísticas y maestrías de campeones.
 
-Screenshot:
+Captura:
 ![Summoner Profile](https://github.com/user-attachments/assets/9a6220c3-e4ed-459a-a5f2-414312de0f7a)
 
-Displayed data:
-- Profile header:
-  - Profile icon (from Data Dragon)
-  - Full Riot ID
-  - Summoner level
+Datos mostrados:
+- Encabezado de perfil:
+  - Icono de perfil (desde Data Dragon)
+  - Riot ID completo
+  - Nivel del invocador
 
-- Ranked stats:
-  - Tier and division (e.g. Gold II)
+- Estadísticas clasificadas:
+  - División y liga (p. ej. Oro II)
   - LP (League Points)
-  - Wins and losses
-  - Calculated win rate
-  - Total matches played
+  - Victorias y derrotas
+  - Porcentaje de victorias calculado
+  - Total de partidas jugadas
 
-- Top 3 champions:
-  - Champion icon
-  - Champion name
-  - Mastery level
-  - Mastery points
+- Top 3 campeones:
+  - Icono del campeón
+  - Nombre del campeón
+  - Nivel de maestría
+  - Puntos de maestría
 
-Data source: Most data is fetched in real-time from the Riot Games API and cached in the local database to improve performance.
-
----
-
-### 1.3 Match history
-
-Description: Shows the summoner's recent matches with performance details.
-
-Screenshot:
-*(Section of the summoner profile showing match history)*
-
-Per-match data:
-- Result: Win (green) or Loss (red)
-- Champion played: icon and name
-- KDA: kills/deaths/assists
-- Match duration: minutes
-- Match timestamp: end time
-
-Pagination:
-- 5 matches per page by default
-- "Load more" buttons to view older matches
-- Dynamic loading without page refresh
+Fuente de datos: La mayor parte de los datos se obtienen en tiempo real desde la API de Riot Games y se cachean en la base de datos local para mejorar el rendimiento.
 
 ---
 
-### 1.4 Recent searches
+### 1.3 Historial de partidas
 
-Description: The home page lists the most recent summoner searches performed by any user.
+Descripción: Muestra las partidas recientes del invocador con detalles de rendimiento.
 
-Behavior:
-- Shows the 10 most recent searched summoners
-- Sorted by search date (newest first)
-- Click to open the profile
-- Automatically updates on new searches
+Captura:
+*(Sección del perfil del invocador mostrando historial de partidas)*
 
-Planned intermediate features:
-- Aggregated statistics per summoner using cached match data
+Datos por partida:
+- Resultado: Victoria (verde) o Derrota (rojo)
+- Campeón jugado: icono y nombre
+- KDA: asesinatos/muertes/asistencias
+- Duración de la partida: minutos
+- Marca temporal de la partida: hora de finalización
 
-Planned advanced features:
-- Smart caching system that minimizes load times while ensuring data freshness
-- Hybrid data access strategy that balances performance and freshness
+Paginación:
+- 5 partidas por página por defecto
+- Botones "Cargar más" para ver partidas anteriores
+- Carga dinámica sin recargar la página
 
 ---
 
-## Registered user
+### 1.4 Búsquedas recientes
 
-Registered users get access to additional features after logging in.
+Descripción: La página de inicio lista las búsquedas más recientes de invocadores realizadas por cualquier usuario.
 
-### Core features
-- Personalized dashboard
-- Detailed match data enriched using Riot API
-- View champions with highest mastery and personal performance
+Comportamiento:
+- Muestra los 10 invocadores más buscados recientemente
+- Ordenado por fecha de búsqueda (más nuevo primero)
+- Clic para abrir el perfil
+- Se actualiza automáticamente con nuevas búsquedas
 
-### Intermediate features
-- Access to detailed personal performance data for favorite champions
-- Enriched match history with contextual information
+Características planificadas intermedias:
+- Estadísticas agregadas por invocador usando datos de partidas cacheadas
 
-### 2.1 Authentication
+Características avanzadas planificadas:
+- Sistema de caché inteligente que minimice tiempos de carga y garantice frescura de datos
+- Estrategia híbrida de acceso a datos que equilibre rendimiento y frescura
 
-Description: Login and registration use JWT-based authentication.
+---
 
-Login screenshot:
+## Usuario registrado
+
+Los usuarios registrados obtienen acceso a funcionalidades adicionales tras iniciar sesión.
+
+### Funciones principales
+- Panel personalizado
+- Datos de partida detallados enriquecidos usando la API de Riot
+- Ver campeones con mayor maestría y rendimiento personal
+
+### Funciones intermedias
+- Acceso a datos de rendimiento personal detallados para campeones favoritos
+- Historial de partidas enriquecido con información contextual
+
+### 2.1 Autenticación
+
+Descripción: Inicio de sesión y registro usan autenticación basada en JWT.
+
+Captura de inicio de sesión:
 ![Login](https://github.com/user-attachments/assets/381dfdd6-e915-4c34-ba98-b3cf9985855d)
 
-Login behavior:
-- Credentials validation
-- JWT token issuance
-- Informative error messages:
-  - Invalid credentials
-  - Server unavailable
-  - Network errors
-- Automatic redirect to dashboard after successful login
+Comportamiento de inicio de sesión:
+- Validación de credenciales
+- Emisión de token JWT
+- Mensajes de error informativos:
+  - Credenciales inválidas
+  - Servidor no disponible
+  - Errores de red
+- Redirección automática al panel tras inicio exitoso
 
-Registration behavior:
-- Form validations:
-  - Username required
-  - Valid email format
-  - Password required
-  - Password confirmation
-- Passwords must match
-- Duplicate user detection
-- Automatic login after successful registration
+Comportamiento de registro:
+- Validaciones del formulario:
+  - Nombre de usuario requerido
+  - Formato de email válido
+  - Contraseña requerida
+  - Confirmación de contraseña
+- Las contraseñas deben coincidir
+- Detección de usuario duplicado
+- Inicio de sesión automático tras registro exitoso
 
-Security:
-- Passwords hashed with BCrypt
-- JWT tokens with expiration
-- HttpOnly cookies used to store tokens
+Seguridad:
+- Contraseñas hasheadas con BCrypt
+- Tokens JWT con expiración
+- Cookies HttpOnly usadas para almacenar tokens
 
 ---
 
-### 2.2 Personal dashboard
+### 2.2 Panel personal
 
-Description: Personalized panel with stats and quick access links.
+Descripción: Panel personalizado con estadísticas y accesos rápidos.
 
-Screenshot:
+Captura:
 ![Dashboard](https://github.com/user-attachments/assets/d63561f9-b167-4059-8c2e-c1dca6cbe1fe)
 
-Dashboard sections:
-- User profile:
-  - Username
-  - Registered email
-  - Avatar (partial implementation)
+Secciones del panel:
+- Perfil del usuario:
+  - Nombre de usuario
+  - Email registrado
+  - Avatar (implementación parcial)
 
-- Personal stats:
-  - Total searches performed
-  - Saved favorite summoners
-  - Most searched champion (planned)
+- Estadísticas personales:
+  - Total de búsquedas realizadas
+  - Invocadores favoritos guardados
+  - Campeón más buscado (planificado)
 
-- Quick actions:
-  - Search a summoner
-  - View favorites
-  - Edit profile
+- Acciones rápidas:
+  - Buscar un invocador
+  - Ver favoritos
+  - Editar perfil
 
-Note: Some dashboard features are planned for v0.2 (charts, trends).
-
----
-
-### 2.3 Favorites management
-
-Description: Users can save favorite summoners for quick access.
-
-Current status (in development):
-- "Add to favorites" button on the summoner profile
-- Favorites list in the dashboard
-- Activity notifications (planned for v0.2)
-- Remove from favorites
-
-Status: ✅ Data model implemented, UI in progress
-
-Planned advanced features:
-- Personalized dashboard with KPIs computed from match history
-- Smart cache that prioritizes DB over expensive external API calls
-- Automatic freshness validation with minimal impact on latency
+Nota: Algunas funciones del panel están planificadas para la v0.2 (gráficas, tendencias).
 
 ---
 
-## Administrator
+### 2.3 Gestión de favoritos
 
-Administrators have full access to system management features.
+Descripción: Los usuarios pueden guardar invocadores favoritos para acceso rápido.
 
-### 3.1 Admin panel
+Estado actual (en desarrollo):
+- Botón "Agregar a favoritos" en el perfil del invocador
+- Lista de favoritos en el panel
+- Notificaciones de actividad (planificadas para v0.2)
+- Eliminar de favoritos
 
-Description: Dedicated admin UI with management tools.
+Estado: ✅ Modelo de datos implementado, UI en progreso
 
-Screenshot:
+Funciones avanzadas planificadas:
+- Panel personalizado con KPIs calculados desde el historial de partidas
+- Caché inteligente que priorice la BD sobre llamadas externas costosas
+- Validación automática de frescura con impacto mínimo en latencia
+
+---
+
+## Administrador
+
+Los administradores tienen acceso completo a las funciones de gestión del sistema.
+
+### 3.1 Panel de administración
+
+Descripción: UI dedicada de administración con herramientas de gestión.
+
+Captura:
 ![Admin Panel](https://github.com/user-attachments/assets/162964b0-f4f9-4521-837b-4e7b101fedd7)
 
-Access:
-- Requires `ADMIN` role in the JWT token
-- Redirects automatically when lacking permissions
-- Menu link visible only to admins
+Acceso:
+- Requiere rol `ADMIN` en el token JWT
+- Redirige automáticamente cuando faltan permisos
+- Enlace en el menú visible solo para administradores
 
 ---
 
-### 3.2 User management
+### 3.2 Gestión de usuarios
 
-Description: Admins can view and manage all registered users.
+Descripción: Los admins pueden ver y gestionar todos los usuarios registrados.
 
-Features:
-- List users:
-  - Table with all registered users
-  - Visible fields: name, email, roles, status
-  - Search and filters (in progress)
+Funciones:
+- Listar usuarios:
+  - Tabla con todos los usuarios registrados
+  - Campos visibles: nombre, email, roles, estado
+  - Búsqueda y filtros (en progreso)
 
-- Activate / Deactivate users:
-  - Toggle the `active` flag for a user
-  - Deactivated users cannot log in
-  - Visual indicator for status
+- Activar / Desactivar usuarios:
+  - Alternar la bandera `active` de un usuario
+  - Usuarios desactivados no pueden iniciar sesión
+  - Indicador visual del estado
 
-- Delete users:
-  - Permanent deletion
-  - Confirmation before delete
-  - Audit logs (planned for v0.2)
+- Eliminar usuarios:
+  - Eliminación permanente
+  - Confirmación antes de eliminar
+  - Logs de auditoría (planificado para v0.2)
 
-- Edit roles:
-  - Assign USER / ADMIN
-  - Immediate permission changes
+- Editar roles:
+  - Asignar USER / ADMIN
+  - Cambios de permisos inmediatos
 
-Protected endpoints:
+Endpoints protegidos:
 ```http
-GET  /admin/users                # List users
-POST /admin/users/{id}/activate  # Activate
-POST /admin/users/{id}/deactivate# Deactivate
-DELETE /admin/users/{id}         # Delete
+GET  /admin/users                  # Listar usuarios
+POST /admin/users/{id}/activate    # Activar
+POST /admin/users/{id}/deactivate  # Desactivar
+DELETE /admin/users/{id}           # Eliminar
 ```
 
 ---
 
-### 3.3 System metrics
+### 3.3 Métricas del sistema
 
-Description: Global system metrics view (planned for v0.2).
+Descripción: Vista de métricas globales del sistema (planificado para v0.2).
 
-Planned metrics:
-- Total registered users
-- Total searches performed
-- Most searched summoners
-- Activity per day/week
-- Riot API usage
+Métricas planificadas:
+- Total de usuarios registrados
+- Total de búsquedas realizadas
+- Invocadores más buscados
+- Actividad por día/semana
+- Uso de la API de Riot
 
-Status: 📋 Planned for v0.2
+Estado: 📋 Planificado para v0.2
 
 ---
 
-## Technical notes
+## Notas técnicas
 
-### Riot API integration
+### Integración con la API de Riot
 
-All summoner search features rely on the official Riot Games APIs:
-- Account-v1: translate Riot ID to PUUID
-- Summoner-v4: summoner data
-- League-v4: ranked data
-- Champion-Mastery-v4: champion mastery stats
-- Match-v5: match history
+Todas las funciones de búsqueda dependen de las APIs oficiales de Riot Games:
+- Account-v1: traducir Riot ID a PUUID
+- Summoner-v4: datos del invocador
+- League-v4: datos de clasificación
+- Champion-Mastery-v4: estadísticas de maestría de campeones
+- Match-v5: historial de partidas
 
-### Database
+### Base de datos
 
-MySQL 8.0 is the only supported database (H2 is no longer used):
-- Stores users, summoners, matches and statistics
-- Configured with MySQL8Dialect
-- Schema auto-generated via JPA/Hibernate
-- UTF-8 encoding (utf8mb4_unicode_ci)
+MySQL 8.0 es la única base de datos soportada (H2 ya no se usa):
+- Almacena usuarios, invocadores, partidas y estadísticas
+- Configurado con MySQL8Dialect
+- Esquema autogenerado vía JPA/Hibernate
+- Codificación UTF-8 (utf8mb4_unicode_ci)
 
-### Caching
+### Caché
 
-To improve performance and reduce external API calls:
-- Summoner data is cached in MySQL
-- `lastSearchedAt` is updated on every search
-- Images are sourced from Data Dragon (static CDN)
+Para mejorar rendimiento y reducir llamadas externas:
+- Los datos de invocador se cachean en MySQL
+- `lastSearchedAt` se actualiza en cada búsqueda
+- Las imágenes se sirven desde Data Dragon (CDN estático)
 
-### File storage (MinIO)
+### Almacenamiento de archivos (MinIO)
 
-MinIO is used to store user avatars with strict validation:
-- Only PNG files are accepted (3-layer validation)
-- PNG file header validation (`89 50 4E 47`)
-- Extension and Content-Type checks
+MinIO se usa para almacenar avatares de usuario con validación estricta:
+- Solo se aceptan archivos PNG (validación en 3 capas)
+- Validación del encabezado PNG (`89 50 4E 47`)
+- Verificaciones de extensión y Content-Type
 - Bucket: `spiritblade-uploads`
-- Region: `us-east-1`
+- Región: `us-east-1`
 
-### Security
+### Seguridad
 
-HTTPS required:
-- Server runs HTTPS only on port 443
-- Self-signed SSL certificate for development
-- JWT for authentication (24h expiration)
-- Role-based access control (USER, ADMIN)
+HTTPS requerido:
+- El servidor funciona solo en HTTPS en el puerto 443
+- Certificado SSL autofirmado para desarrollo
+- JWT para autenticación (expiración 24h)
+- Control de acceso por roles (USER, ADMIN)
 
-File validation:
-- PNG-only avatars
-- Magic header verification
-- Max file size: 10MB
+Validación de archivos:
+- Avatares solo PNG
+- Verificación de "magic header"
+- Tamaño máximo de archivo: 10MB
 
-### Error handling
+### Manejo de errores
 
-The application handles common error scenarios:
-- Summoner not found (404)
-- Riot API errors (429 rate limit, 503 service unavailable)
-- Network errors
-- Invalid Riot ID format
-- Invalid file format (non-PNG)
-- Expired or invalid JWT
+La aplicación maneja escenarios de error comunes:
+- Invocador no encontrado (404)
+- Errores de la API de Riot (429 límite de tasa, 503 servicio no disponible)
+- Errores de red
+- Formato de Riot ID inválido
+- Formato de archivo inválido (no PNG)
+- JWT expirado o inválido
 
-All errors expose informative messages to the user.
+Todos los errores muestran mensajes informativos al usuario.
 
-### Interactive API documentation (Swagger UI)
+### Documentación interactiva de la API (Swagger UI)
 
-New in v0.1: SPIRITBLADE includes interactive REST API documentation using Swagger UI.
+Nuevo en v0.1: SPIRITBLADE incluye documentación REST interactiva usando Swagger UI.
 
-Features:
-- 📖 Interactive exploration of all API endpoints
-- 🔐 JWT authentication integrated in the UI
-- 🧪 Live "Try it out" testing from the browser
-- 📊 Complete data schemas with examples
-- 🎨 Modern UI with filter and search
+Características:
+- 📖 Exploración interactiva de todos los endpoints de la API
+- 🔐 Autenticación JWT integrada en la UI
+- 🧪 "Try it out" en vivo desde el navegador
+- 📊 Esquemas de datos completos con ejemplos
+- 🎨 UI moderna con filtro y búsqueda
 
-Access (HTTPS only):
-- Local URL: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+Acceso (solo HTTPS):
+- URL local: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
 - OpenAPI JSON: [https://localhost/v3/api-docs](https://localhost/v3/api-docs)
 - OpenAPI YAML: [https://localhost/v3/api-docs.yaml](https://localhost/v3/api-docs.yaml)
 
-⚠️ Important: The server runs HTTPS only on port 443. You must accept the self-signed certificate the first time you visit.
+⚠️ Importante: El servidor funciona solo en HTTPS en el puerto 443. Debes aceptar el certificado autofirmado la primera vez que lo visites.
 
-Who benefits:
-- Developers: explore endpoints without Postman
-- Testers: visually exercise API behavior
-- Integrators: generate clients from OpenAPI
-- Documenters: always up-to-date API docs matching the code
+Beneficios:
+- Desarrolladores: explorar endpoints sin Postman
+- Testers: ejercitar visualmente el comportamiento de la API
+- Integradores: generar clientes desde OpenAPI
+- Documentadores: documentación siempre actualizada que coincide con el código
 
-Example usage:
-1. Start the application
-2. Open [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) (accept the SSL cert)
-3. Log in via `POST /auth/login` to obtain a token
-4. Click "Authorize" and paste the token
-5. Test any authenticated endpoint with "Try it out"
+Ejemplo de uso:
+1. Iniciar la aplicación
+2. Abrir [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) (aceptar el certificado SSL)
+3. Iniciar sesión mediante `POST /auth/login` para obtener un token
+4. Hacer clic en "Authorize" y pegar el token
+5. Probar cualquier endpoint autenticado con "Try it out"
 
-Full documentation:
-- [API.md](API.md) - Quick guide to access Swagger UI
-- [SWAGGER.md](SWAGGER.md) - Full Swagger guide
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Step-by-step tutorial
-
----
-
-## Upcoming features
-
-See **[Funcionalidades Detalladas](Funcionalidades-Detalladas.md)** for the full list of planned features for future releases.
+Documentación completa:
+- [API.md](API.md) - Guía rápida para acceder a Swagger UI
+- [SWAGGER.md](SWAGGER.md) - Guía completa de Swagger
+- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Tutorial paso a paso
 
 ---
 
-[← Back to main README](../README.md)
+## Próximas funciones
+
+Ver **[Funcionalidades Detalladas](Funcionalidades-Detalladas.md)** para la lista completa de funciones planificadas para futuras versiones.
+
+---
+
+[← Volver al README principal](../README.md)

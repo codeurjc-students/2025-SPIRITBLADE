@@ -1,283 +1,283 @@
-# Project Start — SPIRITBLADE
+# Inicio del proyecto — SPIRITBLADE
 
-This document describes the initial objectives, methodology, and analysis of the SPIRITBLADE project as defined in Phase 1.
-
----
-
-## 🎯 Objectives
-
-### General Objective
-
-Develop a full web application that enables League of Legends players to search, analyze, and visualize summoner and match statistics using data from the Riot Games public API, offering an intuitive platform similar to OP.GG or Porofessor.
-
-### Functional Objectives
-
-> 📝 Updated October 2025: Functional objectives were re-adjusted to align with available development time and to prioritize the system's core features. See [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) for full details.
-
-SPIRITBLADE aims to provide different levels of functionality depending on the user type:
-
-#### Anonymous users
-
-Basic features:
-- Search summoners and view their profile and rank
-- View public match history with a caching layer
-- Access basic champion statistics including masteries, most-played champions and general performance data
-
-Intermediate features:
-- Aggregated summoner statistics using cached match data
-
-Advanced features:
-- Intelligent caching system that minimizes load times while ensuring fresh data
-- Hybrid data access strategy that balances performance and data freshness
-
-#### Registered users
-
-Basic features:
-- Access to a customizable control panel (dashboard)
-- View detailed recent-match data enriched from the Riot API
-- View champion mastery and personal performance
-
-Intermediate features:
-- Access to detailed personal performance data for favorite champions
-- Enriched match history with contextual information
-
-Advanced features:
-- Personalized dashboard with KPIs computed from match history
-- Cache-first strategy prioritizing the database before expensive external API calls
-- Automatic freshness validation with minimal impact on perceived load times
-
-#### Administrators
-- Full user management (enable, disable, delete)
-- Admin panel with system metrics
-- Moderation of user-generated content
-- Audit logs
+Este documento describe los objetivos iniciales, la metodología y el análisis del proyecto SPIRITBLADE tal como se definió en la Fase 1.
 
 ---
 
-### Technical Objectives
+## 🎯 Objetivos
 
-The project focuses on software quality and engineering best practices:
+### Objetivo general
 
-#### Architecture & Technologies
-- SPA (Single Page Application): Angular frontend + REST API backend
-- Modern stack:
+Desarrollar una aplicación web completa que permita a jugadores de League of Legends buscar, analizar y visualizar estadísticas de invocadores y partidas usando datos de la API pública de Riot Games, ofreciendo una plataforma intuitiva similar a OP.GG o Porofessor.
+
+### Objetivos funcionales
+
+> 📝 Actualizado octubre de 2025: Los objetivos funcionales se re-ajustaron para alinearse con el tiempo de desarrollo disponible y priorizar las funcionalidades esenciales del sistema. Ver [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para detalles completos.
+
+SPIRITBLADE pretende ofrecer distintos niveles de funcionalidad según el tipo de usuario:
+
+#### Usuarios anónimos
+
+Funciones básicas:
+- Buscar invocadores y ver su perfil y clasificación
+- Ver historial de partidas público con una capa de caché
+- Acceder a estadísticas básicas de campeones incluyendo maestrías, campeones más jugados y datos de rendimiento generales
+
+Funciones intermedias:
+- Estadísticas agregadas de invocadores usando datos de partidas cacheadas
+
+Funciones avanzadas:
+- Sistema de caché inteligente que minimiza tiempos de carga garantizando datos frescos
+- Estrategia híbrida de acceso a datos que equilibra rendimiento y frescura
+
+#### Usuarios registrados
+
+Funciones básicas:
+- Acceso a un panel de control personalizable (dashboard)
+- Ver datos detallados de partidas recientes enriquecidos desde la API de Riot
+- Ver maestría de campeones y rendimiento personal
+
+Funciones intermedias:
+- Acceso a datos detallados de rendimiento personal por campeones favoritos
+- Historial de partidas enriquecido con información contextual
+
+Funciones avanzadas:
+- Dashboard personalizado con KPIs calculados a partir del historial de partidas
+- Estrategia cache-first priorizando la base de datos antes de llamadas externas costosas
+- Validación automática de frescura con impacto mínimo en tiempos percibidos de carga
+
+#### Administradores
+- Gestión completa de usuarios (habilitar, deshabilitar, eliminar)
+- Panel de administración con métricas del sistema
+- Moderación de contenido generado por usuarios
+- Logs de auditoría
+
+---
+
+### Objetivos técnicos
+
+El proyecto se enfoca en calidad de software y buenas prácticas de ingeniería:
+
+#### Arquitectura y tecnologías
+- SPA (Single Page Application): frontend en Angular + backend con API REST
+- Stack moderno:
   - Frontend: Angular 17, TypeScript, SCSS
   - Backend: Spring Boot 3.4.3, Java 21
-  - Database: MySQL 8.0
-- Security: Spring Security + JWT for authentication and authorization
-- External API: Integration with Riot Games API
+  - Base de datos: MySQL 8.0
+- Seguridad: Spring Security + JWT para autenticación y autorización
+- API externa: Integración con la API de Riot Games
 
-#### Quality & Testing
-- Test coverage target: minimum 55% overall
-- Multi-level testing:
-  - Unit: JUnit 5 + Mockito (backend), Jasmine + Karma (frontend)
-  - Integration: Spring Boot Test
+#### Calidad y pruebas
+- Objetivo de cobertura: mínimo 55% global
+- Pruebas multinivel:
+  - Unitarias: JUnit 5 + Mockito (backend), Jasmine + Karma (frontend)
+  - Integración: Spring Boot Test
   - E2E: Selenium WebDriver
-- Static analysis: SonarCloud integrated in CI
-- Quality targets: 0 critical bugs, 0 vulnerabilities
+- Análisis estático: SonarCloud integrado en CI
+- Objetivos de calidad: 0 bugs críticos, 0 vulnerabilidades
 
-#### DevOps & Deployment
-- Automated CI/CD: GitHub Actions workflows for:
-  - Tests and quality gates on every PR
-  - Automatic deploy of `dev` image on merge to main
-  - Release deployments with semantic versioning
-- Containerization: Docker multi-stage builds
-- Orchestration: Docker Compose for app + MySQL
-- Publication: DockerHub with versioned images
+#### DevOps y despliegue
+- CI/CD automatizado: workflows de GitHub Actions para:
+  - Tests y gates de calidad en cada PR
+  - Despliegue automático de la imagen `dev` al hacer merge en main
+  - Despliegues de release con versionado semántico
+- Contenerización: Docker multi-stage builds
+- Orquestación: Docker Compose para app + MySQL
+- Publicación: DockerHub con imágenes versionadas
 
-#### Best Practices
-- Version control with Git and branching strategy
-- Mandatory code reviews via pull requests
-- Conventional Commits for a clean history
-- Up-to-date documentation
-- Responsive design for desktop and mobile
-
----
-
-## 📅 Methodology
-
-### Development approach
-
-The project follows an iterative and incremental agile methodology:
-
-- Short iterations: 2–3 week cycles
-- Frequent deliveries: deployable version at the end of each phase
-- Continuous feedback: regular reviews and adjustments
-- Continuous improvement: refactoring and optimization
-
-### Planned phases
-
-#### Phase 1: Feature & screen definition
-Duration: until Sept 15  
-Status: ✅ Completed
-
-Deliverables:
-- ✅ Definition of functional and technical objectives
-- ✅ Prioritized feature list by user type
-- ✅ Wireframes and mockups for main screens
-- ✅ Domain entity analysis
-- ✅ Permission and role definitions
-- ✅ Preliminary REST API specification
+#### Buenas prácticas
+- Control de versiones con Git y estrategia de ramas
+- Revisiones de código obligatorias mediante pull requests
+- Commits con Conventional Commits para un historial limpio
+- Documentación actualizada
+- Diseño responsive para escritorio y móvil
 
 ---
 
-#### Phase 2: Repository & CI setup
-Duration: until Oct 15  
-Status: ✅ Completed
+## 📅 Metodología
 
-Deliverables:
-- ✅ GitHub repository with project structure
-- ✅ GitHub Actions CI configuration
-- ✅ Basic unit tests (backend and frontend)
-- ✅ SonarCloud integration
-- ✅ Development guide documentation
-- ✅ Branch protection rules on `main`
+### Enfoque de desarrollo
 
----
+El proyecto sigue una metodología ágil iterativa e incremental:
 
-#### Phase 3: Version 0.1 — Core features
-Duration: until Dec 15  
-Status: ✅ Completed
+- Iteraciones cortas: ciclos de 2–3 semanas
+- Entregas frecuentes: versión desplegable al final de cada fase
+- Feedback continuo: revisiones y ajustes regulares
+- Mejora continua: refactorización y optimización
 
-Deliverables:
-- ✅ Backend REST API with:
-  - JWT authentication
-  - Endpoints for users, summoners, dashboard, admin
-  - Riot API integration
-  - Integration tests
-- ✅ Angular frontend with:
-  - Components: Home, Login, Dashboard, Summoner, Admin
-  - Services and guards
-  - Routing and navigation
-  - Unit tests
-- ✅ MySQL schema
-- ✅ Optimized multi-stage Dockerfile
-- ✅ Docker Compose deployment
-- ✅ CI/CD workflows:
-  - Quality control on PRs
-  - Automatic DockerHub publish (dev + releases)
-  - Manual build for testing
-- ✅ Updated documentation
+### Fases planificadas
+
+#### Fase 1: Definición de funcionalidades y pantallas
+Duración: hasta 15 de septiembre  
+Estado: ✅ Completado
+
+Entregables:
+- ✅ Definición de objetivos funcionales y técnicos
+- ✅ Lista priorizada de funcionalidades por tipo de usuario
+- ✅ Wireframes y mockups de pantallas principales
+- ✅ Análisis de entidades del dominio
+- ✅ Definición de permisos y roles
+- ✅ Especificación REST API preliminar
 
 ---
 
-#### Phase 4: Version 0.2 — Intermediate features
-Duration: until Mar 1  
-Status: 📋 Planned
+#### Fase 2: Configuración de repositorio y CI
+Duración: hasta 15 de octubre  
+Estado: ✅ Completado
 
-Goals:
-- Advanced performance analysis with charts (Chart.js)
-- Match notes system
-- Full favorites management with notifications
-- Moderation dashboard for admins
-- Complete E2E tests with Selenium
-- UI/UX improvements based on feedback
-
----
-
-#### Phase 5: Version 1.0 — Advanced features
-Duration: until Apr 15  
-Status: 📋 Planned
-
-Goals:
-- Global community statistics
-- Intelligent recommendations based on ML
-- Personalized leaderboards
-- Email reporting system (tentative)
-- Predictive performance analysis
-- Performance and scalability optimization
+Entregables:
+- ✅ Repositorio en GitHub con estructura del proyecto
+- ✅ Configuración de GitHub Actions CI
+- ✅ Pruebas unitarias básicas (backend y frontend)
+- ✅ Integración con SonarCloud
+- ✅ Documentación de guía de desarrollo
+- ✅ Reglas de protección de ramas en `main`
 
 ---
 
-#### Phase 6: Project report (TFG thesis)
-Duration: until May 15  
-Status: 📋 Planned
+#### Fase 3: Versión 0.1 — Funcionalidades núcleo
+Duración: hasta 15 de diciembre  
+Estado: ✅ Completado
 
-Goals:
-- Complete project report
-- Exhaustive technical documentation
-- Results analysis
-- Conclusions and future work
-
----
-
-#### Phase 7: Defense
-Duration: until Jun 15  
-Status: 📋 Planned
-
-Goals:
-- Presentation preparation
-- Live demonstration
-- Defense before the panel
-
----
-
-## 📐 Initial analysis
-
-### Initial features
-
-> 📝 Note: This section documents the features as originally defined in Phase 1. For the current implementation status and updated features, see [Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md).
-
-The full planned feature list with status (✅ implemented, 🚧 in progress, 📋 planned) is available in **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)**.
-
-#### Feature summary by version
-
-**Version 0.1 — Core features** (✅ Completed):
-- Anonymous users: summoner search, profile and rank view, cached match history, basic champion stats
-- Registered users: customizable dashboard, detailed match data, champion mastery views
-- Admin: admin panel, user management, system metrics
-
-**Version 0.2 — Intermediate features** (📋 Planned):
-- Anonymous users: aggregated summoner stats with cache
-- Registered users: detailed personal performance, enriched match history
-
-**Version 1.0 — Advanced features** (📋 Planned):
-- Anonymous users: intelligent caching, hybrid data access strategy
-- Registered users: KPI dashboards, prioritized cache strategy, automatic freshness validation
-
-For more details:
-- **[Funcionalidades.md](Funcionalidades.md)** — UI descriptions with screenshots
-- **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)** — full feature matrix
-
-#### Users & permissions (Phase 1 analysis)
-
-User types:
-1. Anonymous: read-only access to public data
-2. Registered: access to personal profile and favorites
-3. Administrator: full system control
-
-Permissions by type:
-- Anonymous: search and view profiles and matches
-- Registered: above + personal dashboard, favorites, notes
-- Admin: above + user management, moderation, system metrics
+Entregables:
+- ✅ API REST backend con:
+  - Autenticación JWT
+  - Endpoints para usuarios, invocadores, dashboard, admin
+  - Integración con la API de Riot
+  - Tests de integración
+- ✅ Frontend en Angular con:
+  - Componentes: Home, Login, Dashboard, Summoner, Admin
+  - Servicios y guards
+  - Routing y navegación
+  - Tests unitarios
+- ✅ Esquema MySQL
+- ✅ Dockerfile optimizado multi-stage
+- ✅ Despliegue con Docker Compose
+- ✅ Workflows CI/CD:
+  - Control de calidad en PRs
+  - Publicación automática en DockerHub (dev + releases)
+  - Build manual para pruebas
+- ✅ Documentación actualizada
 
 ---
 
-### Domain entities
+#### Fase 4: Versión 0.2 — Funcionalidades intermedias
+Duración: hasta 1 de marzo  
+Estado: 📋 Planificado
 
-Conceptual entity diagram:
+Objetivos:
+- Análisis de rendimiento avanzado con gráficas (Chart.js)
+- Sistema de notas de partidas
+- Gestión completa de favoritos con notificaciones
+- Dashboard de moderación para admins
+- Tests E2E completos con Selenium
+- Mejoras de UI/UX basadas en feedback
+
+---
+
+#### Fase 5: Versión 1.0 — Funcionalidades avanzadas
+Duración: hasta 15 de abril  
+Estado: 📋 Planificado
+
+Objetivos:
+- Estadísticas globales de la comunidad
+- Recomendaciones inteligentes basadas en ML
+- Clasificaciones personalizadas
+- Sistema de informes por email (tentativo)
+- Análisis predictivo de rendimiento
+- Optimización de rendimiento y escalabilidad
+
+---
+
+#### Fase 6: Memoria del proyecto (TFG)
+Duración: hasta 15 de mayo  
+Estado: 📋 Planificado
+
+Objetivos:
+- Memoria completa del proyecto
+- Documentación técnica exhaustiva
+- Análisis de resultados
+- Conclusiones y trabajo futuro
+
+---
+
+#### Fase 7: Defensa
+Duración: hasta 15 de junio  
+Estado: 📋 Planificado
+
+Objetivos:
+- Preparación de la presentación
+- Demostración en vivo
+- Defensa ante el tribunal
+
+---
+
+## 📐 Análisis inicial
+
+### Funcionalidades iniciales
+
+> 📝 Nota: Esta sección documenta las funcionalidades tal como se definieron originalmente en la Fase 1. Para el estado de implementación actual y las funcionalidades actualizadas, ver [Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md).
+
+La lista completa de funcionalidades con estado (✅ implementado, 🚧 en progreso, 📋 planificado) está disponible en **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)**.
+
+#### Resumen de funcionalidades por versión
+
+**Versión 0.1 — Funcionalidades núcleo** (✅ Completado):
+- Usuarios anónimos: búsqueda de invocador, vista de perfil y clasificación, historial de partidas cacheado, estadísticas básicas de campeones
+- Usuarios registrados: dashboard personalizable, datos detallados de partidas, vistas de maestría de campeones
+- Admin: panel de administración, gestión de usuarios, métricas del sistema
+
+**Versión 0.2 — Funcionalidades intermedias** (📋 Planificado):
+- Usuarios anónimos: estadísticas agregadas de invocadores con caché
+- Usuarios registrados: rendimiento personal detallado, historial de partidas enriquecido
+
+**Versión 1.0 — Funcionalidades avanzadas** (📋 Planificado):
+- Usuarios anónimos: caché inteligente, estrategia híbrida de acceso a datos
+- Usuarios registrados: dashboards con KPIs, estrategia priorizada de caché, validación automática de frescura
+
+Para más detalles:
+- **[Funcionalidades.md](Funcionalidades.md)** — Descripciones de UI con capturas
+- **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)** — matriz completa de funcionalidades
+
+#### Usuarios y permisos (análisis Fase 1)
+
+Tipos de usuario:
+1. Anónimo: acceso de solo lectura a datos públicos
+2. Registrado: acceso a perfil personal y favoritos
+3. Administrador: control total del sistema
+
+Permisos por tipo:
+- Anónimo: buscar y ver perfiles y partidas
+- Registrado: lo anterior + dashboard personal, favoritos, notas
+- Admin: lo anterior + gestión de usuarios, moderación, métricas del sistema
+
+---
+
+### Entidades del dominio
+
+Diagrama conceptual de entidades:
 
 ```
 ┌─────────────┐           ┌──────────────┐
-│    User     │───────────│  Summoner    │
-│             │  favorites│              │
+│   Usuario   │───────────│  Invocador   │
+│             │  favoritos│              │
 ├─────────────┤           ├──────────────┤
 │ id          │           │ id           │
-│ name        │           │ puuid        │
+│ nombre      │           │ puuid        │
 │ email       │           │ riotId       │
-│ encodedPwd  │           │ name         │
-│ roles[]     │           │ level        │
-│ active      │           │ tier         │
-│ profilePic  │           │ rank         │
+│ pwdCodificada│          │ nombre       │
+│ roles[]     │           │ nivel        │
+│ activo      │           │ tier         │
+│ fotoPerfil  │           │ rank         │
 └─────────────┘           │ lp           │
-                          │ wins         │
-                          │ losses       │
+                          │ victorias    │
+                          │ derrotas     │
                           └──────────────┘
                                  │
                                  │ 1:N
                                  ▼
                           ┌──────────────┐
-                          │    Match     │
+                          │   Partida    │
                           ├──────────────┤
                           │ matchId      │
                           │ championId   │
@@ -285,107 +285,107 @@ Conceptual entity diagram:
                           │ deaths       │
                           │ assists      │
                           │ win          │
-                          │ gameDuration │
+                          │ duracionJuego│
                           │ timestamp    │
                           └──────────────┘
 ```
 
-Main relationships:
-- User N:M Summoner (favorites)
-- Summoner 1:N Match (history)
-- User 1:N Match (notes on matches — future)
+Relaciones principales:
+- Usuario N:M Invocador (favoritos)
+- Invocador 1:N Partida (historial)
+- Usuario 1:N Partida (notas sobre partidas — futuro)
 
 ---
 
-### Images & static assets
+### Imágenes y assets estáticos
 
-Image sources:
-- User avatars: blob stored in MySQL (field `profilePic`)
-- LoL profile icons: Riot Data Dragon CDN
-- Champion images: Riot Data Dragon CDN
-- Item and rune icons: Riot Data Dragon CDN (future)
+Fuentes de imágenes:
+- Avatares de usuario: blob almacenado en MySQL (campo `profilePic`)
+- Iconos de perfil LoL: CDN Data Dragon de Riot
+- Imágenes de campeones: CDN Data Dragon de Riot
+- Iconos de objetos y runas: CDN Data Dragon (futuro)
 
-Image management:
-- User uploads: validated by type and max size (5MB)
-- External images: URLs generated dynamically from Data Dragon
-
----
-
-### Charts and data visualization
-
-Chosen library: Chart.js
-
-Planned chart types:
-- Line: KDA evolution, win rate over time
-- Bar: Most-played champions, stat comparisons
-- Pie: Role distribution, match types
-- Radar: Skill profile (CS, vision score, kill participation)
-
-Implementation planned for v0.2
+Gestión de imágenes:
+- Subidas de usuarios: validadas por tipo y tamaño máximo (5MB)
+- Imágenes externas: URL generadas dinámicamente desde Data Dragon
 
 ---
 
-### Complementary technology
+### Gráficas y visualización de datos
 
-#### Riot Games API integration
+Librería elegida: Chart.js
 
-Endpoints used:
+Tipos de gráficas planificadas:
+- Línea: evolución de KDA, tasa de victorias a lo largo del tiempo
+- Barras: campeones más jugados, comparativas de estadísticas
+- Pastel: distribución de roles, tipos de partida
+- Radar: perfil de habilidades (CS, visión, participación en kills)
+
+Implementación planificada para v0.2
+
+---
+
+### Tecnología complementaria
+
+#### Integración con la API de Riot Games
+
+Endpoints utilizados:
 - Account-v1: `/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}`
 - Summoner-v4: `/lol/summoner/v4/summoners/by-puuid/{puuid}`
 - League-v4: `/lol/league/v4/entries/by-puuid/{puuid}`
 - Champion-Mastery-v4: `/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}/top`
-- Match-v5: `/lol/match/v5/matches/by-puuid/{puuid}/ids` and `/lol/match/v5/matches/{matchId}`
+- Match-v5: `/lol/match/v5/matches/by-puuid/{puuid}/ids` y `/lol/match/v5/matches/{matchId}`
 
-Considerations:
-- Rate limits: 20 req/s, 100 req/2min (development API key)
-- Region: EUW by default, configurable
-- Local cache to reduce calls
-
----
-
-#### Static analysis (SonarCloud)
-
-Configuration:
-- Integrated in GitHub Actions
-- Custom Quality Gate with strict metrics
-- Analysis for Java, TypeScript, HTML, CSS
-
-Metrics:
-- Coverage: ≥55%
-- Bugs: 0 critical
-- Vulnerabilities: 0
-- Code smells: <50
-- Duplication: <5%
+Consideraciones:
+- Límites de tasa: 20 req/s, 100 req/2min (clave de desarrollo)
+- Región: EUW por defecto, configurable
+- Caché local para reducir llamadas
 
 ---
 
-#### Advanced algorithm (future)
+#### Análisis estático (SonarCloud)
 
-Performance prediction:
-- ML model trained with historical data
-- Features: team composition, picks, bans, elo, recent stats
-- Output: win probability
-- Framework: TensorFlow / scikit-learn (tentative)
+Configuración:
+- Integrado en GitHub Actions
+- Quality Gate personalizado con métricas estrictas
+- Análisis para Java, TypeScript, HTML, CSS
 
-Status: ⏸️ Tentative for v1.0
-
----
-
-### Mockups & wireframes
-
-Initial wireframes were developed in static HTML/CSS and are available in `utils/wireframes/`:
-
-- `index.html` — Main search page
-- `summoner.html` — Summoner profile
-- `dashboard.html` — Registered user dashboard
-- `admin.html` — Admin panel
-- `login.html` — Login and registration screens
-
-These mockups served as a reference for the Angular frontend design.
+Métricas:
+- Cobertura: ≥55%
+- Bugs: 0 críticos
+- Vulnerabilidades: 0
+- Olores de código: <50
+- Duplicación: <5%
 
 ---
 
-## 🔗 References
+#### Algoritmo avanzado (futuro)
+
+Predicción de rendimiento:
+- Modelo ML entrenado con datos históricos
+- Features: composición de equipo, picks, bans, elo, estadísticas recientes
+- Salida: probabilidad de victoria
+- Framework: TensorFlow / scikit-learn (tentativo)
+
+Estado: ⏸️ Tentativo para v1.0
+
+---
+
+### Mockups y wireframes
+
+Los wireframes iniciales se desarrollaron en HTML/CSS estático y están disponibles en `utils/wireframes/`:
+
+- `index.html` — Página principal de búsqueda
+- `summoner.html` — Perfil de invocador
+- `dashboard.html` — Dashboard de usuario registrado
+- `admin.html` — Panel de administración
+- `login.html` — Pantallas de login y registro
+
+Estos mockups sirvieron como referencia para el diseño del frontend en Angular.
+
+---
+
+## 🔗 Referencias
 
 - Riot API docs: https://developer.riotgames.com/docs/lol
 - Data Dragon: https://ddragon.leagueoflegends.com/
@@ -395,4 +395,4 @@ These mockups served as a reference for the Angular frontend design.
 
 ---
 
-[← Back to main README](../README.md) | [View Methodology →](Seguimiento.md)
+[← Volver al README principal](../README.md) | [Ver Metodología →](Seguimiento.md)

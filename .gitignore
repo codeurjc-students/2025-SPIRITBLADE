@@ -1,0 +1,58 @@
+# Root .gitignore for the repository
+# Ignore OS, IDE, and local secret files
+.env
+.env.*
+!.env.example
+/.idea
+.DS_Store
+node_modules/
+dist/
+build/
+*.log
+
+# Logs directory used by some services
+logs/
+
+# Generic build output
+out/
+
+# Docker secrets and certificates
+docker/secrets/
+docker/ssl/
+
+# Backend / Java
+*/target/
+/out/
+.mvn/
+*.class
+*.jar
+*.war
+*.ear
+generated-sources/
+
+# IDEs
+.classpath
+.project
+.settings/
+*.iml
+.vscode/
+
+# Spring Boot properties & keystore
+backend/src/main/resources/application.properties
+backend/src/main/resources/application-*.properties
+backend/src/main/resources/keystore.jks
+
+# Frontend (Angular / Node)
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/.angular/cache/
+frontend/.sass-cache/
+frontend/.history/
+frontend/coverage/
+frontend/testem.log
+
+# Misc
+Thumbs.db
+*.tmp
+*.bak

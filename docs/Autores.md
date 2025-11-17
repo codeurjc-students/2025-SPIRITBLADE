@@ -1,198 +1,190 @@
-# Autores - SPIRITBLADE
+# Autores — SPIRITBLADE
 
 Este documento proporciona información sobre el equipo de desarrollo y el contexto académico del proyecto SPIRITBLADE.
 
 ---
 
-## 👤 Desarrollador Principal
-
-**Jorge Andrés Echevarría**  
-# Authors — SPIRITBLADE
-
-This document provides information about the development team and the academic context of the SPIRITBLADE project.
-
----
-
-## Lead Developer
+## 👤 Desarrollador principal
 
 **Jorge Andrés Echevarría**
-Student of Computer Engineering
-Universidad Rey Juan Carlos (URJC)
-School of Computer Engineering (ETSII)
 
-### Contact
+Estudiante de Ingeniería Informática  
+Universidad Rey Juan Carlos (URJC)  
+Escuela Técnica Superior de Ingeniería Informática (ETSII)
 
-- Email: j.echeverria.2021@alumnos.urjc.es
-- LinkedIn: https://www.linkedin.com/in/jorge-andr%C3%A9s-echevarr%C3%ADa-garc%C3%ADa-a0a8a224b/
-- GitHub: https://github.com/JorgeAndresEcheverria
-- Project blog: https://jorgeandrescheverria.blogspot.com/search/label/tfg
+### Contacto
 
----
-
-## Supervisor
-
-**Iván Chicano Capelo**
-Associate Professor
-Universidad Rey Juan Carlos (URJC)
-Department of Computer Science
+- Email: j.echeverria.2021@alumnos.urjc.es  
+- LinkedIn: https://www.linkedin.com/in/jorge-andr%C3%A9s-echevarr%C3%ADa-garc%C3%ADa-a0a8a224b/  
+- GitHub: https://github.com/JorgeAndresEcheverria  
+- Blog del proyecto: https://jorgeandrescheverria.blogspot.com/search/label/tfg
 
 ---
 
-## Academic Context
+## Tutor
 
-### Final Degree Project (TFG)
-
-Degree: B.Sc. in Computer Engineering
-Academic year: 2024-2025
-University: Universidad Rey Juan Carlos (URJC)
-School: ETSII
-Course: Final Degree Project (TFG)
-
-### Project Description
-
-SPIRITBLADE is a final degree project that develops a full-stack web application for analyzing League of Legends statistics, following agile methodologies and applying software engineering best practices.
-
-The project covers the full software development lifecycle:
-- Requirements analysis
-- Architecture design
-- Frontend and backend implementation
-- Multi-level testing
-- Automated CI/CD
-- Deployment and maintenance
+**Iván Chicano Capelo**  
+Profesor Titular  
+Universidad Rey Juan Carlos (URJC)  
+Departamento de Informática
 
 ---
 
-## Motivation
+## Contexto académico
 
-### Personal Goals
+### Trabajo de Fin de Grado (TFG)
 
-As an active League of Legends player, the lead developer identified the need for accessible tools to:
-- Analyze personal and other players' performance
-- Identify play patterns and improvement areas
-- Compare statistics with the community
+Grado: Grado en Ingeniería Informática  
+Curso académico: 2024-2025  
+Universidad: Universidad Rey Juan Carlos (URJC)  
+Escuela: ETSII  
+Asignatura: Trabajo de Fin de Grado (TFG)
 
-### Academic Goals
+### Descripción del proyecto
 
-The project aims to demonstrate competencies in:
-- Full Stack Development: Angular + Spring Boot + MySQL
-- Software Architecture: SPA, REST API, layered design
-- Security: Spring Security, JWT, common protections
-- Software Quality: Testing, static analysis, code reviews
-- DevOps: Docker, CI/CD, automation
-- External API Integration: Riot Games API
-- Project Management: Agile methodology, Git Flow, documentation
+SPIRITBLADE es un trabajo de fin de grado que desarrolla una aplicación web full-stack para analizar estadísticas de League of Legends, siguiendo metodologías ágiles y aplicando buenas prácticas de ingeniería de software.
+
+El proyecto abarca el ciclo de vida completo del software:
+- Análisis de requisitos
+- Diseño de arquitectura
+- Implementación frontend y backend
+- Pruebas multinivel
+- CI/CD automatizado
+- Despliegue y mantenimiento
 
 ---
 
-## Acknowledgements
+## Motivación
 
-### Open Source Communities
+### Objetivos personales
 
-Thanks to the communities behind:
+Como jugador activo de League of Legends, el desarrollador principal identificó la necesidad de herramientas accesibles para:
+- Analizar el rendimiento personal y de otros jugadores
+- Identificar patrones de juego y áreas de mejora
+- Comparar estadísticas con la comunidad
+
+### Objetivos académicos
+
+El proyecto pretende demostrar competencias en:
+- Desarrollo Full Stack: Angular + Spring Boot + MySQL
+- Arquitectura de software: SPA, API REST, diseño por capas
+- Seguridad: Spring Security, JWT, protecciones comunes
+- Calidad de software: Pruebas, análisis estático, revisiones de código
+- DevOps: Docker, CI/CD, automatización
+- Integración de APIs externas: Riot Games API
+- Gestión de proyecto: Metodología ágil, Git Flow, documentación
+
+---
+
+## Agradecimientos
+
+### Comunidades de código abierto
+
+Gracias a las comunidades detrás de:
 - Spring Framework
 - Angular
-- Riot Games (public API)
+- Riot Games (API pública)
 - Docker
 - GitHub
 
-### Educational Resources
+### Recursos educativos
 
-- Universidad Rey Juan Carlos (URJC)
-- Stack Overflow
-- Baeldung (Spring Boot tutorials)
-- Angular.io (official docs)
-- YouTube channels: CodelyTV, MiduDev, Fireship
+- Universidad Rey Juan Carlos (URJC)  
+- Stack Overflow  
+- Baeldung (tutoriales de Spring Boot)  
+- Angular.io (documentación oficial)  
+- Canales de YouTube: CodelyTV, MiduDev, Fireship
 
-### Testing and Feedback
+### Pruebas y retroalimentación
 
-Special thanks to the beta testers who tried early versions:
-- Classmates at URJC
-- Friends who play League of Legends
-- Members of the project's Discord server
-
----
-
-## Future Work
-
-The project was designed to be extensible and scalable. Possible future directions:
-
-### Technical Improvements
-- Migrate to microservices architecture
-- Add Redis for distributed caching
-- Use WebSockets for real-time notifications
-- Evaluate GraphQL as an alternative to REST
-
-### New Features
-- Predictive analysis with Machine Learning
-- Tournament and competition management
-- Discord integration
-- Native mobile app (React Native / Flutter)
-- Support for additional regions (KR, NA, LAN, LAS)
-
-### Project Expansion
-- Support for other Riot games (TFT, Valorant)
-- Marketplace for builds and guides
-- Coaching and mentoring system
-- Public API for external developers
+Agradecimientos especiales a los probadores beta que probaron versiones tempranas:
+- Compañeros de clase en la URJC  
+- Amigos que juegan League of Legends  
+- Miembros del servidor de Discord del proyecto
 
 ---
 
-## License
+## Trabajo futuro
 
-This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+El proyecto está diseñado para ser extensible y escalable. Posibles direcciones futuras:
 
-See the [LICENSE](../LICENSE) file for details.
+### Mejoras técnicas
+- Migrar a arquitectura de microservicios
+- Añadir Redis para cache distribuida
+- Usar WebSockets para notificaciones en tiempo real
+- Evaluar GraphQL como alternativa a REST
 
-Summary of rights:
-- ✅ Commercial use
-- ✅ Modification
-- ✅ Distribution
-- ✅ Patent use
-- ⚠️ Copyleft: Derivative works must use the same license
-- ⚠️ Limited liability
+### Nuevas funcionalidades
+- Análisis predictivo con Machine Learning
+- Gestión de torneos y competiciones
+- Integración con Discord
+- Aplicación móvil nativa (React Native / Flutter)
+- Soporte para más regiones (KR, NA, LAN, LAS)
+
+### Expansión del proyecto
+- Soporte para otros juegos de Riot (TFT, Valorant)
+- Mercado para builds y guías
+- Sistema de coaching y mentoring
+- API pública para desarrolladores externos
 
 ---
 
-## Contact and Contributions
+## Licencia
 
-### Report Bugs or Suggest Improvements
+Este proyecto está licenciado bajo la **Licencia Pública General GNU v3.0 (GPL-3.0)**.
 
-If you find a bug or want to suggest an improvement:
-1. Check for an existing issue at: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE/issues
-2. Create a new issue with:
-   - A detailed description
-   - Reproduction steps (if a bug)
-   - Expected vs observed behavior
-   - Screenshots when helpful
+Consulta el archivo [LICENSE](../LICENSE) para más detalles.
 
-### Contributing to the Codebase
+Resumen de derechos:
+- ✅ Uso comercial  
+- ✅ Modificación  
+- ✅ Distribución  
+- ✅ Uso de patentes  
+- ⚠️ Copyleft: las obras derivadas deben usar la misma licencia  
+- ⚠️ Responsabilidad limitada
 
-Contribution process:
-1. Fork the repository
-2. Create a descriptive branch (e.g., `feature/new-feature` or `fix/bug`)
-3. Implement changes with tests
-4. Ensure tests and quality gates pass
-5. Open a Pull Request with a detailed description
-6. Address review feedback and merge
+---
 
-### Inquiries
+## Contacto y contribuciones
 
-For general questions, contact:
-- Email: j.echeverria.2021@alumnos.urjc.es
-- LinkedIn: https://www.linkedin.com/in/jorge-andr%C3%A9s-echevarr%C3%ADa-garc%C3%ADa-a0a8a224b/
+### Reportar errores o sugerir mejoras
+
+Si encuentras un error o quieres sugerir una mejora:
+1. Comprueba si ya existe una incidencia en: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE/issues  
+2. Crea una nueva incidencia con:
+   - Descripción detallada
+   - Pasos para reproducir (si es un error)
+   - Comportamiento esperado vs observado
+   - Capturas de pantalla cuando sean útiles
+
+### Contribuir al código
+
+Proceso de contribución:
+1. Haz un fork del repositorio  
+2. Crea una rama descriptiva (ej., `feature/nueva-funcionalidad` o `fix/bug`)  
+3. Implementa cambios con pruebas  
+4. Asegúrate de que las pruebas y puertas de calidad pasen  
+5. Abre un Pull Request con una descripción detallada  
+6. Atiende el feedback de la revisión y fusiona
+
+### Consultas
+
+Para preguntas generales, contacta:
+- Email: j.echeverria.2021@alumnos.urjc.es  
+- LinkedIn: https://www.linkedin.com/in/jorge-andr%C3%A9s-echevarr%C3%ADa-garc%C3%ADa-a0a8a224b/  
 - Blog: https://jorgeandrescheverria.blogspot.com/search/label/tfg
 
 ---
 
-## Useful Links
+## Enlaces útiles
 
-- Repository: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
-- Project blog: https://jorgeandrescheverria.blogspot.com/search/label/tfg
-- SonarCloud: https://sonarcloud.io/project/overview?id=JorgeAndresEcheverria_2025-SPIRITBLADE
+- Repositorio: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE  
+- Blog del proyecto: https://jorgeandrescheverria.blogspot.com/search/label/tfg  
+- SonarCloud: https://sonarcloud.io/project/overview?id=JorgeAndresEcheverria_2025-SPIRITBLADE  
 - DockerHub: https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade
 
 ---
 
-Last updated: January 2025
+Última actualización: enero de 2025
 
-[← Back to main README](../README.md) | [View Full Documentation →](../README.md#documentation)
+[← Volver al README principal](../README.md) | [Ver documentación completa →](../README.md#documentation)

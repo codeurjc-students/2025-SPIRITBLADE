@@ -192,10 +192,30 @@ jobs:
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_JPA_SHOW_SQL: true
+          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
+          MINIO_REGION: us-east-1
+          JWT_EXPIRATION: 86400000
+          RIOT_API_KEY: ${{secrets.RIOT_API_KEY}}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY}}
+          SERVER_PORT: 8443
+          SERVER_SSL_ENABLED: true
+          SERVER_SSL_KEY_STORE: classpath:keystore.jks
+          SERVER_SSL_KEY_STORE_PASSWORD: spiritblade
+          SERVER_SSL_KEY_STORE_TYPE: JKS
+          SERVER_SSL_KEY_ALIAS: spiritblade
+          SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 10MB
+          SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 10MB
+          LOGGING_LEVEL_COM_TFG_TFG: INFO
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
+          LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER: TRACE
+          SSL_PASSWORD: ${{ secrets.SSL_PASSWORD}}
         run: mvn test -Dtest="**/*IntegrationTest" -B
         continue-on-error: false
 
@@ -208,10 +228,30 @@ jobs:
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_JPA_SHOW_SQL: true
+          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
+          MINIO_REGION: us-east-1
+          JWT_EXPIRATION: 86400000
+          RIOT_API_KEY: ${{secrets.RIOT_API_KEY}}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY}}
+          SERVER_PORT: 8443
+          SERVER_SSL_ENABLED: true
+          SERVER_SSL_KEY_STORE: classpath:keystore.jks
+          SERVER_SSL_KEY_STORE_PASSWORD: spiritblade
+          SERVER_SSL_KEY_STORE_TYPE: JKS
+          SERVER_SSL_KEY_ALIAS: spiritblade
+          SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 10MB
+          SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 10MB
+          LOGGING_LEVEL_COM_TFG_TFG: INFO
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
+          LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER: TRACE
+          SSL_PASSWORD: ${{ secrets.SSL_PASSWORD}}
         run: mvn test -Dtest="**/*SystemTest,**/*E2ETest" -B
         continue-on-error: false
 
@@ -346,10 +386,30 @@ jobs:
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_JPA_SHOW_SQL: true
+          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
+          MINIO_REGION: us-east-1
+          JWT_EXPIRATION: 86400000
+          RIOT_API_KEY: ${{secrets.RIOT_API_KEY}}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY}}
+          SERVER_PORT: 8443
+          SERVER_SSL_ENABLED: true
+          SERVER_SSL_KEY_STORE: classpath:keystore.jks
+          SERVER_SSL_KEY_STORE_PASSWORD: spiritblade
+          SERVER_SSL_KEY_STORE_TYPE: JKS
+          SERVER_SSL_KEY_ALIAS: spiritblade
+          SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 10MB
+          SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 10MB
+          LOGGING_LEVEL_COM_TFG_TFG: INFO
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE: INFO
+          LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
+          LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER: TRACE
+          SSL_PASSWORD: ${{ secrets.SSL_PASSWORD}}
         run: |
           mvn clean verify sonar:sonar \
             -Dsonar.projectKey=codeurjc-students_2025-SPIRITBLADE \

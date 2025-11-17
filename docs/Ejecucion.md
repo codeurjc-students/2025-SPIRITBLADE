@@ -1,51 +1,44 @@
 # Ejecución - SPIRITBLADE
 
-Este documento proporciona instrucciones detalladas para ejecutar la aplicación SPIRITBLADE utilizando Docker, partiendo de las imágenes publicadas en DockerHub.
+Este documento proporciona instrucciones detalladas para ejecutar la aplicación SPIRITBLADE usando Docker, partiendo de las imágenes publicadas en Docker Hub.
 
 ---
 
-## 📋 Requisitos Previos
-
-# Execution — SPIRITBLADE
-
-This document provides detailed instructions to run the SPIRITBLADE application using Docker, based on the images published on Docker Hub.
-
----
-
-## Prerequisites
+## 📋 Requisitos previos
 
 ### Docker
 
-SPIRITBLADE uses Docker for deployment. Please install Docker according to your operating system:
+SPIRITBLADE utiliza Docker para el despliegue. Instala Docker según tu sistema operativo:
 
-- Windows: Docker Desktop (requires WSL2 on Windows 10/11 Pro, Enterprise or Education)
-- macOS: Docker Desktop (Intel and Apple Silicon supported)
-- Linux: Docker Engine + Docker Compose (install via your distro package manager)
+- Windows: Docker Desktop (requiere WSL2 en Windows 10/11 Pro, Enterprise o Education)
+- macOS: Docker Desktop (compatibilidad con Intel y Apple Silicon)
+- Linux: Docker Engine + Docker Compose (instala vía el gestor de paquetes de tu distribución)
 
-Official Docker installation guides:
+Guías oficiales de instalación de Docker:
 
 - https://docs.docker.com/desktop/install/
 - https://docs.docker.com/engine/install/
 
 ---
 
-## Quick start
+## Inicio rápido
 
-### Option A — Run the published images (recommended)
+### Opción A — Ejecutar las imágenes publicadas (recomendado)
 
-This is the fastest way to run SPIRITBLADE using the published Docker images.
+Esta es la forma más rápida de ejecutar SPIRITBLADE usando las imágenes publicadas.
 
-1) Create an empty folder and download the compose file:
+1) Crea una carpeta vacía y descarga el archivo compose:
 
 ```powershell
 mkdir spiritblade; cd spiritblade
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/codeurjc-students/2025-SPIRITBLADE/main/docker/docker-compose.yml" -OutFile docker-compose.yml
 ```
 
-2) Create a `.env` file next to `docker-compose.yml` with the required environment variables (example):
+2) Crea un archivo `.env` junto a `docker-compose.yml` con las variables de entorno requeridas (ejemplo):
 
 ```text
 DOCKER_USERNAME=codeurjcstudents
+# Consulte .env.example. Copie los valores en .env y NO comitee .env
 RIOT_API_KEY=RGAPI-your-riot-api-key-here
 MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_DATABASE=spiritblade_db
@@ -55,114 +48,114 @@ JWT_SECRET=your-secure-jwt-secret-min-256-bits
 SERVER_PORT=443
 ```
 
-3) Start the stack:
+3) Inicia la pila:
 
 ```powershell
 docker compose up -d
 ```
 
-4) Follow the app logs (optional):
+4) Sigue los logs de la aplicación (opcional):
 
 ```powershell
 docker compose logs -f app
 ```
 
-Open the app in your browser at: https://localhost:443
+Abre la aplicación en tu navegador en: https://localhost:443
 
-> Note: In development the server uses a self-signed certificate. Your browser will show a security warning — accept it to proceed.
+> Nota: en desarrollo el servidor usa un certificado autofirmado. Tu navegador mostrará una advertencia de seguridad — acéptala para continuar.
 
 ---
 
-### Option B — Build from source
+### Opción B — Compilar desde el código fuente
 
-If you prefer to build the image locally:
+Si prefieres construir la imagen localmente:
 
 ```powershell
-# Clone the repository
+# Clona el repositorio
 git clone https://github.com/codeurjc-students/2025-SPIRITBLADE.git
 cd 2025-SPIRITBLADE
 
-# Build the Docker image
+# Construye la imagen Docker
 docker build -f docker/Dockerfile -t spiritblade:custom .
 
-# Edit docker/docker-compose.yml to use the local image instead of the published one
-# (replace image: ${DOCKER_USERNAME}/spiritblade:0.1 with image: spiritblade:custom)
+# Edita docker/docker-compose.yml para usar la imagen local en lugar de la publicada
+# (reemplaza image: ${DOCKER_USERNAME}/spiritblade:0.1 por image: spiritblade:custom)
 
-# Copy and edit environment variables
+# Copia y edita variables de entorno
 Copy-Item docker/.env.example docker/.env
-# Edit docker/.env with your values, then start the stack
+# Edita docker/.env con tus valores, luego inicia la pila
 cd docker
 docker compose up -d
 ```
 
 ---
 
-## Configuration
+## Configuración
 
-Place a `.env` file next to `docker-compose.yml` with at least these variables:
+Coloca un archivo `.env` junto a `docker-compose.yml` con al menos estas variables:
 
 ```text
-# Docker image namespace (optional)
+# Namespace de las imágenes Docker (opcional)
 DOCKER_USERNAME=codeurjcstudents
 
-# Riot Games API key (required)
+# Clave de la API de Riot Games (requerida)
 RIOT_API_KEY=RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
-# MySQL configuration
+# Configuración MySQL
 MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_DATABASE=spiritblade_db
 MYSQL_USER=spiritblade_user
 MYSQL_PASSWORD=spiritblade_pass
 
-# JWT secret (use a secure random value, min ~32 chars)
+# Secreto JWT (usa un valor aleatorio seguro, mínimo ~32 caracteres)
 JWT_SECRET=your-very-secure-secret-key-min-256-bits-long
 
-# Server port (default 443 for HTTPS)
+# Puerto del servidor (por defecto 443 para HTTPS)
 SERVER_PORT=443
 ```
 
-Obtain a Riot Games API key at: https://developer.riotgames.com/
+Obtén una clave de Riot Games en: https://developer.riotgames.com/
 
-Note: Development keys expire frequently and are rate limited (approx. 20 req/s, 100 req/2min). For production, request a production key from Riot.
+Nota: Las claves de desarrollo expiran con frecuencia y tienen límites de tasa (aprox. 20 req/s, 100 req/2min). Para producción, solicita una clave de producción a Riot.
 
 ---
 
-## Docker layout
+## Estructura del stack Docker
 
-The compose stack runs a small set of services:
+La pila de compose ejecuta un conjunto pequeño de servicios:
 
 - spiritblade-mysql (MySQL 8.0)
-  - internal port: 3306
-  - persistent volume: spiritblade_mysql_data
+  - puerto interno: 3306
+  - volumen persistente: spiritblade_mysql_data
   - healthcheck: mysqladmin ping
 
 - spiritblade-app (Spring Boot + Angular)
-  - published port: 443 (HTTPS)
-  - waits for MySQL healthcheck
-  - environment: RIOT_API_KEY, JWT_SECRET, etc.
+  - puerto publicado: 443 (HTTPS)
+  - espera al healthcheck de MySQL
+  - variables de entorno: RIOT_API_KEY, JWT_SECRET, etc.
   - healthcheck: curl -k https://localhost:443/actuator/health
 
 ---
 
-## Accessing the application
+## Acceder a la aplicación
 
 URL: https://localhost:443
 
-Because the development setup uses a self-signed SSL certificate you will need to accept the browser warning:
+Como la configuración de desarrollo usa un certificado autofirmado necesitarás aceptar la advertencia del navegador:
 
 - Chrome: Advanced → Proceed to localhost (unsafe)
 - Firefox: Advanced → Accept the risk and continue
 
-### Test credentials (pre-configured sample users)
+### Credenciales de prueba (usuarios de ejemplo preconfigurados)
 
-User account (regular):
+Cuenta de usuario (normal):
 
 ```
 username: testuser
 password: password
 ```
 
-Administrator account:
+Cuenta de administrador:
 
 ```
 username: admin
@@ -171,16 +164,16 @@ password: admin
 
 ---
 
-## Sample data and basic checks
+## Datos de ejemplo y comprobaciones básicas
 
-On first run the app seeds example users and sample data.
+En la primera ejecución la aplicación inserta usuarios de ejemplo y datos de muestra.
 
-Preconfigured users:
+Usuarios preconfigurados:
 
-- `admin` (role: ADMIN, password: `admin`)
-- `testuser` (role: USER, password: `password`)
+- `admin` (rol: ADMIN, contraseña: `admin`)
+- `testuser` (rol: USER, contraseña: `password`)
 
-Try searching real summoners (EUW region by default), for example:
+Prueba a buscar invocadores reales (región EUW por defecto), por ejemplo:
 
 - Player#EUW
 - Faker#KR1
@@ -188,67 +181,67 @@ Try searching real summoners (EUW region by default), for example:
 
 ---
 
-## Useful commands
+## Comandos útiles
 
-Follow these in a PowerShell terminal (or adapt to your shell):
+Usa estos comandos en PowerShell (o adáptalos a tu shell):
 
 ```powershell
-# Tail logs for all services
+# Ver logs de todos los servicios
 docker compose logs -f
 
-# Tail only the app logs
+# Ver solo los logs de la app
 docker compose logs -f app
 
-# Tail only MySQL logs
+# Ver solo los logs de MySQL
 docker compose logs -f mysql
 
-# Show the last 100 lines of the app logs
+# Mostrar las últimas 100 líneas de los logs de la app
 docker compose logs --tail=100 app
 
-# Show container status
+# Mostrar estado de los contenedores
 docker compose ps
 
-# Stop (keeps volumes)
+# Parar (mantiene volúmenes)
 docker compose stop
 
-# Restart
+# Reiniciar
 docker compose restart
 
-# Stop and remove containers (keeps volumes)
+# Parar y eliminar contenedores (mantiene volúmenes)
 docker compose down
 
-# Remove everything including volumes (DATA LOSS)
+# Eliminar todo incluyendo volúmenes (PÉRDIDA DE DATOS)
 docker compose down -v
 
-# Pull updated images and recreate
+# Descargar imágenes actualizadas y recrear
 docker compose pull
 docker compose up -d
 
-# Execute a command in the running app container
+# Ejecutar un comando en el contenedor de la app en ejecución
 docker compose exec app java -jar /app/app.jar --version
 ```
 
 ---
 
-## Health checks and verification
+## Comprobaciones de estado y verificación
 
-Confirm the backend is healthy:
+Confirma que el backend está sano:
 
 ```powershell
-# Accept the self-signed cert with -k
+# Acepta el certificado autofirmado con -k
 curl -k https://localhost:443/actuator/health
 
-# Expected response: {"status":"UP"}
+# Respuesta esperada: {"status":"UP"}
 ```
 
-Verify the database from within the MySQL container:
+Verifica la base de datos desde dentro del contenedor MySQL:
 
 ```powershell
 docker compose exec mysql mysql -u spiritblade_user -p spiritblade_db
-# then inside mysql: SHOW TABLES; SELECT COUNT(*) FROM USERS;
+# luego dentro de mysql: SHOW TABLES; SELECT COUNT(*) FROM USERS;
 ```
 
-Search logs for errors:
+Busca errores en los logs:
 
 ```powershell
 docker compose logs app | Select-String "ERROR"
@@ -257,22 +250,22 @@ docker compose logs app | Select-String "WARN"
 
 ---
 
-## Troubleshooting
+## Solución de problemas
 
-### Port 443 already in use
+### El puerto 443 ya está en uso
 
-If another service is listening on 443 (nginx, Apache, etc.), change the host port mapping in `docker-compose.yml`:
+Si otro servicio escucha en 443 (nginx, Apache, etc.), cambia el mapeo de puertos en `docker-compose.yml`:
 
 ```yaml
 services:
   app:
     ports:
-      - "8443:443" # map external 8443 -> internal 443
+      - "8443:443" # mapea 8443 externo -> 443 interno
 ```
 
-Then open https://localhost:8443
+Luego abre https://localhost:8443
 
-### MySQL is not responding
+### MySQL no responde
 
 ```powershell
 docker compose ps
@@ -280,43 +273,43 @@ docker compose restart mysql
 docker compose logs mysql
 ```
 
-### Riot API key errors
+### Errores con la clave de Riot API
 
-Errors like:
+Errores como:
 
 ```
 ERROR: Riot API error: 401 Unauthorized
 ERROR: Riot API error: 403 Forbidden
 ```
 
-Steps:
-1) Confirm `RIOT_API_KEY` is correctly set in `.env`
-2) Regenerate the development key (it expires frequently)
-3) Observe rate limits (20 req/s, 100 req/2min)
+Pasos:
+1) Comprueba que `RIOT_API_KEY` está correctamente establecido en `.env`
+2) Regenera la clave de desarrollo (expira con frecuencia)
+3) Observa los límites de tasa (20 req/s, 100 req/2min)
 
-### Application fails to start
+### La aplicación no se inicia
 
-Check the app logs for details:
+Revisa los logs de la app para más detalles:
 
 ```powershell
 docker compose logs app
 ```
 
-Common causes:
+Causas comunes:
 
-- JWT_SECRET too short — use a secure random string (recommend ~32+ chars)
-- MySQL not ready — wait for the healthcheck to pass
-- Missing environment variables — review `.env`
+- JWT_SECRET demasiado corto — usa una cadena aleatoria segura (recomendado ~32+ caracteres)
+- MySQL no está listo — espera a que pase el healthcheck
+- Variables de entorno faltantes — revisa `.env`
 
-### SSL certificate warnings
+### Advertencias de certificado SSL
 
-Self-signed certificates are expected in development. For production use a CA-signed certificate (Let's Encrypt example):
+Los certificados autofirmados son esperados en desarrollo. Para producción usa un certificado firmado por una CA (ejemplo con Let's Encrypt):
 
 ```bash
-# Obtain certificate with certbot (production server with domain)
+# Obtener certificado con certbot (servidor de producción con dominio)
 certbot certonly --standalone -d yourdomain.com
 
-# Convert to PKCS12 then to JKS if you need a Java keystore
+# Convertir a PKCS12 luego a JKS si necesitas un keystore Java
 openssl pkcs12 -export -in cert.pem -inkey privkey.pem -out keystore.p12
 keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
   -destkeystore keystore.jks
@@ -324,51 +317,52 @@ keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
 
 ---
 
-## Remote deployment (server)
+## Despliegue remoto (servidor)
 
-Minimum server requirements:
+Requisitos mínimos del servidor:
 
-- OS: Ubuntu 20.04+/Debian 11+/RHEL 8+
-- RAM: 2GB (4GB recommended)
-- Disk: 10GB free
-- Docker & Docker Compose installed
-- Ports: 443 (HTTPS) and optionally 3306 (MySQL)
+- SO: Ubuntu 20.04+/Debian 11+/RHEL 8+
+- RAM: 2GB (4GB recomendado)
+- Disco: 10GB libres
+- Docker & Docker Compose instalados
+- Puertos: 443 (HTTPS) y opcionalmente 3306 (MySQL)
 
-Basic steps (example):
+Pasos básicos (ejemplo):
 
 ```bash
-# SSH into the server
+# Conéctate por SSH al servidor
 ssh user@your-server
 
-# Install Docker (Ubuntu example)
+# Instalar Docker (ejemplo para Ubuntu)
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
-# Install Docker Compose
+# Instalar Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Deploy
+# Desplegar
 mkdir /opt/spiritblade && cd /opt/spiritblade
 curl -O https://raw.githubusercontent.com/codeurjc-students/2025-SPIRITBLADE/main/docker/docker-compose.yml
-nano .env # fill with production-safe values
+nano .env # rellena con valores seguros para producción
 docker compose up -d
 
-# Allow HTTPS through the firewall
+# Permitir HTTPS en el firewall
 sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
 ---
 
-## Additional documentation
+## Documentación adicional
 
-- [Development Guide](Guia-Desarrollo.md)
+- [Guía de desarrollo](Guia-Desarrollo.md)
 - [API REST](API.md)
 - [Docker README](../docker/README.md)
 
 ---
 
-[← Back to main README](../README.md)
+[← Volver al README principal](../README.md)
+
 **Esto es normal en desarrollo.** El certificado es autofirmado.

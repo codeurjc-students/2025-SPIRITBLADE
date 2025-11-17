@@ -1,333 +1,333 @@
-# API Documentation — SPIRITBLADE
+# Documentación de la API — SPIRITBLADE
 
-## Index
-- [Overview](#overview)
-- [Accessing the Interactive API Documentation](#accessing-the-interactive-api-documentation)
-- [Using Swagger UI](#using-swagger-ui)
-- [Authentication with JWT](#authentication-with-jwt)
-- [Available Endpoints](#available-endpoints)
-- [Quick Start](#quick-start)
-- [Additional Resources](#additional-resources)
-
----
-
-## Overview
-
-SPIRITBLADE exposes a **REST API** built with Spring Boot 3.4.3 that provides League of Legends data analysis and user management capabilities.
-
-**Base URL**:
-- **HTTPS**: `https://localhost` (port 443)
-
-⚠️ Important: The server runs **HTTPS only**. There is no HTTP access. Accept the self-signed certificate in your browser the first time you connect.
-
-Authentication: Most endpoints require a JWT Bearer token in the `Authorization` header.
-
-Interactive Documentation: SPIRITBLADE includes **Swagger UI** for interactive API exploration and testing. This provides a dynamic, always up-to-date interface.
+## Índice
+- [Visión general](#visión-general)
+- [Acceso a la documentación interactiva de la API](#acceso-a-la-documentación-interactiva-de-la-api)
+- [Uso de Swagger UI](#uso-de-swagger-ui)
+- [Autenticación con JWT](#autenticación-con-jwt)
+- [Endpoints disponibles](#endpoints-disponibles)
+- [Inicio rápido](#inicio-rápido)
+- [Recursos adicionales](#recursos-adicionales)
 
 ---
 
-## Accessing the Interactive API Documentation
+## Visión general
+
+SPIRITBLADE expone una **API REST** construida con Spring Boot 3.4.3 que ofrece análisis de datos de League of Legends y gestión de usuarios.
+
+**URL base**:
+- **HTTPS**: `https://localhost` (puerto 443)
+
+⚠️ Importante: el servidor funciona **solo con HTTPS**. No hay acceso por HTTP. Acepta el certificado autofirmado en tu navegador la primera vez que te conectes.
+
+Autenticación: la mayoría de endpoints requieren un token JWT Bearer en la cabecera `Authorization`.
+
+Documentación interactiva: SPIRITBLADE incluye **Swagger UI** para exploración y pruebas interactivas de la API. Proporciona una interfaz dinámica y siempre actualizada.
+
+---
+
+## Acceso a la documentación interactiva de la API
 
 ### Swagger UI
 
-The **Swagger UI** provides a complete, interactive interface to explore and test all API endpoints directly from your browser.
+El **Swagger UI** ofrece una interfaz completa e interactiva para explorar y probar todos los endpoints de la API directamente desde el navegador.
 
-**Access URL**:
+**URL de acceso**:
 - **HTTPS**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
 
-First time: Your browser will show a security warning because the SSL certificate is self-signed. Click "Advanced" → "Proceed to localhost (unsafe)" to accept it.
+Primera vez: Tu navegador mostrará una advertencia de seguridad porque el certificado SSL está autofirmado. Haz clic en "Avanzado" → "Continuar a localhost (inseguro)" para aceptarlo.
 
-Features:
-- 📖 Complete endpoint catalog with descriptions, parameters, and responses
-- 🔐 JWT authentication support for testing protected endpoints
-- 🧪 "Try it out" functionality to execute requests directly
-- 📊 Request/response examples with real data structures
-- 🔍 Schema definitions for all DTOs and models
-- 🎨 Modern, intuitive interface with filtering and search
+Funciones:
+- 📖 Catálogo completo de endpoints con descripciones, parámetros y respuestas
+- 🔐 Soporte de autenticación JWT para probar endpoints protegidos
+- 🧪 Funcionalidad "Try it out" para ejecutar solicitudes directamente
+- 📊 Ejemplos de request/response con estructuras de datos reales
+- 🔍 Definiciones de esquemas para todos los DTOs y modelos
+- 🎨 Interfaz moderna e intuitiva con filtrado y búsqueda
 
-### OpenAPI Specification
+### Especificación OpenAPI
 
-The raw OpenAPI 3.0 specification is available at:
+La especificación OpenAPI 3.0 en bruto está disponible en:
 - **JSON**: [https://localhost/v3/api-docs](https://localhost/v3/api-docs)
 - **YAML**: [https://localhost/v3/api-docs.yaml](https://localhost/v3/api-docs.yaml)
 
-Use these URLs to:
-- Import into Postman or Insomnia
-- Generate client SDKs with OpenAPI Generator
-- Integrate with CI/CD pipelines
-- Share with external developers
+Usa estas URLs para:
+- Importar en Postman o Insomnia
+- Generar SDKs cliente con OpenAPI Generator
+- Integrar con pipelines CI/CD
+- Compartir con desarrolladores externos
 
 ---
 
-## Using Swagger UI
+## Uso de Swagger UI
 
-### Step 1: Start the Application
+### Paso 1: Iniciar la aplicación
 
 ```powershell
-# Option 1: Maven (Windows)
+# Opción 1: Maven (Windows)
 cd backend
 .\mvnw.cmd spring-boot:run
 
-# Option 2: Docker
+# Opción 2: Docker
 docker-compose up
 
-# Option 3: Run JAR
+# Opción 3: Ejecutar JAR
 java -jar backend/target/tfg-0.1.0.jar
 ```
 
-### Step 2: Open Swagger UI
+### Paso 2: Abrir Swagger UI
 
-Navigate to [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) in your browser.
+Navega a [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) en tu navegador.
 
-Accept the certificate when prompted (Advanced → Proceed to localhost).
+Acepta el certificado cuando se solicite (Avanzado → Continuar a localhost).
 
-### Step 3: Explore the API
+### Paso 3: Explorar la API
 
-The Swagger UI organizes endpoints into categories:
-- Authentication - Login, registration, token management
-- Users - Profile management, favorites
-- Summoners - Riot API integration, summoner search, statistics
-- Dashboard - Personal analytics, match history
-- Admin - User administration, system statistics
+El Swagger UI organiza los endpoints en categorías:
+- Autenticación - Inicio de sesión, registro, gestión de tokens
+- Usuarios - Gestión de perfil y favoritos
+- Summoners - Integración con Riot API, búsqueda de summoners, estadísticas
+- Dashboard - Análisis personal, historial de partidas
+- Admin - Administración de usuarios, estadísticas del sistema
 
-Click any endpoint to see:
-- Description: what the endpoint does
-- Parameters: required/optional inputs
-- Request body: JSON schema with examples
-- Responses: HTTP status codes and response structures
-- Try it out: button to execute the request
+Haz clic en cualquier endpoint para ver:
+- Descripción: qué hace el endpoint
+- Parámetros: entradas obligatorias/opcionales
+- Cuerpo de la petición: esquema JSON con ejemplos
+- Respuestas: códigos HTTP y estructuras de respuesta
+- Try it out: botón para ejecutar la petición
 
-### Step 4: Test an Endpoint
+### Paso 4: Probar un endpoint
 
-1. Click "Try it out"
-2. Fill in required parameters
-3. For protected endpoints, add your JWT token (see Authentication section)
-4. Click "Execute"
-5. View the response below (status code, body, headers)
+1. Haz clic en "Try it out"
+2. Rellena los parámetros obligatorios
+3. Para endpoints protegidos, añade tu token JWT (ver sección de Autenticación)
+4. Haz clic en "Execute"
+5. Visualiza la respuesta abajo (código de estado, cuerpo, cabeceras)
 
 ---
 
-## Authentication with JWT
+## Autenticación con JWT
 
-Most endpoints require authentication. Authenticate in Swagger UI as follows.
+La mayoría de endpoints requieren autenticación. Autentícate en Swagger UI de la siguiente manera.
 
-### Step 1: Register or Login
+### Paso 1: Registrar o iniciar sesión
 
-1. Expand the Authentication section
-2. Use `POST /auth/register` to create a new account, or
-3. Use `POST /auth/login` with existing credentials:
+1. Expande la sección Autenticación
+2. Usa `POST /auth/register` para crear una cuenta nueva, o
+3. Usa `POST /auth/login` con credenciales existentes:
 ```json
 {
-   "username": "myuser",
-   "password": "mypassword"
+   "username": "miusuario",
+   "password": "micontraseña"
 }
 ```
-4. Click "Execute"
-5. Copy the token from the response:
+4. Haz clic en "Execute"
+5. Copia el token de la respuesta:
 ```json
 {
    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-### Step 2: Authorize Swagger UI
+### Paso 2: Autorizar Swagger UI
 
-1. Click the "Authorize" button (🔓 icon) at the top right
-2. In the "Value" field, paste your token
-3. Click "Authorize" then "Close"
+1. Haz clic en el botón "Authorize" (icono 🔓) en la esquina superior derecha
+2. En el campo "Value", pega tu token
+3. Haz clic en "Authorize" y luego en "Close"
 
-All subsequent requests in the UI will include the token automatically.
+Todas las solicitudes posteriores en la UI incluirán el token automáticamente.
 
-### Step 3: Test Protected Endpoints
+### Paso 3: Probar endpoints protegidos
 
-Now you can test endpoints marked with a lock icon. Examples:
-- `GET /users/me` - View your profile
-- `GET /dashboard/stats` - View personal stats
-- `POST /users/me/favorites/{summonerId}` - Add favorite summoner
+Ahora puedes probar endpoints marcados con un icono de candado. Ejemplos:
+- `GET /users/me` - Ver tu perfil
+- `GET /dashboard/stats` - Ver estadísticas personales
+- `POST /users/me/favorites/{summonerId}` - Añadir summoner a favoritos
 
 ---
 
-## Available Endpoints
+## Endpoints disponibles
 
-### Endpoint Categories
+### Categorías de endpoints
 
-Swagger UI organizes the API into logical categories (base routes: `/api/v1/`):
+Swagger UI organiza la API en categorías lógicas (rutas base: `/api/v1/`):
 
-| Category | Base Path | Description |
+| Categoría | Ruta base | Descripción |
 |----------|-----------|-------------|
-| Authentication | `/api/v1/auth` | User authentication and JWT token management |
-| Users | `/api/v1/users` | User profile and favorites management |
-| Summoners | `/api/v1/summoners` | League of Legends summoner data via Riot API |
-| Dashboard | `/api/v1/dashboard` | Personal analytics and statistics |
-| Files | `/api/v1/files` | File upload/download (profile pictures, MinIO storage - PNG only) |
-| Admin | `/api/v1/admin` | Administrative operations (requires ADMIN role) |
+| Autenticación | `/api/v1/auth` | Autenticación de usuarios y gestión de tokens JWT |
+| Usuarios | `/api/v1/users` | Gestión de perfil y favoritos de usuario |
+| Summoners | `/api/v1/summoners` | Datos de summoners de League of Legends vía Riot API |
+| Dashboard | `/api/v1/dashboard` | Análisis y estadísticas personales |
+| Archivos | `/api/v1/files` | Subida/descarga de archivos (fotos de perfil, almacenamiento MinIO - solo PNG) |
+| Admin | `/api/v1/admin` | Operaciones administrativas (requiere rol ADMIN) |
 
-### Quick Reference
+### Referencia rápida
 
-Public Endpoints (no authentication):
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/register` - Create new account
+Endpoints públicos (sin autenticación):
+- `POST /api/v1/auth/login` - Inicio de sesión
+- `POST /api/v1/auth/register` - Crear cuenta nueva
 
-Authenticated Endpoints (JWT required):
-- `GET /api/v1/users/me` - Current user profile
-- `PUT /api/v1/users/me` - Update user profile
-- `POST /api/v1/users/me/avatar` - Upload avatar (PNG only)
-- `GET /api/v1/users/me/favorites` - Get user's favorite summoners
-- `POST /api/v1/users/me/favorites/{summonerId}` - Add favorite
-- `DELETE /api/v1/users/me/favorites/{summonerId}` - Remove favorite
-- `GET /api/v1/summoners/search` - Search summoner by Riot ID
-- `GET /api/v1/summoners/{puuid}` - Get summoner details
-- `GET /api/v1/summoners/{puuid}/ranked-stats` - Get ranked statistics
-- `GET /api/v1/summoners/{puuid}/champion-mastery` - Get champion mastery
-- `GET /api/v1/dashboard/stats` - Personal statistics
-- `GET /api/v1/dashboard/matches` - Match history
-- `GET /api/v1/dashboard/performance` - Performance analytics
+Endpoints autenticados (JWT requerido):
+- `GET /api/v1/users/me` - Perfil del usuario actual
+- `PUT /api/v1/users/me` - Actualizar perfil de usuario
+- `POST /api/v1/users/me/avatar` - Subir avatar (solo PNG)
+- `GET /api/v1/users/me/favorites` - Obtener summoners favoritos del usuario
+- `POST /api/v1/users/me/favorites/{summonerId}` - Añadir favorito
+- `DELETE /api/v1/users/me/favorites/{summonerId}` - Eliminar favorito
+- `GET /api/v1/summoners/search` - Buscar summoner por Riot ID
+- `GET /api/v1/summoners/{puuid}` - Obtener detalles del summoner
+- `GET /api/v1/summoners/{puuid}/ranked-stats` - Obtener estadísticas ranked
+- `GET /api/v1/summoners/{puuid}/champion-mastery` - Obtener mastery por campeón
+- `GET /api/v1/dashboard/stats` - Estadísticas personales
+- `GET /api/v1/dashboard/matches` - Historial de partidas
+- `GET /api/v1/dashboard/performance` - Análisis de rendimiento
 
-Admin Endpoints (ADMIN role required):
-- `GET /api/v1/admin/users` - List all users
-- `PUT /api/v1/admin/users/{id}` - Update user (activate/deactivate)
-- `DELETE /api/v1/admin/users/{id}` - Delete user
-- `GET /api/v1/admin/stats` - System statistics
+Endpoints de administrador (requiere rol ADMIN):
+- `GET /api/v1/admin/users` - Listar todos los usuarios
+- `PUT /api/v1/admin/users/{id}` - Actualizar usuario (activar/desactivar)
+- `DELETE /api/v1/admin/users/{id}` - Eliminar usuario
+- `GET /api/v1/admin/stats` - Estadísticas del sistema
 
-For complete details, refer to the Swagger UI which reflects the running codebase.
+Para detalles completos, consulta Swagger UI que refleja el código en ejecución.
 
 ---
 
-## Quick Start
+## Inicio rápido
 
-### Testing the API in 5 Minutes
+### Probar la API en 5 minutos
 
-1. Start the application:
+1. Inicia la aplicación:
 ```powershell
 cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-2. Open Swagger UI: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+2. Abre Swagger UI: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
 
-Accept the self-signed certificate when prompted.
+Acepta el certificado autofirmado cuando se solicite.
 
-3. Register a user:
-- Expand Authentication → POST /auth/register
-- Click "Try it out", enter username/email/password, then Execute
+3. Registra un usuario:
+- Expande Authentication → POST /auth/register
+- Haz clic en "Try it out", introduce usuario/email/contraseña y luego Execute
 
-4. Login:
-- Use POST /auth/login with your credentials and copy the returned token
+4. Inicia sesión:
+- Usa POST /auth/login con tus credenciales y copia el token devuelto
 
-5. Authorize Swagger:
-- Click "Authorize" and paste your token
+5. Autoriza Swagger:
+- Haz clic en "Authorize" y pega tu token
 
-6. Test protected endpoints (e.g. GET /users/me, GET /summoners/search)
+6. Prueba endpoints protegidos (p.ej. GET /users/me, GET /summoners/search)
 
 ---
 
-## Additional Resources
+## Recursos adicionales
 
-### Complete Guides
+### Guías completas
 
-For detailed Swagger documentation, see:
-- [SWAGGER.md](SWAGGER.md) - Complete Swagger guide with configuration and best practices
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Quickstart tutorial
+Para documentación detallada de Swagger, ver:
+- [SWAGGER.md](SWAGGER.md) - Guía completa de Swagger con configuración y buenas prácticas
+- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Tutorial de inicio rápido
 
-### Other Documentation
+### Otra documentación
 
-- [README.md](../README.md) - Main project page
-- [Funcionalidades.md](Funcionalidades.md) - Feature descriptions with screenshots
-- [Guia-Desarrollo.md](Guia-Desarrollo.md) - Development setup and contributing guide
-- [Ejecucion.md](Ejecucion.md) - Docker deployment instructions
+- [README.md](../README.md) - Página principal del proyecto
+- [Funcionalidades.md](Funcionalidades.md) - Descripción de características con capturas
+- [Guia-Desarrollo.md](Guia-Desarrollo.md) - Configuración de desarrollo y guía de contribución
+- [Ejecucion.md](Ejecucion.md) - Instrucciones de despliegue con Docker
 
-### Development Tools
+### Herramientas de desarrollo
 
-Testing the API:
-- Swagger UI (recommended) - `https://localhost/swagger-ui.html`
-- Postman - import OpenAPI spec from `https://localhost/v3/api-docs`
-- Insomnia - import OpenAPI spec
-- REST Client (VS Code) - use `.http` files with HTTPS URLs
-- curl - command-line requests (use `-k` to skip certificate verification)
+Pruebas de la API:
+- Swagger UI (recomendado) - `https://localhost/swagger-ui.html`
+- Postman - importar especificación OpenAPI desde `https://localhost/v3/api-docs`
+- Insomnia - importar especificación OpenAPI
+- REST Client (VS Code) - usar archivos `.http` con URLs HTTPS
+- curl - peticiones desde línea de comandos (usar `-k` para omitir verificación del certificado)
 
-Exporting the specification:
+Exportar la especificación:
 ```powershell
-# JSON format
+# Formato JSON
 curl -k https://localhost/v3/api-docs > openapi.json
 
-# YAML format
+# Formato YAML
 curl -k https://localhost/v3/api-docs.yaml > openapi.yaml
 ```
 
-Note: the `-k` flag in curl skips SSL verification (needed for self-signed certs in development).
+Nota: la opción `-k` en curl omite la verificación SSL (necesario para certificados autofirmados en desarrollo).
 
 ---
 
-## Error Responses
+## Respuestas de error
 
-All errors follow a consistent JSON format.
+Todos los errores siguen un formato JSON consistente.
 
-401 Unauthorized (invalid or expired token):
+401 Unauthorized (token inválido o expirado):
 ```json
 {
    "timestamp": "2024-01-15T10:30:00",
    "status": 401,
-   "error": "Unauthorized",
-   "message": "Invalid or expired JWT token"
+   "error": "No autorizado",
+   "message": "Token JWT inválido o expirado"
 }
 ```
 
-404 Not Found (resource doesn't exist):
+404 Not Found (el recurso no existe):
 ```json
 {
    "timestamp": "2024-01-15T10:30:00",
    "status": 404,
-   "error": "Not Found",
-   "message": "Summoner not found"
+   "error": "No encontrado",
+   "message": "Summoner no encontrado"
 }
 ```
 
-429 Too Many Requests (rate limit exceeded):
+429 Too Many Requests (límite de peticiones excedido):
 ```json
 {
    "timestamp": "2024-01-15T10:30:00",
    "status": 429,
-   "error": "Too Many Requests",
-   "message": "Riot API rate limit exceeded. Please retry after 60 seconds."
+   "error": "Demasiadas solicitudes",
+   "message": "Límite de peticiones de la API de Riot excedido. Por favor, reintenta después de 60 segundos."
 }
 ```
 
-Refer to Swagger UI for complete error response schemas per endpoint.
+Consulta Swagger UI para los esquemas completos de respuestas de error por endpoint.
 
 ---
 
-## Rate Limiting
+## Limitación de tasa (Rate Limiting)
 
-Riot API rate limits applied by the backend:
-- Summoner Search: 20 requests per second
-- Match History: 100 requests per 2 minutes
+Límites aplicados por el backend a la Riot API:
+- Búsqueda de Summoner: 20 peticiones por segundo
+- Historial de partidas: 100 peticiones por 2 minutos
 
-If you exceed limits you'll receive `429 Too Many Requests` with a `Retry-After` header.
-
----
-
-## Security
-
-HTTPS only: the API runs on HTTPS (port 443) only.
-
-SSL certificate: development uses a self-signed keystore (`keystore.jks`). Accept the browser warning to proceed.
-
-JWT expiration: tokens expire after 24 hours. Use `/auth/refresh` to renew tokens.
-
-Disable Swagger UI in production by setting `springdoc.swagger-ui.enabled=false` in `application.properties`.
+Si excedes los límites recibirás `429 Too Many Requests` con una cabecera `Retry-After`.
 
 ---
 
-## Links
+## Seguridad
 
-Repository: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
+Solo HTTPS: la API funciona únicamente sobre HTTPS (puerto 443).
+
+Certificado SSL: en desarrollo se usa un keystore autofirmado (`keystore.jks`). Acepta la advertencia del navegador para continuar.
+
+Expiración de JWT: los tokens expiran tras 24 horas. Usa `/auth/refresh` para renovar tokens.
+
+Deshabilitar Swagger UI en producción: establece `springdoc.swagger-ui.enabled=false` en `application.properties`.
+
+---
+
+## Enlaces
+
+Repositorio: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
 
 Swagger / OpenAPI (HTTPS):
 - Swagger UI: https://localhost/swagger-ui.html
 - OpenAPI JSON: https://localhost/v3/api-docs
 - OpenAPI YAML: https://localhost/v3/api-docs.yaml
 
-Documentation:
+Documentación:
 - [SWAGGER.md](SWAGGER.md)
 - [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md)
 - [Guia-Desarrollo.md](Guia-Desarrollo.md)
@@ -335,16 +335,16 @@ Documentation:
 
 ---
 
-## Authorship
+## Autoría
 
-Developer: Jorge Andrés Echevarría
-Advisor: Iván Chicano Capelo
-University: Universidad Rey Juan Carlos (URJC)
-Course: 2024-2025
-Contact: j.echeverria.2021@alumnos.urjc.es
+Desarrollador: Jorge Andrés Echevarría
+Tutor: Iván Chicano Capelo
+Universidad: Universidad Rey Juan Carlos (URJC)
+Curso: 2024-2025
+Contacto: j.echeverria.2021@alumnos.urjc.es
 
 ---
 
-Last Updated: January 2025 (v0.1 - Swagger Integration)
+Última actualización: enero 2025 (v0.1 - Integración Swagger)
 
-[← Back to Main README](../README.md) | [View Swagger UI →](https://localhost/swagger-ui.html) | [View All Documentation →](../README.md#documentation)
+[← Volver al README principal](../README.md) | [Ver Swagger UI →](https://localhost/swagger-ui.html) | [Ver toda la documentación →](../README.md#documentation)
