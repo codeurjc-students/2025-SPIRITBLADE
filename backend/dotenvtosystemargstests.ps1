@@ -1,7 +1,7 @@
 # Script to run Maven tests with environment variables loaded from .env file
 # Usage: .\run-tests.ps1
 
-$envFile = Join-Path $PSScriptRoot "..\.env"
+$envFile = Join-Path $PSScriptRoot "../docker/.env"
 
 if (-Not (Test-Path $envFile)) {
     Write-Host "Error: .env file not found at $envFile" -ForegroundColor Red

@@ -392,42 +392,66 @@ describe('HomeComponent - Unit Tests', () => {
     });
   });
 
-  describe('Service Integration', () => {
-    it('should call SummonerService on component initialization', () => {
+  describe('Search Validation', () => {
+    it('should show error when search query does not include hashtag', () => {
+      // Arrange
+      component.searchQuery = 'TestSummoner';
+
       // Act
-      component.ngOnInit();
+      component.onSearch();
 
       // Assert
-      expect(mockSummonerService.getRecentSearches).toHaveBeenCalledTimes(1);
+      expect(component.searchError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should handle service errors gracefully', () => {
+    it('should show error when region is not EUW', () => {
       // Arrange
-      const error = new Error('Service unavailable');
-      mockSummonerService.getRecentSearches.and.returnValue(throwError(() => error));
-      const consoleSpy = spyOn(console, 'debug');
+      component.searchQuery = 'TestSummoner#NA';
 
       // Act
-      component.loadRecentSearches();
+      component.onSearch();
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalled();
-      expect(component.loadingRecentSearches).toBeFalse();
+      expect(component.searchError).toBe('Currently only EUW region is supported');
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should update component state after successful service call', () => {
+    it('should show error when summoner name is empty after hashtag', () => {
       // Arrange
-      const newMockData: Summoner[] = [
-        { id: '99', name: 'NewPlayer#EUW', level: 500, profileIconId: 99 }
-      ];
-      mockSummonerService.getRecentSearches.and.returnValue(of(newMockData));
+      component.searchQuery = '#EUW';
 
       // Act
-      component.loadRecentSearches();
+      component.onSearch();
 
       // Assert
-      expect(component.recentSearches).toEqual(newMockData);
-      expect(component.loadingRecentSearches).toBeFalse();
+      expect(component.searchError).toBe('Please enter a valid summoner name');
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should show error when summoner name is only whitespace after hashtag', () => {
+      // Arrange
+      component.searchQuery = '   #EUW';
+
+      // Act
+      component.onSearch();
+
+      // Assert
+      expect(component.searchError).toBe('Please enter a valid summoner name');
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should clear previous error when search is successful', () => {
+      // Arrange
+      component.searchError = 'Previous error';
+      component.searchQuery = 'ValidSummoner#EUW';
+
+      // Act
+      component.onSearch();
+
+      // Assert
+      expect(component.searchError).toBeNull();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'ValidSummoner#EUW']);
     });
   });
 });

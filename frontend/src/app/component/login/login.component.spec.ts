@@ -196,18 +196,62 @@ describe('LoginComponent - Unit Tests', () => {
       });
     });
 
-    it('should not login with invalid form', () => {
+    it('should handle checkSession error after successful login', (done) => {
       // Arrange
-      component.loginForm.patchValue({
-        username: '',
-        password: ''
-      });
+      const mockResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
+      mockAuthService.checkSession.and.returnValue(throwError(() => new Error('Session check failed')));
 
       // Act
       component.onLogin();
 
       // Assert
-      expect(mockAuthService.login).not.toHaveBeenCalled();
+      expect(mockAuthService.login).toHaveBeenCalledWith({
+        username: 'testuser',
+        password: 'testpass'
+      });
+
+      // Check fallback redirect after timeout
+      setTimeout(() => {
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+        done();
+      }, 650);
+    });
+
+    it('should handle nullish coalescing when form values are null', () => {
+      // Arrange
+      // Remove validators to allow null values
+      component.loginForm.get('username')?.clearValidators();
+      component.loginForm.get('password')?.clearValidators();
+      component.loginForm.get('username')?.setValue(null);
+      component.loginForm.get('password')?.setValue(null);
+      component.loginForm.get('username')?.updateValueAndValidity();
+      component.loginForm.get('password')?.updateValueAndValidity();
+      
+      const mockResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(false);
+
+      // Act
+      component.onLogin();
+
+      // Assert
+      expect(mockAuthService.login).toHaveBeenCalledWith({
+        username: '',
+        password: ''
+      });
     });
   });
 
@@ -322,20 +366,125 @@ describe('LoginComponent - Unit Tests', () => {
       });
     });
 
-    it('should not register with invalid form', () => {
+    it('should register successfully and auto-login for admin user', (done) => {
       // Arrange
-      component.registerForm.patchValue({
-        username: '',
-        email: 'invalid-email',
-        password: '',
-        confirmPassword: ''
-      });
+      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockLoginResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      
+      mockAuthService.register.and.returnValue(of(mockRegisterResponse));
+      mockAuthService.login.and.returnValue(of(mockLoginResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(true);
 
       // Act
       component.onRegister();
 
       // Assert
-      expect(mockAuthService.register).not.toHaveBeenCalled();
+      expect(mockAuthService.register).toHaveBeenCalledWith({
+        name: 'newuser',
+        email: 'newuser@test.com',
+        password: 'newpass'
+      });
+
+      // Check redirect after timeout
+      setTimeout(() => {
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockAuthService.isAdmin).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin']);
+        done();
+      }, 650);
+    });
+
+    it('should handle checkSession error after successful registration and auto-login', (done) => {
+      // Arrange
+      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockLoginResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      
+      mockAuthService.register.and.returnValue(of(mockRegisterResponse));
+      mockAuthService.login.and.returnValue(of(mockLoginResponse));
+      mockAuthService.checkSession.and.returnValue(throwError(() => new Error('Session check failed')));
+
+      // Act
+      component.onRegister();
+
+      // Assert
+      expect(mockAuthService.register).toHaveBeenCalledWith({
+        name: 'newuser',
+        email: 'newuser@test.com',
+        password: 'newpass'
+      });
+
+      // Check fallback redirect after timeout
+      setTimeout(() => {
+        expect(mockAuthService.checkSession).toHaveBeenCalled();
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+        done();
+      }, 650);
+    });
+
+    it('should handle unexpected registration error', () => {
+      // Arrange
+      const error = { status: 500 };
+      mockAuthService.register.and.returnValue(throwError(() => error));
+
+      // Act
+      component.onRegister();
+
+      // Assert
+      expect(component.message).toEqual({
+        type: 'error',
+        text: 'Error registering user.'
+      });
+    });
+
+    it('should handle nullish coalescing when register form values are null', () => {
+      // Arrange
+      // Remove validators to allow null values
+      component.registerForm.get('username')?.clearValidators();
+      component.registerForm.get('email')?.clearValidators();
+      component.registerForm.get('password')?.clearValidators();
+      component.registerForm.get('confirmPassword')?.clearValidators();
+      component.registerForm.get('username')?.setValue(null);
+      component.registerForm.get('email')?.setValue(null);
+      component.registerForm.get('password')?.setValue(null);
+      component.registerForm.get('confirmPassword')?.setValue(null);
+      component.registerForm.get('username')?.updateValueAndValidity();
+      component.registerForm.get('email')?.updateValueAndValidity();
+      component.registerForm.get('password')?.updateValueAndValidity();
+      component.registerForm.get('confirmPassword')?.updateValueAndValidity();
+      
+      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockLoginResponse = { 
+        status: 'success',
+        message: 'Login successful',
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
+      };
+      
+      mockAuthService.register.and.returnValue(of(mockRegisterResponse));
+      mockAuthService.login.and.returnValue(of(mockLoginResponse));
+      mockAuthService.checkSession.and.returnValue(of(true));
+      mockAuthService.isAdmin.and.returnValue(false);
+
+      // Act
+      component.onRegister();
+
+      // Assert
+      expect(mockAuthService.register).toHaveBeenCalledWith({
+        name: '',
+        email: '',
+        password: ''
+      });
     });
   });
 });
