@@ -378,6 +378,8 @@ jobs:
       - name: 🔍 Run SonarCloud Analysis
         working-directory: ./backend
         env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: 1234
