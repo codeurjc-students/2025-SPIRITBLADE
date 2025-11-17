@@ -1,212 +1,212 @@
-# Detailed Features — SPIRITBLADE
+# Características detalladas — SPIRITBLADE
 
-This document contains the full list of features planned for the SPIRITBLADE project, indicating their implementation status and a detailed description.
+Este documento contiene la lista completa de características previstas para el proyecto SPIRITBLADE, indicando su estado de implementación y una descripción detallada.
 
-> 📝 Updated October 2025: This document was revised to reflect a refocus of the project scope based on available development time and prioritization of core features. See [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) for full change details.
-
----
-
-## Implementation status
-
-### Legend
-- ✅ Implemented — Feature complete in v0.1
-- 🚧 In progress — Started but not finished
-- 📋 Planned — Scheduled for future versions
-- ⏸️ Tentative — Under consideration
+> 📝 Actualizado en octubre de 2025: Este documento fue revisado para reflejar un reajuste del alcance del proyecto basado en el tiempo de desarrollo disponible y la priorización de las características principales. Consulte [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para los detalles completos de los cambios.
 
 ---
 
-## 1. Core Features (v0.1)
+## Estado de implementación
 
-### 1.1 Anonymous user
-
-#### Scope (updated)
-Basic functionality: search summoners and view their profile and rank. Public match history is available with caching. Basic champion stats (masteries, most-played champions, general performance metrics) are exposed.
-
-| ID | Feature | Status | Behavior description |
-|----|---------|--------|---------------------|
-| F1.1.1 | Search summoners | ✅ | The user inputs a Riot ID (gameName#tagLine) in the search field. The system validates the format, queries Riot Games API and displays the full profile. If the summoner doesn't exist, a clear error message is shown. Caching is implemented to improve performance. |
-| F1.1.2 | View summoner profile and rank | ✅ | Profile page shows avatar, level, Riot ID, current rank (tier/division/LP), wins/losses, win rate and total matches. Data is fetched from Riot API and cached locally with an intelligent refresh strategy. |
-| F1.1.3 | View public match history | ✅ | Lists the latest matches (paginated, 5 per page). Each match shows result (win/loss), champion icon, KDA, duration and date. Caching reduces API calls. Users can load more matches with a "Load more" button. |
-| F1.1.4 | View basic champion stats | ✅ | Access champion mastery: top 3 most-played champions with mastery level and points (1–7). Shows icon, name, mastery level and total mastery points. Data comes from Champion-Mastery-v4. |
-| F1.1.5 | Recent searches | ✅ | Home page lists the 10 most recent summoner searches by any user, sorted by date (newest first). Each item links to the summoner profile. |
+### Leyenda
+- ✅ Implementado — Función completa en v0.1
+- 🚧 En progreso — Iniciado pero no terminado
+- 📋 Planificado — Programado para versiones futuras
+- ⏸️ Tentativo — En consideración
 
 ---
 
-### 1.2 Registered user
+## 1. Características principales (v0.1)
 
-#### Scope (updated)
-Basic functionality: customizable personal dashboard, detailed match data enriched from Riot API, and display of personal champion mastery/performance.
+### 1.1 Usuario anónimo
 
-| ID | Feature | Status | Behavior description |
-|----|---------|--------|---------------------|
-| F1.2.1 | Register | ✅ | Registration form with username, email, password + confirm. Validations: required fields, proper email format, matching passwords, unique username. On success the account is created (password hashed with BCrypt) and the user is logged in automatically. |
-| F1.2.2 | Login | ✅ | Login form (username + password). Backend validates credentials (Spring Security), issues a JWT valid for 24 hours and stores it as an HttpOnly cookie. Clear error messages for invalid credentials, server unavailable, or network errors. |
-| F1.2.3 | Logout | ✅ | User logs out from the menu. JWTs (access and refresh) are invalidated by removing cookies, security context cleared and user redirected to home. |
-| F1.2.4 | Customizable dashboard | ✅ | Personal dashboard with profile info (name, email), basic stats (searches, favorites), quick actions (search summoner, view favorites, edit profile). Dashboard is configurable per user preferences and requires a valid JWT. |
-| F1.2.5 | Detailed recent-match data | ✅ | Enriched match history with detailed champion stats, item build, objective participation and damage dealt. Presented in a clear, accessible format, powered by Riot API data. |
-| F1.2.6 | Personal champion mastery view | ✅ | Dashboard showing user's favorite champions with mastery and performance stats: mastery level, accumulated points, average KDA, win rate per champion. Updated on each search. |
-| F1.2.7 | Save favorite summoners | 🚧 | "Add to favorites" button on summoner profiles. Favorites stored in DB (User–Summoner relationship). Dashboard shows quick access list. Data model implemented, UI in progress. |
-| F1.2.8 | Link LoL account | 📋 | Users can link their League of Legends account using Riot ID. System verifies and associates the account for automated personal stats analysis. Planned for v0.2. |
+#### Alcance (actualizado)
+Funcionalidad básica: buscar invocadores y ver su perfil y rango. Historial público de partidas disponible con caché. Estadísticas básicas de campeones (maestrías, más jugados, métricas generales) expuestas.
+
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.1.1 | Buscar invocadores | ✅ | El usuario introduce un Riot ID (gameName#tagLine) en el campo de búsqueda. El sistema valida el formato, consulta la API de Riot Games y muestra el perfil completo. Si el invocador no existe, se muestra un mensaje de error claro. Se implementa caché para mejorar el rendimiento. |
+| F1.1.2 | Ver perfil de invocador y rango | ✅ | La página de perfil muestra avatar, nivel, Riot ID, rango actual (tier/división/LP), victorias/derrotas, tasa de victorias y partidas totales. Los datos se obtienen de la API de Riot y se cachean localmente con una estrategia de actualización inteligente. |
+| F1.1.3 | Ver historial público de partidas | ✅ | Lista las últimas partidas (paginadas, 5 por página). Cada partida muestra resultado (victoria/derrota), icono de campeón, KDA, duración y fecha. El caché reduce las llamadas a la API. Los usuarios pueden cargar más partidas con un botón "Cargar más". |
+| F1.1.4 | Ver estadísticas básicas de campeones | ✅ | Acceso a maestría de campeón: top 3 campeones más jugados con nivel de maestría y puntos (1–7). Muestra icono, nombre, nivel de maestría y puntos totales. Datos provenientes de Champion-Mastery-v4. |
+| F1.1.5 | Búsquedas recientes | ✅ | La página de inicio lista las 10 búsquedas de invocador más recientes realizadas por cualquier usuario, ordenadas por fecha (más recientes primero). Cada elemento enlaza al perfil del invocador. |
+
+---
+
+### 1.2 Usuario registrado
+
+#### Alcance (actualizado)
+Funcionalidad básica: panel personalizable, datos de partidas detallados enriquecidos desde la API de Riot y visualización de maestría/rendimiento personal por campeón.
+
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.2.1 | Registrar | ✅ | Formulario de registro con nombre de usuario, email, contraseña + confirmación. Validaciones: campos obligatorios, formato de email, contraseñas coincidentes, nombre de usuario único. En caso de éxito se crea la cuenta (contraseña hasheada con BCrypt) y el usuario se autentica automáticamente. |
+| F1.2.2 | Iniciar sesión | ✅ | Formulario de inicio de sesión (usuario + contraseña). El backend valida credenciales (Spring Security), emite un JWT válido por 24 horas y lo almacena como cookie HttpOnly. Mensajes de error claros para credenciales inválidas, servidor no disponible o errores de red. |
+| F1.2.3 | Cerrar sesión | ✅ | El usuario cierra sesión desde el menú. Los JWT (acceso y refresh) se invalidan eliminando las cookies, se limpia el contexto de seguridad y el usuario es redirigido al inicio. |
+| F1.2.4 | Panel personalizable | ✅ | Panel personal con información de perfil (nombre, email), estadísticas básicas (búsquedas, favoritos), acciones rápidas (buscar invocador, ver favoritos, editar perfil). El panel se configura según preferencias del usuario y requiere un JWT válido. |
+| F1.2.5 | Datos detallados de partidas recientes | ✅ | Historial de partidas enriquecido con estadísticas detalladas del campeón, build de objetos, participación en objetivos y daño realizado. Presentado de forma clara y accesible, alimentado por datos de la API de Riot. |
+| F1.2.6 | Vista de maestría personal por campeón | ✅ | Panel que muestra los campeones favoritos del usuario con maestría y estadísticas de rendimiento: nivel de maestría, puntos acumulados, KDA promedio, tasa de victorias por campeón. Actualizado en cada búsqueda. |
+| F1.2.7 | Guardar invocadores favoritos | 🚧 | Botón "Agregar a favoritos" en los perfiles de invocador. Favoritos almacenados en la BD (relación Usuario–Invocador). El panel muestra una lista de acceso rápido. Modelo de datos implementado, interfaz en progreso. |
+| F1.2.8 | Vincular cuenta de LoL | 📋 | Los usuarios pueden vincular su cuenta de League of Legends usando Riot ID. El sistema verifica y asocia la cuenta para análisis automático de estadísticas personales. Planificado para v0.2. |
 
 ---
 
 ### 1.3 Admin
 
-| ID | Feature | Status | Behavior description |
-|----|---------|--------|---------------------|
-| F1.3.1 | Access admin panel | ✅ | Requires ADMIN role in the JWT. Panel shows user management, system metrics and logs. Unauthorized users are redirected with an error message. |
-| F1.3.2 | List all users | ✅ | Table of all registered users showing ID, name, email, roles, active/inactive state, and registration date. Endpoint `/admin/users` protected with `@PreAuthorize("hasRole('ADMIN')")`. |
-| F1.3.3 | Enable/disable users | ✅ | Toggle to change the `active` flag. Disabled users cannot log in (checked in UserLoginService). Change applies immediately via API call. |
-| F1.3.4 | Delete users | ✅ | Delete button with confirmation. DELETE `/admin/users/{id}` removes the user from the DB (cascade for relations). Admins cannot delete their own account. |
-| F1.3.5 | Edit user roles | 🚧 | Admin can switch roles (USER ↔ ADMIN) via inline select + save button. PUT `/admin/users/{id}/roles`. In progress. |
-| F1.3.6 | Moderate user content | 📋 | Review and remove inappropriate notes/comments. Moderation dashboard with automated flags. Planned for v0.2. |
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.3.1 | Acceder al panel de administración | ✅ | Requiere rol ADMIN en el JWT. El panel muestra gestión de usuarios, métricas del sistema y logs. Usuarios no autorizados son redirigidos con un mensaje de error. |
+| F1.3.2 | Listar todos los usuarios | ✅ | Tabla de todos los usuarios registrados mostrando ID, nombre, email, roles, estado activo/inactivo y fecha de registro. Endpoint `/admin/users` protegido con `@PreAuthorize("hasRole('ADMIN')")`. |
+| F1.3.3 | Habilitar/deshabilitar usuarios | ✅ | Interruptor para cambiar el flag `active`. Usuarios deshabilitados no pueden iniciar sesión (verificado en UserLoginService). El cambio se aplica inmediatamente vía llamada API. |
+| F1.3.4 | Eliminar usuarios | ✅ | Botón de eliminar con confirmación. DELETE `/admin/users/{id}` elimina el usuario de la BD (cascade para relaciones). Los admins no pueden eliminar su propia cuenta. |
+| F1.3.5 | Editar roles de usuario | 🚧 | El admin puede cambiar roles (USER ↔ ADMIN) mediante select inline + botón guardar. PUT `/admin/users/{id}/roles`. En progreso. |
+| F1.3.6 | Moderar contenido de usuarios | 📋 | Revisar y eliminar notas/comentarios inapropiados. Panel de moderación con flags automáticos. Planificado para v0.2. |
 
 ---
 
-## 2. Intermediate Features (v0.2)
+## 2. Funcionalidades intermedias (v0.2)
 
-### 2.1 Anonymous user
+### 2.1 Usuario anónimo
 
-#### Scope (updated)
-Intermediate: aggregated statistics for summoners with cached match data for performance.
+#### Alcance (actualizado)
+Intermedio: estadísticas agregadas para invocadores con datos de partidas cacheados para rendimiento.
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F2.1.1 | Aggregated summoner statistics | 📋 | Aggregation engine combining data from multiple searched summoners: average win rate per champion, average KDA by role, popular champion pick rates. Public dashboard with charts, optimized with cached match details to reduce load times. |
+| F2.1.1 | Estadísticas agregadas de invocadores | 📋 | Motor de agregación que combina datos de múltiples invocadores buscados: tasa de victorias media por campeón, KDA medio por rol, tasas de selección de campeones populares. Dashboard público con gráficos, optimizado con detalles de partidas en caché para reducir tiempos de carga. |
 
 ---
 
-### 2.2 Registered user
+### 2.2 Usuario registrado
 
-#### Scope (updated)
-Intermediate: deeper personal performance insights and enriched match history context.
+#### Alcance (actualizado)
+Intermedio: análisis de rendimiento personal más profundos y contexto enriquecido del historial de partidas.
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F2.2.1 | Personal performance for favorite champions | 📋 | Detailed analysis panels for frequently played champions: performance trends, season comparisons, strengths/weaknesses using historical data. |
-| F2.2.2 | Enriched match history | 📋 | Enhanced match timeline with events, early/mid/late phase analysis, and comparisons with other players in the match. Integrates multiple Riot API sources. |
-| F2.2.3 | Add notes to matches | 📋 | Free-text notes per match tied to a Match + User. Notes can be edited and deleted. |
-| F2.2.4 | Receive notifications | 📋 | Real-time notifications (WebSocket) when: a favorite plays a match, a favorite ranks up, or a new mastery milestone is achieved. Notifications pane in dashboard. |
+| F2.2.1 | Rendimiento personal por campeones favoritos | 📋 | Paneles de análisis detallado para campeones jugados con frecuencia: tendencias de rendimiento, comparaciones por temporada, fortalezas/debilidades usando datos históricos. |
+| F2.2.2 | Historial de partidas enriquecido | 📋 | Línea de tiempo mejorada de la partida con eventos, análisis por fases (early/mid/late) y comparativas con otros jugadores de la partida. Integra múltiples fuentes de la API de Riot. |
+| F2.2.3 | Añadir notas a partidas | 📋 | Notas de texto libre por partida vinculadas a Match + User. Las notas pueden editarse y eliminarse. |
+| F2.2.4 | Recibir notificaciones | 📋 | Notificaciones en tiempo real (WebSocket) cuando: un favorito juega una partida, un favorito sube de rango o alcanza un nuevo hito de maestría. Panel de notificaciones en el dashboard. |
 
 ---
 
 ### 2.3 Admin
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F2.3.1 | Moderation dashboard | 📋 | Interface to review user reports, automatically flagged content and suspicious activity logs. |
-| F2.3.2 | System metrics | 📋 | Metrics: active users, searches per day, most-searched summoners, API usage (rate limits), HTTP errors. Charts powered by Chart.js. |
+| F2.3.1 | Panel de moderación | 📋 | Interfaz para revisar informes de usuarios, contenido marcado automáticamente y logs de actividad sospechosa. |
+| F2.3.2 | Métricas del sistema | 📋 | Métricas: usuarios activos, búsquedas por día, invocadores más buscados, uso de API (límites), errores HTTP. Gráficos impulsados por Chart.js. |
 
 ---
 
-## 3. Advanced Features (v1.0)
+## 3. Funcionalidades avanzadas (v1.0)
 
-### 3.1 Anonymous user
+### 3.1 Usuario anónimo
 
-#### Scope (updated)
-Advanced: intelligent caching system that minimizes latency while keeping data fresh; hybrid data access strategy balancing performance and freshness.
+#### Alcance (actualizado)
+Avanzado: sistema de caché inteligente que minimiza latencia manteniendo datos frescos; estrategia híbrida de acceso a datos para equilibrar rendimiento y actualidad.
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F3.1.1 | Intelligent caching system | 📋 | Multi-layer caching with adaptive strategies: in-memory (Redis), persistent cache (MySQL), and intelligent invalidation based on time/events. Reduces latency while keeping data up-to-date. |
-| F3.1.2 | Hybrid data access strategy | 📋 | Algorithm that automatically balances performance vs. freshness: prefers recent cached data, selectively refreshes critical data, and uses prefetching. Improves user experience. |
-| F3.1.3 | Global community statistics | 📋 | Public dashboard with aggregated application-wide stats: top searched summoners, champions with highest win rate, regional statistics — backed by intelligent cache. |
+| F3.1.1 | Sistema de caché inteligente | 📋 | Caché multinivel con estrategias adaptativas: in-memory (Redis), caché persistente (MySQL) e invalidación inteligente basada en tiempo/eventos. Reduce latencia manteniendo datos actualizados. |
+| F3.1.2 | Estrategia híbrida de acceso a datos | 📋 | Algoritmo que equilibra automáticamente rendimiento vs. frescura: prefiere datos cacheados recientes, refresca selectivamente datos críticos y usa prefetching. Mejora la experiencia de usuario. |
+| F3.1.3 | Estadísticas globales de la comunidad | 📋 | Dashboard público con estadísticas agregadas a nivel aplicación: invocadores más buscados, campeones con mayor tasa de victorias, estadísticas por región — respaldado por caché inteligente. |
 
 ---
 
-### 3.2 Registered user
+### 3.2 Usuario registrado
 
-#### Scope (updated)
-Advanced: personalized KPI dashboard derived from full match history; cache-first strategy to minimize expensive external API calls; automatic freshness validation.
+#### Alcance (actualizado)
+Avanzado: panel KPI personalizado derivado del historial completo de partidas; estrategia cache-first para minimizar llamadas externas costosas; validación automática de frescura.
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F3.2.1 | KPI dashboard | 📋 | Advanced dashboard that computes and shows key performance indicators over time, trend analysis and pattern detection based on the user's full match history stored in the DB. |
-| F3.2.2 | Prioritized cache-first strategy | 📋 | Data access strategy that prefers local DB/cache before calling external APIs: freshness verification with timestamps, selective update of stale entries, minimize Riot API calls. |
-| F3.2.3 | Automatic freshness validation | 📋 | Automatic checks and background updates for stale data: age analysis, async background refresh, and optional update notifications to users. |
-| F3.2.4 | Build recommendations | 📋 | Algorithm suggests optimal builds, runes and item paths based on playstyle (champions, role, KDA). Integrates community trends. |
-| F3.2.5 | Custom leaderboards | 📋 | Private leaderboards among friends/favorites. Compare stats, win rates and masteries in private tables. |
+| F3.2.1 | Panel KPI | 📋 | Panel avanzado que calcula y muestra indicadores clave de rendimiento a lo largo del tiempo, análisis de tendencias y detección de patrones basado en el historial completo de partidas del usuario almacenado en la BD. |
+| F3.2.2 | Estrategia priorizada cache-first | 📋 | Estrategia de acceso a datos que prefiere DB/caché local antes de llamar APIs externas: verificación de frescura con timestamps, actualización selectiva de entradas obsoletas, minimizar llamadas a la API de Riot. |
+| F3.2.3 | Validación automática de frescura | 📋 | Comprobaciones automáticas y actualizaciones en background para datos obsoletos: análisis por antigüedad, refresco asíncrono en segundo plano y notificaciones opcionales a usuarios. |
+| F3.2.4 | Recomendaciones de builds | 📋 | Algoritmo que sugiere builds, runas y rutas de objetos óptimas según estilo de juego (campeones, rol, KDA). Integra tendencias de la comunidad. |
+| F3.2.5 | Clasificaciones personalizadas | 📋 | Leaderboards privados entre amigos/favoritos. Comparar estadísticas, tasas de victoria y maestrías en tablas privadas. |
 
 ---
 
 ### 3.3 Admin
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F3.3.1 | Audit logs | 📋 | Detailed audit records: who changed what, when and from which IP. Searchable, filterable and exportable to CSV. |
-| F3.3.2 | API key management | 📋 | Tooling to rotate Riot API keys, monitor rate limits and manage multiple keys for load balancing. |
+| F3.3.1 | Registros de auditoría | 📋 | Registros detallados de auditoría: quién cambió qué, cuándo y desde qué IP. Buscable, filtrable y exportable a CSV. |
+| F3.3.2 | Gestión de claves API | 📋 | Herramientas para rotar claves de la API de Riot, monitorizar límites de tasa y gestionar múltiples claves para balanceo de carga. |
 
 ---
 
-## 4. Technical Features
+## 4. Características técnicas
 
-### 4.1 Security
+### 4.1 Seguridad
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.1 | JWT authentication | ✅ | HS256-signed tokens, 24h expiration, refresh token 7 days, stored in HttpOnly cookies. |
-| FT.2 | Role-based authorization | ✅ | Spring Security with `@PreAuthorize`. Roles: USER, ADMIN. Angular guards for protected routes. |
-| FT.3 | Password hashing | ✅ | BCryptPasswordEncoder (strength 10). Passwords are never stored in plain text. |
-| FT.4 | HTTPS | ✅ | Self-signed JKS certificate for development, TLS 1.3 in production. Port 443. |
-| FT.5 | Input validation | ✅ | `@Valid` on DTOs with Hibernate Validator. String sanitization to prevent XSS/SQL injection. |
+| FT.1 | Autenticación JWT | ✅ | Tokens firmados HS256, expiración 24 h, refresh token 7 días, almacenados en cookies HttpOnly. |
+| FT.2 | Autorización basada en roles | ✅ | Spring Security con `@PreAuthorize`. Roles: USER, ADMIN. Guards de Angular para rutas protegidas. |
+| FT.3 | Hash de contraseñas | ✅ | BCryptPasswordEncoder (strength 10). Las contraseñas nunca se almacenan en texto plano. |
+| FT.4 | HTTPS | ✅ | Certificado JKS autofirmado para desarrollo, TLS 1.3 en producción. Puerto 443. |
+| FT.5 | Validación de entrada | ✅ | `@Valid` en DTOs con Hibernate Validator. Saneamiento de cadenas para prevenir XSS/SQL injection. |
 
 ---
 
-### 4.2 External API integration
+### 4.2 Integración con APIs externas
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.6 | Riot Games API | ✅ | Full integration with Account-v1, Summoner-v4, League-v4, Champion-Mastery-v4, Match-v5. Uses RestTemplate with retry logic. |
-| FT.7 | Data Dragon CDN | ✅ | Static assets (champion, item, rune images) loaded from Riot Data Dragon. Version 14.1.1. |
-| FT.8 | Rate limiting | 📋 | Implement rate limiting for Riot API (20 req/s, 100 req/2min). Proposed Bucket4j + Redis solution for v0.2. |
+| FT.6 | API de Riot Games | ✅ | Integración completa con Account-v1, Summoner-v4, League-v4, Champion-Mastery-v4, Match-v5. Usa RestTemplate con lógica de reintento. |
+| FT.7 | Data Dragon CDN | ✅ | Assets estáticos (imágenes de campeones, objetos, runas) cargados desde Riot Data Dragon. Versión 14.1.1. |
+| FT.8 | Limitación de tasa | 📋 | Implementar rate limiting para la API de Riot (20 req/s, 100 req/2min). Propuesta: Bucket4j + Redis para v0.2. |
 
 ---
 
-### 4.3 Performance & scalability
+### 4.3 Rendimiento y escalabilidad
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.9 | Summoner cache | ✅ | MySQL field `lastSearchedAt`. Data is refreshed only if >5 minutes since last search. |
-| FT.10 | Distributed cache | 📋 | Redis for API responses and sessions to reduce DB and external API load (v0.2). |
-| FT.11 | Lazy loading | 📋 | Angular module lazy-loading to reduce initial bundle size (v0.2). |
+| FT.9 | Caché de invocadores | ✅ | Campo MySQL `lastSearchedAt`. Los datos se refrescan solo si han pasado >5 minutos desde la última búsqueda. |
+| FT.10 | Caché distribuida | 📋 | Redis para respuestas de API y sesiones para reducir carga en BD y APIs externas (v0.2). |
+| FT.11 | Carga perezosa | 📋 | Lazy-loading de módulos Angular para reducir el tamaño del bundle inicial (v0.2). |
 
 ---
 
-### 4.4 Quality & testing
+### 4.4 Calidad y pruebas
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.12 | Backend unit tests | ✅ | JUnit 5 + Mockito. Coverage target ≥60%. Tests for services, controllers and mappers. |
-| FT.13 | Frontend unit tests | ✅ | Jasmine + Karma. Coverage target ≥50%. Component, service and guard tests. |
-| FT.14 | Integration tests | ✅ | Spring Boot Test with `@SpringBootTest`. Endpoint tests using MockMvc. |
-| FT.15 | E2E tests | 🚧 | Selenium WebDriver for end-to-end flows: login → search → profile. In progress. |
-| FT.16 | Static analysis | ✅ | SonarCloud in CI pipeline. Metrics: bugs, code smells, vulnerabilities. Quality Gate configured. |
+| FT.12 | Tests unitarios backend | ✅ | JUnit 5 + Mockito. Meta de cobertura ≥60%. Tests para servicios, controladores y mappers. |
+| FT.13 | Tests unitarios frontend | ✅ | Jasmine + Karma. Meta de cobertura ≥50%. Tests de componentes, servicios y guards. |
+| FT.14 | Tests de integración | ✅ | Spring Boot Test con `@SpringBootTest`. Tests de endpoints usando MockMvc. |
+| FT.15 | Tests E2E | 🚧 | Selenium WebDriver para flujos end-to-end: login → búsqueda → perfil. En progreso. |
+| FT.16 | Análisis estático | ✅ | SonarCloud en la pipeline de CI. Métricas: bugs, code smells, vulnerabilidades. Quality Gate configurado. |
 
 ---
 
-### 4.5 Deployment & DevOps
+### 4.5 Despliegue y DevOps
 
-| ID | Feature | Status | Description |
+| ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.17 | Docker multi-stage | ✅ | Dockerfile with 3 stages: Node build (Angular), Maven build (Spring Boot), JRE runtime. Target image <200MB. |
-| FT.18 | Docker Compose | ✅ | Orchestrates app + MySQL with healthchecks, depends_on and persistent volumes. |
-| FT.19 | CI/CD (GitHub Actions) | ✅ | Workflows: build (tests + quality), deploy-dev (main), deploy-release (releases), manual-build. |
-| FT.20 | Publish to DockerHub | ✅ | Automated workflow publishes images with tags: dev, version (0.1.0), latest. OCI artifacts for compose. |
-| FT.21 | Kubernetes manifests | 📋 | K8s manifests for deployments, services and ingress. HPA for horizontal scaling (v1.0). |
+| FT.17 | Docker multi-stage | ✅ | Dockerfile con 3 etapas: build de Node (Angular), build de Maven (Spring Boot), runtime JRE. Imagen objetivo <200MB. |
+| FT.18 | Docker Compose | ✅ | Orquesta app + MySQL con healthchecks, depends_on y volúmenes persistentes. |
+| FT.19 | CI/CD (GitHub Actions) | ✅ | Workflows: build (tests + calidad), deploy-dev (main), deploy-release (releases), manual-build. |
+| FT.20 | Publicar en DockerHub | ✅ | Workflow automatizado publica imágenes con tags: dev, versión (0.1.0), latest. Artefactos OCI para compose. |
+| FT.21 | Manifiestos de Kubernetes | 📋 | Manifiestos K8s para deployments, services e ingress. HPA para escalado horizontal (v1.0). |
 
 ---
 
-## Status summary
+## Resumen de estado
 
-| Status | Count | Approx % |
-|--------|-------:|--------:|
-| ✅ Implemented | 30 | ~50% |
-| 🚧 In progress | 4 | ~7% |
-| 📋 Planned | 24 | ~40% |
-| ⏸️ Tentative | 2 | ~3% |
+| Estado | Cantidad | Aproximado % |
+|--------|--------:|------------:|
+| ✅ Implementado | 30 | ~50% |
+| 🚧 En progreso | 4 | ~7% |
+| 📋 Planificado | 24 | ~40% |
+| ⏸️ Tentativo | 2 | ~3% |
 | **TOTAL** | **60** | **100%** |
 
 ---
 
-[← Back to main README](../README.md) | [View features with screenshots →](Funcionalidades.md)
+[← Volver al README principal](../README.md) | [Ver funcionalidades con capturas →](Funcionalidades.md)

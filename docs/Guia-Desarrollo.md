@@ -1,95 +1,95 @@
-# Development Guide — SPIRITBLADE
+# Guía de Desarrollo — SPIRITBLADE
 
-## Index
-- [Introduction](#introduction)
-- [Technologies](#technologies)
-- [Tools](#tools)
-- [Architecture](#architecture)
-- [Quality Control](#quality-control)
-- [Development Process](#development-process)
-- [Code Execution and Editing](#code-execution-and-editing)
+## Índice
+- [Introducción](#introducción)
+- [Tecnologías](#tecnologías)
+- [Herramientas](#herramientas)
+- [Arquitectura](#arquitectura)
+- [Control de Calidad](#control-de-calidad)
+- [Proceso de Desarrollo](#proceso-de-desarrollo)
+- [Ejecución y Edición de Código](#ejecución-y-edición-de-código)
 
 ---
 
-## Introduction
+## Introducción
 
-SPIRITBLADE is a web application with **SPA (Single Page Application)** architecture, designed to provide analysis and visualization of League of Legends statistics. An SPA architecture means that the entire client application is loaded in a single web page, and subsequent navigation is performed dynamically without reloading the complete page, offering a more fluid experience similar to desktop applications.
+SPIRITBLADE es una aplicación web con arquitectura **SPA (Single Page Application)**, diseñada para ofrecer análisis y visualización de estadísticas de League of Legends. La arquitectura SPA implica que la aplicación cliente se carga en una única página web y la navegación posterior se realiza de forma dinámica sin recargar toda la página, proporcionando una experiencia más fluida similar a aplicaciones de escritorio.
 
-The application is composed of three main components:
-- **Client (Frontend)**: Angular 17 running in the user's browser
-- **Server (Backend)**: REST API developed in Spring Boot (Java 21)
-- **Database**: MySQL for production, H2 in-memory for development
+La aplicación está compuesta por tres componentes principales:
+- **Cliente (Frontend)**: Angular 17 ejecutándose en el navegador del usuario
+- **Servidor (Backend)**: API REST desarrollada en Spring Boot (Java 21)
+- **Base de datos**: MySQL para producción, H2 en memoria en desarrollo (nota: actualmente MySQL es obligatorio)
 
-### Technical Summary
+### Resumen técnico
 
-| Aspect | Description |
+| Aspecto | Descripción |
 |--------|-------------|
-| **Type** | SPA web application with REST API |
-| **Technologies** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL 8.0, JWT, MinIO |
-| **Security** | HTTPS only (port 443), SSL/TLS, JWT authentication, role-based access |
-| **Storage** | MinIO object storage (PNG validation enforced) |
-| **Documentation** | Swagger UI / OpenAPI 3.0 interactive documentation |
-| **Tools** | VS Code, IntelliJ IDEA, Maven, npm, Git, Docker |
-| **Quality control** | JUnit 5, Jasmine/Karma, JaCoCo, SonarCloud, GitHub Actions |
-| **Deployment** | Docker, Docker Compose, HTTPS-only configuration |
-| **Development process** | Iterative and incremental, Git flow, DevOps with CI/CD |
+| **Tipo** | Aplicación web SPA con API REST |
+| **Tecnologías** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL 8.0, JWT, MinIO |
+| **Seguridad** | Solo HTTPS (puerto 443), SSL/TLS, autenticación JWT, control de acceso por roles |
+| **Almacenamiento** | MinIO (compatibilidad S3) (validación PNG aplicada) |
+| **Documentación** | Swagger UI / OpenAPI 3.0 interactiva |
+| **Herramientas** | VS Code, IntelliJ IDEA, Maven, npm, Git, Docker |
+| **Control de calidad** | JUnit 5, Jasmine/Karma, JaCoCo, SonarCloud, GitHub Actions |
+| **Despliegue** | Docker, Docker Compose, configuración HTTPS-only |
+| **Proceso de desarrollo** | Iterativo e incremental, Git flow, DevOps con CI/CD |
 
 ---
 
-## Technologies
+## Tecnologías
 
 ### Backend
-**Spring Boot 3.4.3** - Framework for developing enterprise Java applications that simplifies configuration and deployment. In the project, it's used to create the REST API that serves data to the frontend.
-- Official URL: https://spring.io/projects/spring-boot
+**Spring Boot 3.4.3** - Framework para desarrollar aplicaciones Java empresariales que simplifica configuración y despliegue. En el proyecto se usa para crear la API REST.
+- URL oficial: https://spring.io/projects/spring-boot
 
-**Java 21** - Main programming language for the backend, using the latest LTS features.
-- Official URL: https://openjdk.org/projects/jdk/21/
+**Java 21** - Lenguaje principal del backend, utilizando características LTS recientes.
+- URL oficial: https://openjdk.org/projects/jdk/21/
 
-**Spring Security** - Security framework that provides authentication and authorization. In the project, it implements JWT-based authentication and role-based access control.
-- Official URL: https://spring.io/projects/spring-security
+**Spring Security** - Framework de seguridad que provee autenticación y autorización. Implementa autenticación basada en JWT y control por roles.
+- URL oficial: https://spring.io/projects/spring-security
 
-**MySQL 8.0** - Relational database management system (REQUIRED - H2 is not used). Stores users, summoners, matches, and statistics.
-- Official URL: https://www.mysql.com/
+**MySQL 8.0** - Sistema de gestión de bases de datos relacional (REQUERIDO - H2 no es utilizado). Guarda usuarios, summoners, partidas y estadísticas.
+- URL oficial: https://www.mysql.com/
 
-**MinIO** - S3-compatible object storage for user files (profile pictures). Enforces PNG-only validation for security.
-- Official URL: https://min.io/
+**MinIO** - Almacenamiento de objetos compatible con S3 para ficheros de usuario (avatares). Se aplica validación PNG-only por seguridad.
+- URL oficial: https://min.io/
 
-**Springdoc OpenAPI** - Automatic API documentation generation with Swagger UI integration.
-- Official URL: https://springdoc.org/
+**Springdoc OpenAPI** - Generación automática de documentación API con integración Swagger UI.
+- URL oficial: https://springdoc.org/
 
 ### Frontend
-**Angular 17** - Web development framework with TypeScript that allows creating robust SPA applications. Uses standalone components for a more modular architecture.
-- Official URL: https://angular.io/
+**Angular 17** - Framework web con TypeScript para crear SPAs robustas. Usa componentes standalone para una arquitectura más modular.
+- URL oficial: https://angular.io/
 
-**TypeScript** - JavaScript superset that adds static typing, used throughout the frontend to improve code maintainability.
-- Official URL: https://www.typescriptlang.org/
-
----
-
-## Tools
-
-**Visual Studio Code** - Recommended primary editor with extensions for Java, Angular, and Git. Provides integrated debugging and terminal.
-- Official URL: https://code.visualstudio.com/
-
-**IntelliJ IDEA** - Alternative IDE especially recommended for Java backend development with excellent Spring Boot support.
-- Official URL: https://www.jetbrains.com/idea/
-
-**Maven** - Dependency management and build tool for the Java backend. The included wrapper (`mvnw.cmd`) is used.
-- Official URL: https://maven.apache.org/
-
-**npm** - Node.js package manager used to handle Angular frontend dependencies.
-- Official URL: https://www.npmjs.com/
-
-**Git** - Distributed version control system for tracking changes in source code.
-- Official URL: https://git-scm.com/
+**TypeScript** - Superset de JavaScript con tipado estático, usado en todo el frontend para mejorar mantenibilidad.
+- URL oficial: https://www.typescriptlang.org/
 
 ---
 
-## Architecture
+## Herramientas
 
-### Domain Model
+**Visual Studio Code** - Editor recomendado con extensiones para Java, Angular y Git. Ofrece depuración y terminal integrados.
+- URL oficial: https://code.visualstudio.com/
 
-The domain model represents the main entities of the SPIRITBLADE application and their relationships:
+**IntelliJ IDEA** - IDE alternativo, especialmente recomendado para desarrollo de backend Java con excelente soporte Spring Boot.
+- URL oficial: https://www.jetbrains.com/idea/
+
+**Maven** - Gestión de dependencias y herramienta de build para el backend Java. Se usa el wrapper (`mvnw.cmd`).
+- URL oficial: https://maven.apache.org/
+
+**npm** - Gestor de paquetes de Node.js para las dependencias del frontend Angular.
+- URL oficial: https://www.npmjs.com/
+
+**Git** - Sistema de control de versiones distribuido para el seguimiento del código fuente.
+- URL oficial: https://git-scm.com/
+
+---
+
+## Arquitectura
+
+### Modelo de Dominio
+
+El modelo de dominio representa las entidades principales de SPIRITBLADE y sus relaciones:
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -108,87 +108,87 @@ The domain model represents the main entities of the SPIRITBLADE application and
 │ profilePic: Blob │               │ tier: String     │
 │ createdAt: Date  │               │ rank: String     │
 └──────────────────┘               │ leaguePoints: I  │
-                                   │ wins: Integer    │
-                                   │ losses: Integer  │
-                                   │ updatedAt: Date  │
-                                   └──────────────────┘
-                                            │
-                                            │ 1:N
-                                            ▼
-                                   ┌──────────────────┐
-                                   │      Match       │
-                                   ├──────────────────┤
-                                   │ id: Long         │
-                                   │ matchId: String  │
-                                   │ championId: Int  │
-                                   │ championName: S  │
-                                   │ kills: Integer   │
-                                   │ deaths: Integer  │
-                                   │ assists: Integer │
-                                   │ win: Boolean     │
-                                   │ gameDuration: I  │
-                                   │ timestamp: Date  │
-                                   │ gameMode: String │
-                                   └──────────────────┘
+                           │ wins: Integer    │
+                           │ losses: Integer  │
+                           │ updatedAt: Date  │
+                           └──────────────────┘
+                                 │
+                                 │ 1:N
+                                 ▼
+                           ┌──────────────────┐
+                           │      Match       │
+                           ├──────────────────┤
+                           │ id: Long         │
+                           │ matchId: String  │
+                           │ championId: Int  │
+                           │ championName: S  │
+                           │ kills: Integer   │
+                           │ deaths: Integer  │
+                           │ assists: Integer │
+                           │ win: Boolean     │
+                           │ gameDuration: I  │
+                           │ timestamp: Date  │
+                           │ gameMode: String │
+                           └──────────────────┘
 ```
 
-**Key Relationships**:
-- **User ↔ Summoner**: Many-to-Many relationship for favorites system
-- **Summoner → Match**: One-to-Many relationship for match history
+Relaciones clave:
+- **User ↔ Summoner**: Relación Many-to-Many para sistema de favoritos
+- **Summoner → Match**: Relación One-to-Many para historial de partidas
 
 ---
 
-### REST API
+### API REST
 
-The REST API follows REST architectural principles with JWT authentication:
+La API REST sigue principios REST con autenticación JWT:
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │                        REST API STRUCTURE                          │
 └───────────────────────────────────────────────────────────────────┘
 
-PUBLIC ENDPOINTS (No authentication)
-├── POST   /auth/login           → Login with username/password
-├── POST   /auth/signup          → Register new user
-├── POST   /auth/refresh         → Refresh JWT token
-├── GET    /summoners/search     → Search summoner by Riot ID
-└── GET    /summoners/{id}       → Get summoner details
+PUBLIC ENDPOINTS (Sin autenticación)
+├── POST   /auth/login           → Login con usuario/contraseña
+├── POST   /auth/signup          → Registrar nuevo usuario
+├── POST   /auth/refresh         → Refrescar token JWT
+├── GET    /summoners/search     → Buscar summoner por Riot ID
+└── GET    /summoners/{id}       → Obtener detalles de summoner
 
-AUTHENTICATED ENDPOINTS (JWT required)
-├── USER ROLE
-│   ├── GET    /users/me         → Current user profile
-│   ├── PUT    /users/me         → Update profile
-│   ├── POST   /users/me/favorites/{summonerId} → Add favorite
-│   ├── DELETE /users/me/favorites/{summonerId} → Remove favorite
-│   ├── GET    /dashboard/stats  → Personal statistics
-│   └── GET    /dashboard/matches → Recent matches
+ENDPOINTS AUTENTICADOS (JWT requerido)
+├── ROL USER
+│   ├── GET    /users/me         → Perfil del usuario actual
+│   ├── PUT    /users/me         → Actualizar perfil
+│   ├── POST   /users/me/favorites/{summonerId} → Añadir favorito
+│   ├── DELETE /users/me/favorites/{summonerId} → Eliminar favorito
+│   ├── GET    /dashboard/stats  → Estadísticas personales
+│   └── GET    /dashboard/matches → Partidas recientes
 │
-└── ADMIN ROLE
-    ├── GET    /admin/users      → List all users
-    ├── PUT    /admin/users/{id} → Update user (activate/deactivate)
-    ├── DELETE /admin/users/{id} → Delete user
-    └── GET    /admin/stats      → System statistics
+└── ROL ADMIN
+   ├── GET    /admin/users      → Listar todos los usuarios
+   ├── PUT    /admin/users/{id} → Actualizar usuario (activar/desactivar)
+   ├── DELETE /admin/users/{id} → Eliminar usuario
+   └── GET    /admin/stats      → Estadísticas del sistema
 ```
 
-**Authentication Flow**:
-1. Client sends credentials to `/auth/login`
-2. Server validates and returns JWT token
-3. Client includes token in `Authorization: Bearer <token>` header
-4. Server validates token on each protected request
-5. Token expires after 24 hours (refresh available)
+Flujo de autenticación:
+1. Cliente envía credenciales a `/auth/login`
+2. Servidor valida y devuelve token JWT
+3. Cliente incluye token en header `Authorization: Bearer <token>`
+4. Servidor valida token en cada petición protegida
+5. Token expira a las 24 horas (disponible refresh)
 
-**Documentation**:
-- Interactive: Swagger UI at `/swagger-ui.html`
-- OpenAPI Specification: `/v3/api-docs` (JSON) and `/v3/api-docs.yaml` (YAML)
-- Quick Guide: `docs/API.md`
-- Complete Guide: `docs/SWAGGER.md`
+Documentación:
+- Interactiva: Swagger UI en `/swagger-ui.html`
+- OpenAPI: `/v3/api-docs` (JSON) y `/v3/api-docs.yaml` (YAML)
+- Guía rápida: `docs/API.md`
+- Guía completa: `docs/SWAGGER.md`
 - Tutorial: `docs/SWAGGER-QUICKSTART.md`
 
 ---
 
-### Server Architecture
+### Arquitectura del Servidor
 
-The backend follows **layered architecture** with Spring Boot best practices:
+El backend sigue una arquitectura por capas con buenas prácticas de Spring Boot:
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
@@ -207,8 +207,8 @@ The backend follows **layered architecture** with Spring Boot best practices:
 │  └──────────┘  └──────────┘                                    │
 │         │              │              │              │          │
 └─────────┼──────────────┼──────────────┼──────────────┼──────────┘
-          │              │              │              │
-          ▼              ▼              ▼              ▼
+        │              │              │              │
+        ▼              ▼              ▼              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       BUSINESS LAYER                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
@@ -221,8 +221,8 @@ The backend follows **layered architecture** with Spring Boot best practices:
 │  └──────────────┘  └──────────────┘                            │
 │         │                  │                  │                 │
 └─────────┼──────────────────┼──────────────────┼─────────────────┘
-          │                  │                  │
-          ▼                  ▼                  ▼
+        │                  │                  │
+        ▼                  ▼                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        DATA LAYER                                │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
@@ -231,62 +231,62 @@ The backend follows **layered architecture** with Spring Boot best practices:
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
 │         │                  │                  │                 │
 └─────────┼──────────────────┼──────────────────┼─────────────────┘
-          │                  │                  │
-          ▼                  ▼                  ▼
+        │                  │                  │
+        ▼                  ▼                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   DATABASE (MySQL 8.0 ONLY)                      │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
 │  │  users   │  │summoners │  │ matches  │  │favorites │       │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
 └─────────────────────────────────────────────────────────────────┘
-                          │
-                          │ (No H2, MySQL required)
-                          │
+                    │
+                    │ (No H2, MySQL requerido)
+                    │
 ┌─────────────────────────────────────────────────────────────────┐
 │              EXTERNAL STORAGE (MinIO - S3 Compatible)            │
 │  ┌────────────────────────────────────────┐                     │
 │  │  spiritblade-uploads bucket            │                     │
-│  │  - User avatars (PNG only)             │                     │
-│  │  - 3-layer PNG validation              │                     │
+│  │  - Avatares de usuario (PNG only)      │                     │
+│  │  - Validación PNG en 3 capas           │                     │
 │  └────────────────────────────────────────┘                     │
 └─────────────────────────────────────────────────────────────────┘
 
-CROSS-CUTTING CONCERNS
+CONCERNS TRANSVERSALES
 ┌─────────────────────────────────────────────────────────────────┐
-│  Security (HTTPS only, Spring Security + JWT, SSL/TLS)          │
-│  Exception Handling (Global @ControllerAdvice)                  │
-│  Logging (SLF4J)                                                │
-│  External API Integration (WebClient → Riot Games API)          │
-│  API Documentation (Swagger UI / OpenAPI 3.0)                   │
-│  File Validation (PNG-only enforcement)                         │
+│  Seguridad (HTTPS-only, Spring Security + JWT, SSL/TLS)        │
+│  Manejo de Excepciones (Global @ControllerAdvice)              │
+│  Logging (SLF4J)                                               │
+│  Integración API Externa (WebClient → Riot Games API)          │
+│  Documentación API (Swagger UI / OpenAPI 3.0)                  │
+│  Validación de ficheros (PNG-only enforcement)                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Layer Responsibilities**:
-- **Controllers** (6 total): Handle HTTP requests, validation, response formatting
-  - `LoginRestController` - Authentication endpoints (`/api/v1/auth`)
-  - `UserController` - User profile and favorites (`/api/v1/users`)
-  - `SummonerController` - Riot API integration (`/api/v1/summoners`)
-  - `DashboardController` - Analytics and stats (`/api/v1/dashboard`)
-  - `FileController` - File upload/download (`/api/v1/files`)
-  - `AdminController` - Admin operations (`/api/v1/admin`)
-- **Services**: Business logic, transaction management, API integration
-- **Repositories**: Data access using Spring Data JPA
-- **Models/Entities**: JPA entities mapping to MySQL tables
+Responsabilidades por capa:
+- **Controllers** (6 en total): Manejan peticiones HTTP, validación y formateo de respuestas
+  - `LoginRestController` - Endpoints de autenticación (`/api/v1/auth`)
+  - `UserController` - Perfil y favoritos (`/api/v1/users`)
+  - `SummonerController` - Integración con Riot API (`/api/v1/summoners`)
+  - `DashboardController` - Analíticas y estadísticas (`/api/v1/dashboard`)
+  - `FileController` - Subida/descarga de ficheros (`/api/v1/files`)
+  - `AdminController` - Operaciones de administrador (`/api/v1/admin`)
+- **Services**: Lógica de negocio, gestión de transacciones, integración con APIs
+- **Repositories**: Acceso a datos con Spring Data JPA
+- **Models/Entities**: Entidades JPA mapeadas a tablas MySQL
 
-**Key Components**:
-- **Security**: HTTPS-only (port 443), JWT authentication with `JwtTokenProvider` and `JwtAuthenticationFilter`
-- **Riot Integration**: `RiotService` + `DataDragonService` for external API calls
-- **Storage**: `MinioStorageService` + `UserAvatarService` for file management
-- **Validation**: PNG-only enforcement in 3 layers (FileController, MinioStorageService, UserAvatarService)
-- **Exception Handling**: `GlobalExceptionHandler` for consistent error responses
-- **Documentation**: Springdoc OpenAPI with Swagger UI
+Componentes clave:
+- **Seguridad**: HTTPS-only (puerto 443), autenticación JWT con `JwtTokenProvider` y `JwtAuthenticationFilter`
+- **Integración Riot**: `RiotService` + `DataDragonService` para llamadas externas
+- **Almacenamiento**: `MinioStorageService` + `UserAvatarService` para gestión de ficheros
+- **Validación**: Enforce PNG-only en 3 capas (FileController, MinioStorageService, UserAvatarService)
+- **Manejo de Excepciones**: `GlobalExceptionHandler` para respuestas de error consistentes
+- **Documentación**: Springdoc OpenAPI con Swagger UI
 
 ---
 
-### Client Architecture
+### Arquitectura del Cliente
 
-The frontend follows **Angular standalone components** architecture:
+El frontend sigue arquitectura con **componentes standalone de Angular**:
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
@@ -294,39 +294,39 @@ The frontend follows **Angular standalone components** architecture:
 └───────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
-│                      VIEW LAYER (Components)                     │
+│                      CAPA DE VISTA (Componentes)               │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
 │  │   Home   │  │  Login   │  │Summoner  │  │Dashboard │       │
 │  │Component │  │Component │  │Component │  │Component │  ...  │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
 │       │              │              │              │            │
 └───────┼──────────────┼──────────────┼──────────────┼────────────┘
-        │              │              │              │
-        ▼              ▼              ▼              ▼
+      │              │              │              │
+      ▼              ▼              ▼              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     SERVICE LAYER                                │
+│                     CAPA DE SERVICIOS                            │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
 │  │   Auth   │  │Summoner  │  │Dashboard │  │  Admin   │       │
 │  │ Service  │  │ Service  │  │ Service  │  │ Service  │  ...  │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
 │       │              │              │              │            │
 └───────┼──────────────┼──────────────┼──────────────┼────────────┘
-        │              │              │              │
-        └──────────────┴──────────────┴──────────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │  HttpClient     │
-              │  (HTTP Calls)   │
-              └─────────────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │  Backend API    │
-              │  (Spring Boot)  │
-              └─────────────────┘
+      │              │              │              │
+      └──────────────┴──────────────┴──────────────┘
+                  │
+                  ▼
+           ┌─────────────────┐
+           │  HttpClient     │
+           │  (Llamadas HTTP)│
+           └─────────────────┘
+                  │
+                  ▼
+           ┌─────────────────┐
+           │  Backend API    │
+           │  (Spring Boot)  │
+           └─────────────────┘
 
-ROUTING & GUARDS
+RUTAS & GUARDS
 ┌─────────────────────────────────────────────────────────────────┐
 │  app.routes.ts                                                  │
 │  ├── /             → HomeComponent                             │
@@ -336,42 +336,42 @@ ROUTING & GUARDS
 │  └── /admin        → AdminComponent (Admin Guard)              │
 └─────────────────────────────────────────────────────────────────┘
 
-DATA MODELS (DTOs)
+MODELOS DE DATOS (DTOs)
 ┌─────────────────────────────────────────────────────────────────┐
 │  SummonerDTO, UserDTO, MatchDTO, DashboardStatsDTO...          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Features**:
-- **Standalone Components**: No NgModule needed, better tree-shaking
-- **Reactive Programming**: RxJS Observables for async operations
-- **Route Guards**: `AuthGuard` and `AdminGuard` for access control
-- **Interceptors**: `AuthInterceptor` adds JWT token to requests
-- **State Management**: Services with BehaviorSubject for shared state
+Características clave:
+- **Componentes Standalone**: Sin NgModule, mejor tree-shaking
+- **Programación reactiva**: Observables de RxJS para operaciones asíncronas
+- **Route Guards**: `AuthGuard` y `AdminGuard` para control de acceso
+- **Interceptors**: `AuthInterceptor` añade token JWT a las solicitudes
+- **Gestión de estado**: Servicios con BehaviorSubject para estado compartido
 
-**Component Communication**:
-- Parent → Child: `@Input()`
-- Child → Parent: `@Output()` + EventEmitter
-- Sibling: Shared services with RxJS subjects
+Comunicación entre componentes:
+- Padre → Hijo: `@Input()`
+- Hijo → Padre: `@Output()` + EventEmitter
+- Hermanos: Servicios compartidos con subjects de RxJS
 
 ---
 
-### Deployment
+### Despliegue
 
-The application uses **Docker multi-stage build** for optimized production images:
+La aplicación usa **build multi-stage en Docker** para imágenes optimizadas:
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │                     DEPLOYMENT ARCHITECTURE                        │
 └───────────────────────────────────────────────────────────────────┘
 
-                    ┌─────────────────┐
-                    │   Docker Host   │
-                    └─────────────────┘
-                            │
-        ┌───────────────────┼───────────────────┐
-        │                   │                   │
-        ▼                   ▼                   ▼
+               ┌─────────────────┐
+               │   Docker Host   │
+               └─────────────────┘
+                     │
+      ┌───────────────────┼───────────────────┐
+      │                   │                   │
+      ▼                   ▼                   ▼
 ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
 │   Angular    │   │ Spring Boot  │   │    MySQL     │
 │  Container   │   │  Container   │   │  Container   │
@@ -379,400 +379,396 @@ The application uses **Docker multi-stage build** for optimized production image
 │ nginx:alpine │   │  JRE 21      │   │  mysql:8.0   │
 │ Port: 80     │   │  Port: 8080  │   │  Port: 3306  │
 └──────────────┘   └──────────────┘   └──────────────┘
-        │                   │                   │
-        │                   │                   │
-        └───────────────────┴───────────────────┘
-                            │
-                  Docker Compose Network
+      │                   │                   │
+      │                   │                   │
+      └───────────────────┴───────────────────┘
+                     │
+              Docker Compose Network
 ```
 
-**Docker Multi-Stage Build**:
+Dockerfile multietapa de ejemplo:
 
-1. **Frontend Build Stage**:
-   ```dockerfile
-   FROM node:18-alpine AS frontend-build
-   WORKDIR /app/frontend
-   COPY frontend/package*.json ./
-   RUN npm ci
-   COPY frontend/ ./
-   RUN npm run build --prod
-   ```
+1. Etapa de build frontend:
+```dockerfile
+FROM node:18-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build --prod
+```
 
-2. **Backend Build Stage**:
-   ```dockerfile
-   FROM maven:3.9-eclipse-temurin-21 AS backend-build
-   WORKDIR /app/backend
-   COPY backend/pom.xml ./
-   RUN mvn dependency:go-offline
-   COPY backend/src ./src
-   RUN mvn clean package -DskipTests
-   ```
+2. Etapa de build backend:
+```dockerfile
+FROM maven:3.9-eclipse-temurin-21 AS backend-build
+WORKDIR /app/backend
+COPY backend/pom.xml ./
+RUN mvn dependency:go-offline
+COPY backend/src ./src
+RUN mvn clean package -DskipTests
+```
 
-3. **Final Runtime Image**:
-   ```dockerfile
-   FROM eclipse-temurin:21-jre-alpine
-   WORKDIR /app
-   
-   # Copy frontend static files
-   COPY --from=frontend-build /app/frontend/dist/frontend /app/static
-   
-   # Copy backend jar
-   COPY --from=backend-build /app/backend/target/*.jar app.jar
-   
-   EXPOSE 8080
-   CMD ["java", "-jar", "app.jar"]
-   ```
+3. Imagen final de runtime:
+```dockerfile
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
 
-**Docker Compose**:
+# Copy frontend static files
+COPY --from=frontend-build /app/frontend/dist/frontend /app/static
+
+# Copy backend jar
+COPY --from=backend-build /app/backend/target/*.jar app.jar
+
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]
+```
+
+Docker Compose de ejemplo:
 ```yaml
 services:
   mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: spiritblade_db
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    volumes:
-      - mysql-data:/var/lib/mysql
-    ports:
-      - "3306:3306"
+   image: mysql:8.0
+   environment:
+     MYSQL_DATABASE: spiritblade_db
+     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+   volumes:
+     - mysql-data:/var/lib/mysql
+   ports:
+     - "3306:3306"
 
   backend:
-    image: jorgeandresecheverriagarcia/2025-spiritblade:latest
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/spiritblade_db
-      RIOT_API_KEY: ${RIOT_API_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      - mysql
-    ports:
-      - "8080:8080"
+   image: jorgeandresecheverriagarcia/2025-spiritblade:latest
+   environment:
+     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/spiritblade_db
+     RIOT_API_KEY: ${RIOT_API_KEY}
+     JWT_SECRET: ${JWT_SECRET}
+   depends_on:
+     - mysql
+   ports:
+     - "8080:8080"
 
 volumes:
   mysql-data:
 ```
 
-**Deployment Options**:
-- **Quick Start**: Pull from DockerHub and run with `docker-compose up`
-- **Source Build**: Build locally with `docker build` + `docker-compose up`
-- **Cloud**: Deploy to AWS ECS, Azure Container Instances, or GCP Cloud Run
+Opciones de despliegue:
+- **Quick Start**: Pull desde DockerHub y ejecutar `docker-compose up`
+- **Build desde código**: Construir localmente con `docker build` + `docker-compose up`
+- **Cloud**: Desplegar en AWS ECS, Azure Container Instances o GCP Cloud Run
 
-See [Ejecucion.md](Ejecucion.md) for detailed deployment instructions.
+Ver [Ejecucion.md](Ejecucion.md) para instrucciones detalladas de despliegue.
 
 ---
 
-## Quality Control
+## Control de Calidad
 
-### Testing Strategy
+### Estrategia de pruebas
 
-The project follows a **testing pyramid** approach with multiple levels of automated tests:
+El proyecto sigue una aproximación de **pirámide de pruebas** con múltiples niveles de tests:
 
 ```
-                    /\
-                   /  \
-                  / E2E \          ← Few, critical user flows
-                 /--------\
-                /          \
-               / Integration \     ← Moderate, key interactions
-              /--------------\
-             /                \
-            /   Unit Tests     \   ← Many, fast, isolated
-           /____________________\
+               /\
+               /  \
+              / E2E \          ← Pocos, flujos críticos
+             /--------\
+            /          \
+            / Integration \     ← Moderados, interacciones clave
+           /--------------\
+          /                \
+         /   Unit Tests     \   ← Muchos, rápidos, aislados
+         /____________________\
 ```
 
-### Automated Tests
+### Pruebas automatizadas
 
 #### Backend (Java)
 
 **Unit Tests** - JUnit 5 + Mockito
-- **Purpose**: Test individual methods in isolation
-- **Scope**: Service layer business logic, utility methods
-- **Mocking**: External dependencies (repositories, APIs)
-- **Location**: `backend/src/test/java/com/tfg/tfg/service/`
-- **Example**:
-  ```java
-  @Test
-  void testGetSummonerByRiotId_Success() {
-      when(restTemplate.exchange(...)).thenReturn(mockResponse);
-      SummonerDTO result = riotService.getSummonerByRiotId("Player", "EUW");
-      assertNotNull(result);
-      assertEquals("Player", result.getGameName());
-  }
-  ```
+- Propósito: Probar métodos individuales en aislamiento
+- Ámbito: Lógica de negocio en servicios, utilidades
+- Mocking: Dependencias externas (repositorios, APIs)
+- Ubicación: `backend/src/test/java/com/tfg/tfg/service/`
+- Ejemplo:
+```java
+@Test
+void testGetSummonerByRiotId_Success() {
+   when(restTemplate.exchange(...)).thenReturn(mockResponse);
+   SummonerDTO result = riotService.getSummonerByRiotId("Player", "EUW");
+   assertNotNull(result);
+   assertEquals("Player", result.getGameName());
+}
+```
 
 **Integration Tests** - Spring Boot Test
-- **Purpose**: Test component interactions with real Spring context
-- **Scope**: Controller → Service → Repository with embedded DB
-- **Context**: `@SpringBootTest` with `@AutoConfigureMockMvc`
-- **Location**: `backend/src/test/java/com/tfg/tfg/`
-- **Example**:
-  ```java
-  @Test
-  void testLoginEndpoint_ValidCredentials() throws Exception {
-      mockMvc.perform(post("/auth/login")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(loginJson))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.token").exists());
-  }
-  ```
+- Propósito: Probar interacción de componentes con contexto Spring real
+- Ámbito: Controller → Service → Repository con BD embebida
+- Contexto: `@SpringBootTest` con `@AutoConfigureMockMvc`
+- Ubicación: `backend/src/test/java/com/tfg/tfg/`
+- Ejemplo:
+```java
+@Test
+void testLoginEndpoint_ValidCredentials() throws Exception {
+   mockMvc.perform(post("/auth/login")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(loginJson))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.token").exists());
+}
+```
 
 **E2E Tests** - Selenium WebDriver
-- **Purpose**: Test critical user flows in real browser
-- **Scope**: Full stack from UI to database
-- **Location**: `backend/src/test/java/com/tfg/tfg/e2e/`
-- **Scenarios**: Login, summoner search, dashboard navigation
+- Propósito: Probar flujos críticos de usuario en navegador real
+- Ámbito: Stack completo desde UI hasta BD
+- Ubicación: `backend/src/test/java/com/tfg/tfg/e2e/`
+- Escenarios: Login, búsqueda de summoner, navegación del dashboard
 
 ---
 
 #### Frontend (Angular)
 
 **Unit Tests** - Jasmine + Karma
-- **Purpose**: Test components and services in isolation
-- **Scope**: Component logic, service methods, pipes
-- **Mocking**: HttpClient, Router, dependencies
-- **Location**: `frontend/src/app/**/*.spec.ts`
-- **Example**:
-  ```typescript
-  it('should display summoner name after search', () => {
-    component.summoner = mockSummoner;
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement;
-    expect(compiled.querySelector('h2').textContent).toContain('Player#EUW');
-  });
-  ```
+- Propósito: Probar componentes y servicios en aislamiento
+- Ámbito: Lógica de componentes, servicios, pipes
+- Mocking: HttpClient, Router, dependencias
+- Ubicación: `frontend/src/app/**/*.spec.ts`
+- Ejemplo:
+```typescript
+it('should display summoner name after search', () => {
+  component.summoner = mockSummoner;
+  fixture.detectChanges();
+  const compiled = fixture.nativeElement;
+  expect(compiled.querySelector('h2').textContent).toContain('Player#EUW');
+});
+```
 
 **Integration Tests** - Angular Testing Utilities
-- **Purpose**: Test component interactions with child components
-- **Scope**: Parent-child communication, routing, forms
-- **Tools**: `TestBed`, `ComponentFixture`, `RouterTestingModule`
+- Propósito: Probar interacciones entre componentes hijo/padre
+- Ámbito: Comunicación padre-hijo, routing, formularios
+- Herramientas: `TestBed`, `ComponentFixture`, `RouterTestingModule`
 
 ---
 
-### Test Coverage
+### Cobertura de tests
 
-**Current Status (v0.1)**:
-- **Backend**: 55% line coverage (JaCoCo)
-- **Frontend**: 48% line coverage (karma-coverage)
+Estado actual (v0.1):
+- **Backend**: 55% cobertura de líneas (JaCoCo)
+- **Frontend**: 48% cobertura de líneas (karma-coverage)
 
-**Target Goals**:
-- **Backend**: ≥ 60% for v0.2
-- **Frontend**: ≥ 50% for v0.2
+Objetivos:
+- **Backend**: ≥ 60% para v0.2
+- **Frontend**: ≥ 50% para v0.2
 
-**Coverage Reports**:
+Informes de cobertura:
 - Backend: `backend/target/site/jacoco/index.html`
 - Frontend: `frontend/coverage/index.html`
 
-**Uncovered Areas** (planned for v0.2):
-- Exception handling edge cases
-- Admin panel advanced features
-- Error recovery scenarios
-- Complex data transformations
+Áreas no cubiertas (plan v0.2):
+- Casos límite en manejo de excepciones
+- Funcionalidades avanzadas del panel admin
+- Escenarios de recuperación de errores
+- Transformaciones de datos complejas
 
 ---
 
-### Tested Functionalities (v0.1)
+### Funcionalidades probadas (v0.1)
 
-✅ **Authentication & Authorization**
-- User login with JWT token generation
-- Token validation on protected endpoints
-- Role-based access control (USER vs ADMIN)
-- Token refresh mechanism
-- HTTPS-only security (port 443)
+✅ **Autenticación & Autorización**
+- Login con generación de JWT
+- Validación de token en endpoints protegidos
+- Control por roles (USER vs ADMIN)
+- Mecanismo de refresh de token
+- Seguridad HTTPS-only (puerto 443)
 
-✅ **User Management**
-- User registration with validation
-- Profile retrieval and updates
-- Password encryption (BCrypt)
-- Profile picture upload (PNG only, MinIO storage)
-- Avatar validation (3-layer PNG enforcement)
-- Favorites management (add/remove summoners)
+✅ **Gestión de Usuarios**
+- Registro con validación
+- Recuperación y actualización de perfil
+- Encriptación de contraseñas (BCrypt)
+- Subida de foto de perfil (PNG only, MinIO)
+- Validación de avatar en 3 capas
+- Gestión de favoritos (añadir/quitar)
 
-✅ **Summoner Operations**
-- Search by Riot ID (gameName + tagLine)
-- Fetch summoner data from Riot API
-- Retrieve ranked stats (tier, rank, LP, W/L)
-- Display champion mastery top 3
-- Match history with detailed statistics
-- Caching system for performance
+✅ **Operaciones de Summoner**
+- Búsqueda por Riot ID (gameName + tagLine)
+- Obtención de datos desde Riot API
+- Recuperar stats ranked (tier, rank, LP, W/L)
+- Mostrar mastery top 3 de campeones
+- Historial de partidas con estadísticas detalladas
+- Sistema de caché para rendimiento
 
 ✅ **Dashboard**
-- Personal statistics aggregation
-- Recent matches with performance metrics
-- Favorite summoners management
-- Performance analytics and KDA tracking
+- Agregación de estadísticas personales
+- Partidas recientes con métricas
+- Gestión de summoners favoritos
+- Analíticas de rendimiento y KDA
 
-✅ **File Management**
-- MinIO object storage integration
-- PNG-only validation (header + extension + content type)
-- Secure file upload/download
-- Profile avatar management
+✅ **Gestión de ficheros**
+- Integración con MinIO
+- Validación PNG-only (header + extensión + content type)
+- Subida/descarga segura de ficheros
+- Gestión de avatares de usuario
 
-✅ **Admin Panel**
-- List all users with filters
-- Activate/deactivate users
-- Delete users with cascade
-- System statistics (user count, active users)
+✅ **Panel Admin**
+- Listado de usuarios con filtros
+- Activar/desactivar usuarios
+- Borrado con cascada
+- Estadísticas del sistema
 
-✅ **External API Integration**
-- Riot Games API authentication
-- Rate limit handling (20 req/s, 100 req/2min)
-- Error recovery (retries, fallbacks)
-- Data Dragon CDN for images
+✅ **Integración con APIs externas**
+- Autenticación con Riot Games API
+- Manejo de rate limits (20 req/s, 100 req/2min)
+- Recuperación ante errores (retries, fallbacks)
+- Data Dragon CDN para imágenes
 
-✅ **API Documentation**
-- Swagger UI interactive documentation
-- OpenAPI 3.0 specification
-- JWT authentication in Swagger
-- Complete endpoint documentation
+✅ **Documentación API**
+- Swagger UI interactiva
+- OpenAPI 3.0
+- Autenticación JWT en Swagger
+- Documentación completa de endpoints
 
-✅ **Frontend Components**
-- Component rendering with proper data binding
-- Routing with guards (Auth, Admin)
-- Form validation (reactive forms)
-- Error display with user-friendly messages
-- HTTPS-only communication
-
----
-
-### Static Code Analysis
-
-**SonarCloud Integration**:
-- **URL**: https://sonarcloud.io/project/overview?id=JorgeAndresEcheverria_2025-SPIRITBLADE
-- **Trigger**: Automatic on every PR to `main`
-- **Quality Gate**: Must pass for merge approval
-
-**Analyzed Metrics**:
-- **Bugs**: 0 (target: 0 critical, 0 major)
-- **Vulnerabilities**: 0 (target: 0)
-- **Code Smells**: <50 (target: <50)
-- **Security Hotspots**: Reviewed and resolved
-- **Coverage**: Integrated with JaCoCo + karma-coverage
-- **Duplications**: <5%
-- **Maintainability Rating**: A
-
-**Configuration**:
-- File: `sonar-project.properties`
-- Languages: Java, TypeScript, HTML, CSS
-- Exclusions: Tests, generated code, third-party libraries
-
-**Code Quality Improvements (v0.1)**:
-- Replaced `printStackTrace()` with SLF4J logging
-- Replaced `console.error()` with `console.debug()` in frontend
-- Specific exception catches instead of generic `Exception`
-- Immutable empty collections (`Collections.emptyList()`)
-- Empty strings instead of `null` for optional URLs
+✅ **Componentes Frontend**
+- Renderizado con linkado de datos correcto
+- Rutas con guards (Auth, Admin)
+- Validación de formularios reactivos
+- Muestra de errores amigables
+- Comunicación HTTPS-only
 
 ---
 
-### Continuous Integration (CI)
+### Análisis Estático de Código
 
-**GitHub Actions Workflows**:
+**Integración SonarCloud**:
+- URL: https://sonarcloud.io/project/overview?id=JorgeAndresEcheverria_2025-SPIRITBLADE
+- Trigger: Automático en cada PR a `main`
+- Quality Gate: Requerido para merge
 
-1. **build.yml** - Basic Quality Control
-   - **Trigger**: Push to feature branches
-   - **Steps**: Checkout → Setup JDK/Node → Build backend → Build frontend → Run unit tests
-   - **Artifacts**: None
-   - **Duration**: ~5 minutes
+Métricas analizadas:
+- Bugs: 0 (objetivo: 0 críticos, 0 mayores)
+- Vulnerabilidades: 0 (objetivo: 0)
+- Code Smells: <50 (objetivo: <50)
+- Security Hotspots: Revisados y resueltos
+- Cobertura: Integrado con JaCoCo + karma-coverage
+- Duplicaciones: <5%
+- Mantenimiento: Rating A
 
-2. **build-with-quality.yml** - Complete Quality Control (on PR to main)
-   - **Trigger**: Pull Request to `main`
-   - **Steps**: All above + Integration tests → Coverage reports → SonarCloud analysis
-   - **Quality Gate**: Must pass for merge
-   - **Artifacts**: Coverage reports, test results
-   - **Duration**: ~10 minutes
+Configuración:
+- Archivo: `sonar-project.properties`
+- Lenguajes: Java, TypeScript, HTML, CSS
+- Exclusiones: Tests, código generado, librerías externas
 
-3. **deploy-dev.yml** - Deploy Development Image
-   - **Trigger**: Push to `main`
-   - **Steps**: Build → Tag as `dev` → Push to DockerHub
-   - **Image**: `jorgeandresecheverriagarcia/2025-spiritblade:dev`
-
-4. **deploy-release.yml** - Deploy Release Image
-   - **Trigger**: GitHub Release created
-   - **Steps**: Build → Tag with version (e.g., `v0.1.0`) → Tag as `latest` → Push to DockerHub
-   - **Images**: `jorgeandresecheverriagarcia/2025-spiritblade:v0.1.0` + `latest`
-
-5. **manual-build.yml** - Manual Build Trigger
-   - **Trigger**: Manual workflow dispatch
-   - **Purpose**: On-demand builds for testing
-
-**Branch Protection** (`main`):
-- ✅ Require PR before merge
-- ✅ Require status checks (build-with-quality.yml)
-- ✅ Require code review approval
-- ❌ No direct pushes to `main`
-
-See [Seguimiento.md](Seguimiento.md) for detailed CI/CD workflows and metrics.
+Mejoras de calidad (v0.1):
+- Reemplazo de `printStackTrace()` por logging SLF4J
+- Reemplazo de `console.error()` por `console.debug()` en frontend
+- Capturas de excepciones específicas en lugar de `Exception` genérico
+- Colecciones vacías inmutables (`Collections.emptyList()`)
+- Uso de strings vacíos en vez de `null` para URLs opcionales
 
 ---
 
-## Development Process
+### Integración Continua (CI)
 
-### Methodology
+Workflows de GitHub Actions:
 
-The project follows an **iterative and incremental** agile methodology:
+1. **build.yml** - Control de calidad básico
+   - Trigger: Push a ramas feature
+   - Pasos: Checkout → Setup JDK/Node → Build backend → Build frontend → Ejecutar unit tests
+   - Artefactos: Ninguno
+   - Duración: ~5 min
 
-**Principles**:
-- 🔄 **Short iterations**: 2-3 week cycles
-- 📦 **Incremental deliverables**: Deployable version at each phase end
-- 🔍 **Continuous feedback**: Regular reviews and adjustments
-- 🚀 **DevOps culture**: Automation, CI/CD, monitoring
+2. **build-with-quality.yml** - Control completo (PR a main)
+   - Trigger: Pull Request a `main`
+   - Pasos: Todo lo anterior + Integration tests → Reportes de cobertura → Análisis SonarCloud
+   - Quality Gate: Requerido para merge
+   - Artefactos: Reportes de cobertura, resultados de tests
+   - Duración: ~10 min
 
-**7 Planned Phases**:
-1. ✅ **Phase 1**: Functionality and screen definition (Sep 15, 2024)
-2. ✅ **Phase 2**: Repository and CI setup (Oct 15, 2024)
-3. ✅ **Phase 3**: Version 0.1 - Basic features (Dec 15, 2024)
-4. 📋 **Phase 4**: Version 0.2 - Intermediate features (Mar 1, 2025)
-5. 📋 **Phase 5**: Version 1.0 - Advanced features (Apr 15, 2025)
-6. 📋 **Phase 6**: TFG report writing (May 15, 2025)
-7. 📋 **Phase 7**: TFG defense (Jun 15, 2025)
+3. **deploy-dev.yml** - Publicar imagen de desarrollo
+   - Trigger: Push a `main`
+   - Pasos: Build → Tag `dev` → Push a DockerHub
+   - Imagen: `jorgeandresecheverriagarcia/2025-spiritblade:dev`
 
-See [Inicio-Proyecto.md](Inicio-Proyecto.md) for detailed phase descriptions.
+4. **deploy-release.yml** - Publicar release
+   - Trigger: Creación de GitHub Release
+   - Pasos: Build → Tag versión (ej. `v0.1.0`) → Tag `latest` → Push a DockerHub
+   - Imágenes: `jorgeandresecheverriagarcia/2025-spiritblade:v0.1.0` + `latest`
+
+5. **manual-build.yml** - Build manual
+   - Trigger: Workflow dispatch manual
+   - Propósito: Builds bajo demanda para testing
+
+Protecciones de rama (`main`):
+- ✅ Requerir PR antes de merge
+- ✅ Requerir checks de estado (build-with-quality.yml)
+- ✅ Requerir aprobación de revisión de código
+- ❌ No permitir pushes directos a `main`
+
+Ver [Seguimiento.md](Seguimiento.md) para detalles de CI/CD y métricas.
 
 ---
 
-### Task Management
+## Proceso de Desarrollo
+
+### Metodología
+
+El proyecto sigue una metodología ágil **iterativa e incremental**:
+
+Principios:
+- 🔄 Iteraciones cortas: ciclos de 2-3 semanas
+- 📦 Entregables incrementales: versión desplegable al final de cada fase
+- 🔍 Feedback continuo: revisiones y ajustes regulares
+- 🚀 Cultura DevOps: automatización, CI/CD, monitorización
+
+7 fases planificadas:
+1. ✅ Fase 1: Definición de funcionalidades y pantallas (15 Sep 2024)
+2. ✅ Fase 2: Repositorio y configuración CI (15 Oct 2024)
+3. ✅ Fase 3: Versión 0.1 - Funcionalidades básicas (15 Dic 2024)
+4. 📋 Fase 4: Versión 0.2 - Funcionalidades intermedias (01 Mar 2025)
+5. 📋 Fase 5: Versión 1.0 - Funcionalidades avanzadas (15 Abr 2025)
+6. 📋 Fase 6: Redacción del TFG (15 May 2025)
+7. 📋 Fase 7: Defensa del TFG (15 Jun 2025)
+
+Ver [Inicio-Proyecto.md](Inicio-Proyecto.md) para descripciones detalladas de fases.
+
+---
+
+### Gestión de tareas
 
 **GitHub Issues**:
-- Bug tracking with `bug` label
-- Feature requests with `enhancement` label
-- Documentation updates with `documentation` label
-- Priority levels: `priority: high`, `priority: medium`, `priority: low`
+- Seguimiento de bugs con etiqueta `bug`
+- Features con `enhancement`
+- Documentación con `documentation`
+- Prioridades: `priority: high|medium|low`
 
-**GitHub Projects** (Kanban):
-- **Backlog**: Planned features for future versions
-- **To Do**: Selected for current iteration
-- **In Progress**: Active development
-- **In Review**: Pull Request created, awaiting approval
-- **Done**: Merged to `main` and deployed
+**GitHub Projects (Kanban)**:
+- Backlog, To Do, In Progress, In Review, Done
 
-**Milestones**:
-- Milestone: **v0.1** (Dec 15, 2024) - ✅ Completed
-- Milestone: **v0.2** (Mar 1, 2025) - 📋 Planned
-- Milestone: **v1.0** (Apr 15, 2025) - 📋 Planned
+**Hitos**:
+- v0.1 (15 Dic 2024) - ✅ Completado
+- v0.2 (01 Mar 2025) - 📋 Planificado
+- v1.0 (15 Apr 2025) - 📋 Planificado
 
 ---
 
-### Version Control (Git)
+### Control de versiones (Git)
 
-**Branch Strategy**:
+Estrategia de ramas:
 ```
-main (protected)
+main (protegida)
   │
-  ├── feature/user-authentication     ← Feature branches
+  ├── feature/user-authentication
   ├── feature/summoner-search
   ├── feature/admin-panel
   ├── bugfix/login-error
   └── docs/update-readme
 ```
 
-**Naming Conventions**:
-- `feature/<description>` - New features
-- `bugfix/<description>` - Bug fixes
-- `docs/<description>` - Documentation updates
-- `refactor/<description>` - Code refactoring
-- `test/<description>` - Test improvements
+Convenciones de nombres:
+- `feature/<descripción>` - Nuevas funcionalidades
+- `bugfix/<descripción>` - Correcciones
+- `docs/<descripción>` - Documentación
+- `refactor/<descripción>` - Refactorizaciones
+- `test/<descripción>` - Mejoras en tests
 
-**Commit Messages** (Conventional Commits):
+Mensajes de commit (Conventional Commits):
 ```
 type(scope): description
 
@@ -783,265 +779,250 @@ test(service): add unit tests for RiotService
 refactor(controller): simplify error handling
 ```
 
-**Types**: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`
+Tipos: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`
 
-**Current Metrics (v0.1)**:
-- 📊 Total commits: ~80
-- 🌿 Active branches: 2-3 at any time
-- 🔒 `main` protected with mandatory PR reviews
-
----
-
-### Pull Request Workflow
-
-1. **Create branch** from `main`:
-   ```bash
-   git checkout -b feature/new-feature
-   ```
-
-2. **Develop** with frequent commits:
-   ```bash
-   git add .
-   git commit -m "feat(scope): description"
-   ```
-
-3. **Push** to remote:
-   ```bash
-   git push origin feature/new-feature
-   ```
-
-4. **Create PR** on GitHub:
-   - Title: Clear description of changes
-   - Description: What, why, how + screenshots if UI
-   - Link related issues
-   - Request reviewers
-
-5. **CI Checks** run automatically:
-   - ✅ Build successful
-   - ✅ All tests pass
-   - ✅ Coverage thresholds met
-   - ✅ SonarCloud quality gate passed
-
-6. **Code Review**:
-   - Reviewer comments on code
-   - Developer addresses feedback
-   - Approve when satisfied
-
-7. **Merge** to `main`:
-   - Squash and merge (clean history)
-   - Delete feature branch
-   - CI deploys `dev` image automatically
+Métricas actuales (v0.1):
+- 📊 Comits totales: ~80
+- 🌿 Ramas activas: 2-3 típicamente
+- 🔒 `main` protegida con revisiones obligatorias
 
 ---
 
-### Code Review Guidelines
+### Flujo de Pull Request
 
-**Reviewer Checklist**:
-- ✅ Code follows project conventions
-- ✅ Tests are included and pass
-- ✅ No obvious bugs or security issues
-- ✅ Documentation is updated
-- ✅ Performance considerations addressed
-- ✅ Error handling is appropriate
+1. Crear rama desde `main`:
+```bash
+git checkout -b feature/new-feature
+```
 
-**Common Feedback**:
-- "Consider extracting this into a separate method"
-- "Add unit tests for this edge case"
-- "This could throw NPE, add null check"
-- "Update API documentation"
+2. Desarrollar con commits frecuentes:
+```bash
+git add .
+git commit -m "feat(scope): description"
+```
 
----
+3. Push a remoto:
+```bash
+git push origin feature/new-feature
+```
 
-### Versioning and Releases
+4. Crear PR en GitHub:
+- Título claro
+- Descripción: qué, por qué, cómo + capturas si UI
+- Enlazar issues relacionados
+- Solicitar reviewers
 
-SPIRITBLADE follows **Semantic Versioning** (SemVer) for all releases.
+5. Checks CI automáticos:
+- ✅ Build OK
+- ✅ Tests pasan
+- ✅ Cobertura cumplida
+- ✅ SonarCloud quality gate pasado
 
-#### Semantic Versioning
+6. Revisión de código:
+- Reviewer comenta
+- Developer corrige
+- Aprobar cuando esté satisfecho
 
-Format: `MAJOR.MINOR.PATCH` (e.g., `0.1.0`)
-
-- **MAJOR** (0 → 1): Breaking API changes, major architectural changes
-- **MINOR** (0.1 → 0.2): New features, backwards compatible
-- **PATCH** (0.1.0 → 0.1.1): Bug fixes, security patches
-
-**Development Versions**: Use `-SNAPSHOT` suffix (e.g., `0.2.0-SNAPSHOT`)
-
----
-
-#### Release History
-
-| Version | Release Date | Description | DockerHub |
-|---------|--------------|-------------|-----------|
-| **0.1.0** | Dec 15, 2024 | ✅ **Basic Functionality**: User authentication, summoner search, match history, admin panel, Docker deployment | [spiritblade:0.1.0](https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade/tags) |
-| **0.2.0** | Mar 1, 2025 | 📋 **Intermediate Features** (Planned): Advanced analytics with Chart.js, notes system, favorites with notifications, admin moderation dashboard | - |
-| **1.0.0** | Apr 15, 2025 | 📋 **Advanced Features** (Planned): Global community statistics, intelligent recommendations, custom rankings, predictive analysis (tentative) | - |
-
-**Current Status**: v0.1.0 released, v0.2.0 in planning
+7. Merge a `main`:
+- Squash and merge (historial limpio)
+- Eliminar rama feature
+- CI despliega imagen `dev` automáticamente
 
 ---
 
-#### Release Process
+### Guía de revisión de código
 
-**Prerequisites**:
-- All tests passing (CI green)
-- SonarCloud quality gate passed
-- Documentation updated
-- CHANGELOG prepared
+Checklist para reviewers:
+- ✅ Código sigue convenciones del proyecto
+- ✅ Tests incluidos y pasan
+- ✅ Sin bugs o problemas de seguridad evidentes
+- ✅ Documentación actualizada
+- ✅ Consideraciones de rendimiento
+- ✅ Manejo de errores adecuado
 
-**Steps to Create a Release**:
-
-1. **Pre-Release: Update Version**
-   
-   Use the provided scripts to update version across all files:
-   
-   ```powershell
-   # PowerShell (Windows)
-   .\scripts\update-version.ps1 0.2.0
-   ```
-   
-   ```bash
-   # Bash (Linux/Mac)
-   bash scripts/update-version.sh 0.2.0
-   ```
-   
-   This updates:
-   - `backend/pom.xml`
-   - `frontend/package.json`
-   - `docker/docker-compose.yml`
-
-2. **Commit Version Bump**:
-   ```bash
-   git add .
-   git commit -m "chore: bump version to 0.2.0"
-   git push origin main
-   ```
-
-3. **Create Git Tag**:
-   ```bash
-   git tag -a 0.2.0 -m "Release v0.2.0: Intermediate features"
-   git push origin 0.2.0
-   ```
-
-4. **Create GitHub Release**:
-   - Navigate to: `https://github.com/codeurjc-students/2025-SPIRITBLADE/releases/new`
-   - Select tag: `0.2.0`
-   - Title: `SPIRITBLADE v0.2.0 - Intermediate Features`
-   - Description (Changelog):
-     ```markdown
-     ## ✨ New Features
-     - Advanced performance analytics with Chart.js graphs
-     - Personal notes system for matches
-     - Enhanced favorites management with notifications
-     
-     ## 🐛 Bug Fixes
-     - Fixed summoner search caching issues
-     - Corrected JWT token expiration handling
-     
-     ## 📦 Deployment
-     Docker images:
-     - `jorgeandresecheverriagarcia/2025-spiritblade:0.2.0`
-     - `jorgeandresecheverriagarcia/2025-spiritblade:latest`
-     ```
-   - Publish release
-
-5. **Automatic Deployment**:
-   - `deploy-release.yml` workflow triggers automatically
-   - Builds and pushes Docker images:
-     - `spiritblade:0.2.0`
-     - `spiritblade:latest` (updated)
-   - Publishes Docker Compose OCI artifacts
-
-6. **Post-Release: Prepare Next Iteration**:
-   ```powershell
-   # Update to next SNAPSHOT version
-   .\scripts\update-version.ps1 0.3.0-SNAPSHOT
-   
-   git add .
-   git commit -m "chore: prepare for next development iteration 0.3.0-SNAPSHOT"
-   git push origin main
-   ```
-
-7. **Announce Release**:
-   - Update project blog
-   - Notify users
-   - Update deployment documentation
+Feedback común:
+- "Extraer en método separado"
+- "Agregar unit tests para este edge case"
+- "Posible NPE, añadir null check"
+- "Actualizar documentación API"
 
 ---
 
-#### Continuous Delivery Workflows
+### Versionado y Releases
 
-The project uses **GitHub Actions** for automated deployment:
+SPIRITBLADE usa **Semantic Versioning** (SemVer).
 
-**1. Deploy Dev (Continuous Delivery to Dev)**:
-- **Trigger**: Merge to `main` branch
-- **Workflow**: `.github/workflows/deploy-dev.yml`
-- **Artifacts**:
-  - Docker image: `spiritblade:dev`
-  - Compose OCI: `spiritblade-compose:dev`
-- **Purpose**: Automatic development builds for testing
+Formato: `MAJOR.MINOR.PATCH` (ej., `0.1.0`)
 
-**2. Deploy Release (Production Releases)**:
-- **Trigger**: GitHub Release created
-- **Workflow**: `.github/workflows/deploy-release.yml`
-- **Artifacts**:
-  - Docker image: `spiritblade:<version>` (e.g., `0.1.0`)
-  - Docker image: `spiritblade:latest` (updated)
-  - Compose OCI with version tags
-- **Purpose**: Official versioned releases
+- MAJOR: Cambios incompatibles
+- MINOR: Nuevas features compatibles
+- PATCH: Correcciones y parches
 
-**3. Manual Build (Ad-hoc Builds)**:
-- **Trigger**: Manual execution via workflow_dispatch
-- **Workflow**: `.github/workflows/manual-build.yml`
-- **Parameters**: Branch/commit to build
-- **Artifacts**: Docker image with custom tag `<branch>-<timestamp>-<commit>`
-- **Purpose**: Feature branch testing, hotfixes
+Versiones de desarrollo usan sufijo `-SNAPSHOT` (ej., `0.2.0-SNAPSHOT`)
 
 ---
 
-#### Version Management Scripts
+#### Historial de releases
 
-Located in `scripts/`:
+| Versión | Fecha | Descripción | DockerHub |
+|---------|-------|-------------|-----------|
+| **0.1.0** | 15 Dic 2024 | ✅ Funcionalidad básica: autenticación, búsqueda de summoner, historial, panel admin, despliegue Docker | [spiritblade:0.1.0](https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade/tags) |
+| **0.2.0** | 01 Mar 2025 | 📋 Funcionalidades intermedias (planificado): analíticas con Chart.js, sistema de notas, notificaciones en favoritos, moderación admin | - |
+| **1.0.0** | 15 Apr 2025 | 📋 Funcionalidades avanzadas (planificado): estadísticas globales, recomendaciones inteligentes, rankings personalizados | - |
 
-**PowerShell (Windows)**: `update-version.ps1`
+Estado actual: v0.1.0 liberado, v0.2.0 en planificación
+
+---
+
+#### Proceso de release
+
+Prerequisitos:
+- Todos los tests pasando (CI green)
+- SonarCloud quality gate pasado
+- Documentación actualizada
+- CHANGELOG preparado
+
+Pasos para crear un release:
+
+1. Pre-release: actualizar versión
 ```powershell
-# Usage
+# PowerShell (Windows)
+.\scripts\update-version.ps1 0.2.0
+```
+o
+```bash
+# Bash (Linux/Mac)
+bash scripts/update-version.sh 0.2.0
+```
+Actualiza:
+- `backend/pom.xml`
+- `frontend/package.json`
+- `docker/docker-compose.yml`
+
+2. Commit del bump de versión:
+```bash
+git add .
+git commit -m "chore: bump version to 0.2.0"
+git push origin main
+```
+
+3. Crear tag git:
+```bash
+git tag -a 0.2.0 -m "Release v0.2.0: Intermediate features"
+git push origin 0.2.0
+```
+
+4. Crear GitHub Release:
+- Ir a: `https://github.com/codeurjc-students/2025-SPIRITBLADE/releases/new`
+- Seleccionar tag `0.2.0`
+- Título: `SPIRITBLADE v0.2.0 - Intermediate Features`
+- Descripción (Changelog):
+```markdown
+## ✨ New Features
+- Advanced performance analytics with Chart.js graphs
+- Personal notes system for matches
+- Enhanced favorites management with notifications
+
+## 🐛 Bug Fixes
+- Fixed summoner search caching issues
+- Corrected JWT token expiration handling
+
+## 📦 Deployment
+Docker images:
+- `jorgeandresecheverriagarcia/2025-spiritblade:0.2.0`
+- `jorgeandresecheverriagarcia/2025-spiritblade:latest`
+```
+- Publicar release
+
+5. Despliegue automático:
+- Workflow `deploy-release.yml` se ejecuta
+- Construye y publica imágenes Docker:
+  - `spiritblade:0.2.0`
+  - `spiritblade:latest`
+
+6. Post-release: preparar siguiente iteración
+```powershell
+# Actualizar a siguiente SNAPSHOT
+.\scripts\update-version.ps1 0.3.0-SNAPSHOT
+
+git add .
+git commit -m "chore: prepare for next development iteration 0.3.0-SNAPSHOT"
+git push origin main
+```
+
+7. Anunciar release:
+- Actualizar blog del proyecto
+- Notificar usuarios
+- Actualizar documentación de despliegue
+
+---
+
+#### Workflows de entrega continua
+
+1. Deploy Dev (CD a Dev):
+- Trigger: Merge a `main`
+- Workflow: `.github/workflows/deploy-dev.yml`
+- Artefactos: Imagen Docker `spiritblade:dev`, OCI compose `spiritblade-compose:dev`
+- Propósito: Builds de desarrollo automáticos
+
+2. Deploy Release (Producción):
+- Trigger: GitHub Release creada
+- Workflow: `.github/workflows/deploy-release.yml`
+- Artefactos: Imagen `spiritblade:<version>`, `spiritblade:latest`, compose OCI versionado
+- Propósito: Releases oficiales
+
+3. Manual Build:
+- Trigger: manual (workflow_dispatch)
+- Workflow: `.github/workflows/manual-build.yml`
+- Artefactos: Imagen con tag `<branch>-<timestamp>-<commit>`
+- Propósito: Pruebas de ramas feature, hotfixes
+
+---
+
+#### Scripts de gestión de versiones
+
+En `scripts/`:
+
+PowerShell: `update-version.ps1`
+```powershell
+# Uso
 .\scripts\update-version.ps1 <new-version>
 
-# Examples
+# Ejemplos
 .\scripts\update-version.ps1 0.2.0
 .\scripts\update-version.ps1 0.2.0-SNAPSHOT
 ```
 
-**Bash (Linux/Mac)**: `update-version.sh`
+Bash: `update-version.sh`
 ```bash
-# Usage
+# Uso
 bash scripts/update-version.sh <new-version>
 
-# Examples
+# Ejemplos
 bash scripts/update-version.sh 0.2.0
 bash scripts/update-version.sh 0.2.0-SNAPSHOT
 ```
 
-These scripts automatically update version numbers in:
-- Maven POM (`backend/pom.xml`)
-- NPM package (`frontend/package.json`)
-- Docker Compose (`docker/docker-compose.yml`)
+Actualizan:
+- `backend/pom.xml`
+- `frontend/package.json`
+- `docker/docker-compose.yml`
 
 ---
 
-#### DockerHub Artifacts
+#### Artefactos en DockerHub
 
-All releases are published to DockerHub:
+Todos los releases se publican en DockerHub:
 
-**Repository**: [`jorgeandresecheverriagarcia/2025-spiritblade`](https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade)
+Repositorio: [`jorgeandresecheverriagarcia/2025-spiritblade`](https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade)
 
-**Available Tags**:
-- `latest` - Latest stable release (currently 0.1.0)
-- `0.1.0` - Specific version (immutable)
-- `dev` - Latest development build from `main`
-- Custom tags for manual builds
+Tags disponibles:
+- `latest` - Último release estable (actualmente 0.1.0)
+- `0.1.0` - Versión específica
+- `dev` - Último build de desarrollo desde `main`
+- Tags personalizados para builds manuales
 
-**Pull Image**:
+Pull image:
 ```bash
 docker pull jorgeandresecheverriagarcia/2025-spiritblade:latest
 docker pull jorgeandresecheverriagarcia/2025-spiritblade:0.1.0
@@ -1050,366 +1031,332 @@ docker pull jorgeandresecheverriagarcia/2025-spiritblade:dev
 
 ---
 
-#### Release Checklist
+#### Checklist de release
 
-Before creating a release, ensure:
-
-- [ ] All features for the milestone are completed
-- [ ] All tests pass locally and in CI
-- [ ] Code coverage meets thresholds (≥55% backend, ≥50% frontend)
-- [ ] SonarCloud quality gate passed
-- [ ] Documentation updated (README, Funcionalidades.md, API.md)
-- [ ] CHANGELOG prepared with features, fixes, breaking changes
-- [ ] Manual testing completed
-- [ ] Security vulnerabilities resolved
-- [ ] Version numbers updated across all files
-- [ ] Git tag created and pushed
-- [ ] GitHub Release created with detailed notes
-- [ ] Docker images published to DockerHub
-- [ ] Post-release version bump committed (`-SNAPSHOT`)
-- [ ] Release announced (blog, notifications)
-
----
-
-### Development Environment Setup
-
-**Required Tools**:
-- **Java 21 JDK** - AdoptOpenJDK, Oracle JDK, or Eclipse Temurin
-- **Node.js 18+** - For Angular development
-- **Git** - Version control
-- **Maven** - Included wrapper (`mvnw.cmd`)
-- **Docker** - For containerized deployment (optional for dev)
-- **MySQL** - Production database (optional for dev, H2 can be used)
-
-**Recommended IDEs**:
-- **VS Code** with extensions:
-  - Extension Pack for Java
-  - Angular Language Service
-  - REST Client
-  - Docker
-- **IntelliJ IDEA** (especially for backend)
-
-**Optional Tools**:
-- **Postman** - API testing
-- **MySQL Workbench** - Database management
-- **Git GUI** - GitKraken, Sourcetree
+Antes de crear un release, asegurar:
+- [ ] Todas las features del milestone completadas
+- [ ] Tests pasando local y en CI
+- [ ] Cobertura de tests en umbrales (≥55% backend, ≥50% frontend)
+- [ ] SonarCloud quality gate pasado
+- [ ] Documentación actualizada (README, Funcionalidades.md, API.md)
+- [ ] CHANGELOG preparado
+- [ ] Pruebas manuales completadas
+- [ ] Vulnerabilidades resueltas
+- [ ] Versiones actualizadas en todos los archivos
+- [ ] Tag git creado y push
+- [ ] GitHub Release creado con notas detalladas
+- [ ] Imágenes Docker publicadas en DockerHub
+- [ ] Post-release version bump (`-SNAPSHOT`) commiteado
+- [ ] Release anunciado (blog, notificaciones)
 
 ---
 
-## Code Execution and Editing
+### Entorno de desarrollo
 
-### Prerequisites
+Herramientas requeridas:
+- **Java 21 JDK**
+- **Node.js 18+**
+- **Git**
+- **Maven** (wrapper incluido)
+- **Docker** (opcional)
+- **MySQL 8.0+** (OBLIGATORIO)
+- **MinIO** (opcional)
 
-Before starting development, ensure you have these tools installed:
+IDE recomendados:
+- VS Code (extensiones: Java, Angular Language Service, REST Client, Docker, GitLens, SonarLint)
+- IntelliJ IDEA (para backend)
 
-| Tool | Version | Purpose | Download |
+Opcionales:
+- Postman, MySQL Workbench, GUI de Git
+
+---
+
+## Ejecución y Edición de Código
+
+### Requisitos previos
+
+Herramientas mínimas:
+
+| Herramienta | Versión | Propósito | Descarga |
 |------|---------|---------|----------|
-| **Java JDK** | 21+ | Backend runtime | [Eclipse Temurin](https://adoptium.net/) |
-| **Node.js** | 18+ | Frontend build | [nodejs.org](https://nodejs.org/) |
-| **Git** | Latest | Version control | [git-scm.com](https://git-scm.com/) |
-| **Maven** | 3.9+ | Backend build (included wrapper) | [maven.apache.org](https://maven.apache.org/) |
-| **MySQL** | 8.0+ | Database (**REQUIRED** - not optional) | [mysql.com](https://www.mysql.com/) |
-| **Docker** | Latest | Containerization (optional for dev) | [docker.com](https://www.docker.com/) |
-| **MinIO** | Latest | Object storage (optional for dev) | [min.io](https://min.io/) |
+| **Java JDK** | 21+ | Runtime backend | [Eclipse Temurin](https://adoptium.net/) |
+| **Node.js** | 18+ | Build frontend | [nodejs.org](https://nodejs.org/) |
+| **Git** | Reciente | Control de versiones | [git-scm.com](https://git-scm.com/) |
+| **Maven** | 3.9+ | Build backend | [maven.apache.org](https://maven.apache.org/) |
+| **MySQL** | 8.0+ | Base de datos (REQUERIDO) | [mysql.com](https://www.mysql.com/) |
+| **Docker** | Reciente | Contenerización (opcional) | [docker.com](https://www.docker.com/) |
+| **MinIO** | Reciente | Almacenamiento objetos (opcional) | [min.io](https://min.io/) |
 
-**Verify installations**:
+Verificar instalaciones:
 ```powershell
-# PowerShell commands
-java -version      # Should show 21.x
-node -v            # Should show v18.x or higher
-git --version      # Any recent version
-mvn -version       # Should show 3.9.x (or use mvnw)
-mysql --version    # Should show 8.0.x (REQUIRED)
-docker --version   # Should show 20.x or higher (if installed)
+# PowerShell
+java -version      # Debe mostrar 21.x
+node -v            # Debe mostrar v18.x o superior
+git --version
+mvn -version       # O usar mvnw
+mysql --version    # Debe mostrar 8.0.x (REQUERIDO)
+docker --version   # Si está instalado
 ```
 
-⚠️ **Importante**: MySQL es obligatorio. El proyecto ya no soporta H2.
+⚠️ Importante: MySQL es obligatorio. El proyecto ya no soporta H2.
 
 ---
 
-### Clone the Repository
+### Clonar el repositorio
 
 ```bash
-# HTTPS (recommended for read-only)
+# HTTPS (recomendado para solo lectura)
 git clone https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE.git
 cd 2025-SPIRITBLADE
 
-# SSH (if you have SSH keys configured)
+# SSH (si tienes llaves configuradas)
 git clone git@github.com:JorgeAndresEcheverria/2025-SPIRITBLADE.git
 cd 2025-SPIRITBLADE
 ```
 
-**Verify structure**:
+Verificar estructura:
 ```powershell
 ls
-# Should see: backend/, frontend/, docs/, .github/, README.md
+# Debe verse: backend/, frontend/, docs/, .github/, README.md
 ```
 
 ---
 
-### Local Development Setup
+### Configuración local de desarrollo
 
-#### Option 1: Development with MySQL (Recommended)
+#### Opción 1: Desarrollo con MySQL (Recomendado)
 
-⚠️ **Importante**: SPIRITBLADE ya **NO usa H2**. MySQL es obligatorio para desarrollo y producción.
+⚠️ Importante: SPIRITBLADE ya **NO usa H2**. MySQL es obligatorio para desarrollo y producción.
 
-**Advantages**:
-- ✅ Persistent data
-- ✅ Identical to production
-- ✅ Better for testing
-- ✅ Única base de datos soportada
+Ventajas:
+- Persistencia de datos
+- Identico a producción
+- Mejor para pruebas
 
-**Setup MySQL**:
+Configurar MySQL:
 
-1. **Install MySQL 8.0** (if not installed)
-2. **Create database**:
-   ```sql
-   CREATE DATABASE spiritblade_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'spiritblade'@'localhost' IDENTIFIED BY 'your_password';
-   GRANT ALL PRIVILEGES ON spiritblade_db.* TO 'spiritblade'@'localhost';
-   FLUSH PRIVILEGES;
-   ```
+1. Instalar MySQL 8.0
+2. Crear base de datos:
+```sql
+CREATE DATABASE spiritblade_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'spiritblade'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON spiritblade_db.* TO 'spiritblade'@'localhost';
+FLUSH PRIVILEGES;
+```
 
-3. **Configure Backend**:
-   
-   La configuración por defecto en `backend/src/main/resources/application.properties` ya usa MySQL:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-   spring.datasource.username=root
-   spring.datasource.password=1234
-   spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-   spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
-   spring.jpa.hibernate.ddl-auto=update
-   ```
-   
-   Ajusta `username` y `password` según tu configuración local de MySQL.
+3. Configurar backend:
+Archivo por defecto `backend/src/main/resources/application.properties` usa MySQL. Ajustar `username` y `password` según tu instalación.
 
-4. **Add Riot API Key** (required for summoner search):
-   ```properties
-   # Get your key from https://developer.riotgames.com/
-   riot.api.key=RGAPI-YOUR-KEY-HERE
-   riot.api.region=euw1
-   ```
+4. Añadir Riot API Key:
+```properties
+riot.api.key=RGAPI-YOUR-KEY-HERE
+riot.api.region=euw1
+```
 
-5. **Start Backend**:
-   ```powershell
-   cd backend
-   .\mvnw.cmd spring-boot:run
-   ```
+5. Iniciar backend:
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
 
-6. **Start Frontend** (en otra terminal):
-   ```bash
-   cd frontend
-   npm install    # Primera vez
-   npm start      # Inicia servidor de desarrollo
-   ```
+6. Iniciar frontend (otra terminal):
+```bash
+cd frontend
+npm install    # primera vez
+npm start
+```
 
-7. **Access**:
-   - Backend API: https://localhost (puerto 443)
-   - Swagger UI: https://localhost/swagger-ui.html
-   - Frontend: http://localhost:4200 (desarrollo) o proxy inverso
+7. Acceso:
+- Backend API: https://localhost (puerto 443)
+- Swagger UI: https://localhost/swagger-ui.html
+- Frontend: http://localhost:4200 (desarrollo)
 
-⚠️ **Certificado SSL**: Acepta el certificado autofirmado en tu navegador la primera vez.
+⚠️ Certificado SSL: Aceptar certificado autofirmado en el navegador la primera vez.
 
 ---
 
-#### Option 2: Docker Compose (Full Stack)
+#### Opción 2: Docker Compose (Full Stack)
 
-**Advantages**:
-- ✅ One command setup
-- ✅ Isolated environment
-- ✅ Identical to production
+Ventajas:
+- Un comando para levantar todo
+- Entorno aislado
+- Similar a producción
 
-**Prerequisites**: Docker and Docker Compose installed
+Prerequisitos: Docker y Docker Compose instalados
 
-**Setup**:
+Setup:
 
-1. **Create `.env` file** in project root:
-   ```env
-   MYSQL_ROOT_PASSWORD=rootpassword
-   MYSQL_DATABASE=spiritblade_db
-   MYSQL_USER=spiritblade
-   MYSQL_PASSWORD=spiritbladepass
-   
-   RIOT_API_KEY=RGAPI-YOUR-KEY-HERE
-   JWT_SECRET=your-secret-key-min-256-bits
-   ```
+1. Crear archivo `.env` en la raíz desde ejemplo:
+```bash
+cp .env.example .env
+# editar .env y rellenar valores
+```
+Variables ejemplo:
+```
+MYSQL_ROOT_PASSWORD=your-db-password
+MYSQL_DATABASE=spiritblade
+MYSQL_USER=spiritblade
+MYSQL_PASSWORD=spiritbladepass
 
-2. **Start all services**:
-   ```bash
-   docker-compose up
-   ```
+RIOT_API_KEY=RGAPI-YOUR-KEY-HERE
+JWT_SECRET=your-secret-key
+```
 
-3. **Access**:
-   - Application: https://localhost (puerto 443)
-   - MySQL: localhost:3306 (username: spiritblade, password: spiritbladepass)
+2. Levantar servicios:
+```bash
+docker-compose up
+```
 
-⚠️ **Certificado SSL**: Acepta el certificado autofirmado en tu navegador cuando accedas por primera vez.
+3. Acceso:
+- App: https://localhost (puerto 443)
+- MySQL: localhost:3306 (usuario: spiritblade, password: spiritbladepass)
 
-See [Ejecucion.md](Ejecucion.md) for complete Docker deployment guide.
+⚠️ Certificado SSL: Aceptar certificado autofirmado al acceder por primera vez.
+
+Ver [Ejecucion.md](Ejecucion.md) para guía completa de Docker.
 
 ---
 
-### IDE Setup
+### Configuración IDE
 
-#### VS Code (Recommended for Frontend + Backend)
+#### VS Code (Recomendado para frontend + backend)
 
-**Install Extensions**:
-1. **Extension Pack for Java** (Microsoft) - Java language support, debugging, Maven
-2. **Angular Language Service** (Angular) - TypeScript autocomplete, templates
-3. **REST Client** (Huachao Mao) - Test API endpoints without Postman
-4. **Docker** (Microsoft) - Dockerfile syntax, container management
-5. **GitLens** (GitKraken) - Advanced Git features
-6. **SonarLint** (SonarSource) - Real-time code quality
+Extensiones recomendadas:
+1. Extension Pack for Java (Microsoft)
+2. Angular Language Service (Angular)
+3. REST Client (Huachao Mao)
+4. Docker (Microsoft)
+5. GitLens (GitKraken)
+6. SonarLint (SonarSource)
 
-**Open Workspace**:
+Abrir workspace:
 ```powershell
 code .
 ```
 
-**Debugging**:
-- Backend: Use Maven lifecycle → `spring-boot:run` in debug mode
+Depuración:
+- Backend: `spring-boot:run` en modo debug
 - Frontend: `npm start` + Chrome DevTools
 
 ---
 
-#### IntelliJ IDEA (Recommended for Backend)
+#### IntelliJ IDEA (Recomendado para backend)
 
-**Setup**:
-1. Open `backend/pom.xml` as project
-2. IDEA auto-detects Spring Boot
-3. Configure JDK 21 in Project Structure
-4. Run configuration created automatically
+1. Abrir `backend/pom.xml` como proyecto
+2. IDEA detecta Spring Boot automáticamente
+3. Configurar JDK 21 en Project Structure
+4. Run configuration creada automáticamente
 
-**Advantages**:
-- Better Java refactoring
-- Superior Spring Boot support
-- Database tools included
+Ventajas: mejores herramientas de refactorización y soporte Spring
 
 ---
 
 ### Testing
 
-#### Backend Tests
+#### Backend
 
-**Run all tests**:
+Ejecutar todos los tests:
 ```powershell
 cd backend
 .\mvnw.cmd test
 ```
 
-**Run specific test class**:
+Ejecutar clase de test específica:
 ```powershell
 .\mvnw.cmd test -Dtest=RiotServiceTest
 ```
 
-**Run with coverage**:
+Ejecutar con cobertura:
 ```powershell
 .\mvnw.cmd test jacoco:report
 ```
-Report: `backend/target/site/jacoco/index.html`
+Reporte en: `backend/target/site/jacoco/index.html`
 
-**Run integration tests only**:
+Ejecutar solo integration tests:
 ```powershell
 .\mvnw.cmd verify -P integration-tests
 ```
 
 ---
 
-#### Frontend Tests
+#### Frontend
 
-**Run tests (watch mode)**:
+Ejecutar tests (watch):
 ```bash
 cd frontend
 npm test
 ```
-Tests re-run automatically on file changes.
 
-**Run tests once (CI mode)**:
+Ejecutar tests una vez (CI):
 ```bash
 npm run test:ci
 ```
 
-**Run with coverage**:
+Con cobertura:
 ```bash
 npm run test:coverage
 ```
-Report: `frontend/coverage/index.html`
+Reporte en: `frontend/coverage/index.html`
 
-**Run specific test file**:
+Ejecutar archivo de test específico:
 ```bash
 npm test -- --include='**/summoner.component.spec.ts'
 ```
 
 ---
 
-### API Testing
+### Pruebas de API
 
-#### Using Swagger UI (Recommended)
+#### Usando Swagger UI (Recomendado)
 
-**Swagger UI** provides the easiest way to explore and test the API interactively:
+1. Iniciar la aplicación:
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
 
-1. **Start the application**:
-   ```powershell
-   cd backend
-   .\mvnw.cmd spring-boot:run
-   ```
+2. Abrir Swagger UI: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
 
-2. **Open Swagger UI**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
-   
-   ⚠️ **Primera vez**: Acepta el certificado SSL autofirmado en tu navegador
+⚠️ Primera vez: aceptar certificado autofirmado en el navegador
 
-3. **Authenticate**:
-   - Use `POST /auth/login` or `POST /auth/register`
-   - Copy the token from the response
-   - Click "Authorize" (🔓 icon) at the top right
-   - Paste token and click "Authorize"
+3. Autenticarse:
+- Usar `POST /auth/login` o `POST /auth/register`
+- Copiar token de la respuesta
+- Click en "Authorize" y pegar `Bearer <token>`
 
-4. **Test any endpoint**:
-   - Expand an endpoint
-   - Click "Try it out"
-   - Fill parameters
-   - Click "Execute"
-   - View response
+4. Probar endpoints con "Try it out"
 
-**Advantages**:
-- ✅ No external tools needed
-- ✅ Always up-to-date with current code
-- ✅ Built-in authentication support
-- ✅ Complete request/response schemas
-- ✅ Export OpenAPI spec for other tools
+Ventajas: no requiere herramientas externas y está siempre actualizada.
 
-For detailed instructions, see [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md).
+Ver [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) para más detalles.
 
 ---
 
-#### Using Postman
+#### Usando Postman
 
-**Import OpenAPI Specification**:
-1. Open Postman
+Importar OpenAPI:
+1. Abrir Postman
 2. Import → Link → `https://localhost/v3/api-docs`
-3. Postman auto-generates collection from OpenAPI spec
-4. Set environment variable `baseUrl` = `https://localhost`
-5. **Important**: Disable SSL verification in Postman Settings for development
+3. Postman genera colección
+4. Establecer env variable `baseUrl` = `https://localhost`
+5. Desactivar verificación SSL en Settings para desarrollo
 
-**Or import exported spec**:
+O exportar spec:
 ```bash
-# Export OpenAPI spec first (with -k to skip SSL verification)
 curl -k https://localhost/v3/api-docs > openapi.json
 ```
-Then import `openapi.json` into Postman.
+Importar `openapi.json` en Postman.
 
-**Manual Testing**:
-1. **Login**: POST `/auth/login` with credentials
-2. **Copy token** from response
-3. **Set Authorization**: Bearer Token → Paste token
-4. **Test endpoints**: See Swagger UI for complete endpoint list
+Pruebas manuales:
+1. POST `/auth/login` con credenciales
+2. Copiar token y usar Bearer en Authorization
+3. Probar endpoints según Swagger
 
 ---
 
-#### Using REST Client (VS Code Extension)
+#### Usando REST Client (extensión VS Code)
 
-Create `test.http` file:
+Crear `test.http`:
 ```http
 ### Login
 POST https://localhost/auth/login
@@ -1425,15 +1372,15 @@ GET https://localhost/summoners/search?gameName=Hide on bush&tagLine=KR
 Authorization: Bearer {{token}}
 ```
 
-Click "Send Request" above each request.
+Enviar requests desde VS Code.
 
-⚠️ **Nota**: VS Code REST Client puede requerir configuración adicional para aceptar certificados autofirmados.
+⚠️ VS Code REST Client puede requerir configuración para aceptar certificados autofirmados.
 
 ---
 
-#### Using curl (PowerShell)
+#### Usando curl (PowerShell)
 
-**Login**:
+Login:
 ```powershell
 # Deshabilitar verificación SSL para certificados autofirmados
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
@@ -1446,56 +1393,54 @@ $response = Invoke-RestMethod -Uri "https://localhost/auth/login" `
 $token = $response.token
 ```
 
-**Search Summoner**:
+Buscar summoner:
 ```powershell
 Invoke-RestMethod -Uri "https://localhost/summoners/search?gameName=Hide on bush&tagLine=KR" `
   -Headers @{"Authorization"="Bearer $token"}
 ```
 
-⚠️ **Nota**: En desarrollo con certificados autofirmados, necesitas deshabilitar la verificación SSL en PowerShell como se muestra arriba.
+Nota: En desarrollo con certificados autofirmados, deshabilitar verificación SSL como arriba.
 
 ---
 
-### Build for Production
+### Build para producción
 
-#### Backend JAR
-
+#### JAR backend
 ```powershell
 cd backend
 .\mvnw.cmd clean package -DskipTests
 ```
-Output: `backend/target/tfg-0.0.1-SNAPSHOT.jar`
+Salida: `backend/target/tfg-0.0.1-SNAPSHOT.jar`
 
-**Run JAR**:
-```powershell
+Ejecutar JAR:
+```bash
 java -jar backend/target/tfg-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-#### Frontend Build
-
+#### Build frontend
 ```bash
 cd frontend
 npm run build --prod
 ```
-Output: `frontend/dist/frontend/`
+Salida: `frontend/dist/frontend/`
 
-**Serve Locally** (testing):
+Servir localmente (para pruebas):
 ```bash
 npx http-server dist/frontend -p 8081
 ```
 
 ---
 
-#### Docker Image
+#### Imagen Docker
 
-**Build multi-stage image**:
+Construir imagen multi-stage:
 ```bash
 docker build -t spiritblade:local .
 ```
 
-**Run container**:
+Ejecutar contenedor:
 ```bash
 docker run -p 8080:8080 \
   -e RIOT_API_KEY=your-key \
@@ -1505,160 +1450,158 @@ docker run -p 8080:8080 \
 
 ---
 
-### Troubleshooting
+### Resolución de problemas
 
-#### HTTPS/SSL Issues
+#### HTTPS/SSL
 
-**Error**: `ERR_CERT_AUTHORITY_INVALID` or browser security warning
-- **Solution**: This is normal with self-signed certificates in development
-- Click "Advanced" → "Proceed to localhost (unsafe)" in your browser
-- For curl, use `-k` flag: `curl -k https://localhost/...`
-- For PowerShell, disable certificate validation (see curl examples above)
-- For Postman, disable SSL verification in Settings
+Error `ERR_CERT_AUTHORITY_INVALID`:
+- Normal con certificados autofirmados
+- En navegador: Advanced → Proceed to localhost (unsafe)
+- curl: usar `-k`
+- PowerShell: deshabilitar verificación SSL (ver ejemplos)
 
-**Error**: `Connection refused` when accessing `http://localhost:8080`
-- **Solution**: The server **only works with HTTPS on port 443**
-- Use `https://localhost` instead of `http://localhost:8080`
-- Check that SSL is enabled in `application.properties`: `server.ssl.enabled=true`
-
----
-
-#### Backend won't start
-
-**Error**: `Port 443 already in use`
-- **Solution**: Kill process using port 443 (requires admin privileges):
-  ```powershell
-  netstat -ano | findstr :443
-  taskkill /PID <PID> /F
-  ```
-
-**Error**: `Could not find or load main class`
-- **Solution**: Clean and rebuild:
-  ```powershell
-  .\mvnw.cmd clean install
-  ```
-
-**Error**: `401 Unauthorized from Riot API`
-- **Solution**: Check `riot.api.key` in `application.properties`, get new key from https://developer.riotgames.com/
+Error `Connection refused` en `http://localhost:8080`:
+- Solución: El servidor funciona solo con HTTPS en puerto 443
+- Usar `https://localhost`
+- Revisar `server.ssl.enabled=true` en `application.properties`
 
 ---
 
-#### Frontend won't start
+#### Backend no arranca
 
-**Error**: `npm: command not found`
-- **Solution**: Install Node.js from https://nodejs.org/
+Error `Port 443 already in use`:
+- Matar proceso que usa el puerto (requiere permisos admin):
+```powershell
+netstat -ano | findstr :443
+taskkill /PID <PID> /F
+```
 
-**Error**: `Cannot find module '@angular/core'`
-- **Solution**: Reinstall dependencies:
-  ```bash
-  rm -rf node_modules package-lock.json
-  npm install
-  ```
+Error `Could not find or load main class`:
+- Limpiar y rebuild:
+```powershell
+.\mvnw.cmd clean install
+```
 
-**Error**: `Port 4200 already in use`
-- **Solution**: Use different port:
-  ```bash
-  npm start -- --port 4201
-  ```
+Error `401 Unauthorized from Riot API`:
+- Revisar `riot.api.key` en `application.properties` y renovar clave en https://developer.riotgames.com/
 
 ---
 
-#### Database Issues
+#### Frontend no arranca
 
-**Error**: `Access denied for user`
-- **Solution**: Check MySQL credentials in `application.properties`
+Error `npm: command not found`:
+- Instalar Node.js
 
-**Error**: `Unknown database 'spiritblade'`
-- **Solution**: Create database (note: the default database name is `spiritblade`, not `spiritblade_db`):
-  ```sql
-  CREATE DATABASE spiritblade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-  ```
+Error `Cannot find module '@angular/core'`:
+- Reinstalar dependencias:
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
 
-**Error**: `Table doesn't exist`
-- **Solution**: Enable auto schema creation:
-  ```properties
-  spring.jpa.hibernate.ddl-auto=update
-  ```
+Error `Port 4200 already in use`:
+- Usar otro puerto:
+```bash
+npm start -- --port 4201
+```
+
+---
+
+#### Problemas de base de datos
+
+Error `Access denied for user`:
+- Revisar credenciales MySQL en `application.properties`
+
+Error `Unknown database 'spiritblade'`:
+- Crear base de datos (nota: nombre por defecto `spiritblade`, no `spiritblade_db`):
+```sql
+CREATE DATABASE spiritblade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Error `Table doesn't exist`:
+- Habilitar auto schema creation:
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
 
 ---
 
 ### Hot Reload / Live Reload
 
-**Backend** (Spring Boot DevTools):
-- Automatically included in `pom.xml`
-- Restart on classpath changes
-- No manual restart needed
+Backend (Spring Boot DevTools):
+- Incluido en `pom.xml`
+- Reinicio automático en cambios de classpath
 
-**Frontend** (Angular CLI):
-- Automatic with `npm start`
-- Browser refreshes on file save
-- Hot Module Replacement (HMR) enabled
-
----
-
-### Code Formatting
-
-**Backend** (Java):
-- Use IntelliJ IDEA auto-format: `Ctrl+Alt+L`
-- Or VS Code format: `Shift+Alt+F`
-
-**Frontend** (TypeScript):
-- Configured in `tsconfig.json` and `.editorconfig`
-- Auto-format on save in VS Code:
-  ```json
-  "editor.formatOnSave": true
-  ```
+Frontend (Angular CLI):
+- Auto con `npm start`
+- Refresh automático al guardar
+- HMR habilitado
 
 ---
 
-### Next Steps
+### Formateo de código
 
-1. ✅ Set up local development environment
-2. ✅ Run backend and frontend
-3. ✅ Test API with Postman or REST Client
-4. ✅ Run tests to verify setup
-5. 📖 Read [API.md](API.md) for endpoint documentation
-6. 🚀 Start developing features!
+Backend (Java):
+- IntelliJ: `Ctrl+Alt+L`
+- VS Code: `Shift+Alt+F`
 
-**Additional Resources**:
-- [Inicio-Proyecto.md](Inicio-Proyecto.md) - Project objectives and phases
-- [Funcionalidades.md](Funcionalidades.md) - Feature descriptions
-- [Seguimiento.md](Seguimiento.md) - Development process and metrics
-- [Ejecucion.md](Ejecucion.md) - Docker deployment guide
+Frontend (TypeScript):
+- Configurado en `tsconfig.json` y `.editorconfig`
+- Auto-format on save en VS Code:
+```json
+"editor.formatOnSave": true
+```
 
 ---
 
-## Summary
+### Próximos pasos
 
-This development guide covers:
-- ✅ **Technologies**: Spring Boot 3.4.3, Angular 17, MySQL 8.0
-- ✅ **Architecture**: Domain model, REST API, layered backend, Angular client, Docker deployment
-- ✅ **Quality Control**: Testing pyramid, coverage metrics, SonarCloud, CI/CD
-- ✅ **Development Process**: Agile methodology, Git workflow, PR process, release management
-- ✅ **Execution**: Local setup (H2/MySQL/Docker), IDE configuration, testing, troubleshooting
+1. ✅ Configurar entorno de desarrollo local
+2. ✅ Ejecutar backend y frontend
+3. ✅ Probar API con Postman o REST Client
+4. ✅ Ejecutar tests para verificar setup
+5. 📖 Leer [API.md](API.md) para documentación de endpoints
+6. 🚀 Comenzar desarrollo de nuevas features
+
+Recursos adicionales:
+- [Inicio-Proyecto.md](Inicio-Proyecto.md)
+- [Funcionalidades.md](Funcionalidades.md)
+- [Seguimiento.md](Seguimiento.md)
+- [Ejecucion.md](Ejecucion.md)
 
 ---
 
-## Links and Resources
+## Resumen
 
-**Project Links**:
-- 🐙 **Repository**: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
+Esta guía cubre:
+- ✅ **Tecnologías**: Spring Boot 3.4.3, Angular 17, MySQL 8.0
+- ✅ **Arquitectura**: Modelo de dominio, API REST, backend por capas, cliente Angular, despliegue Docker
+- ✅ **Control de calidad**: Pirámide de pruebas, métricas de cobertura, SonarCloud, CI/CD
+- ✅ **Proceso de desarrollo**: Metodología ágil, flujo Git, PRs, gestión de releases
+- ✅ **Ejecución**: Setup local (MySQL/Docker), IDE, pruebas, resolución de problemas
+
+---
+
+## Enlaces y recursos
+
+Enlaces del proyecto:
+- 🐙 **Repositorio**: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
 - 📝 **Blog**: https://jorgeandrescheverria.blogspot.com/search/label/tfg
 - 🔍 **SonarCloud**: https://sonarcloud.io/project/overview?id=JorgeAndresEcheverria_2025-SPIRITBLADE
 - 🐳 **DockerHub**: https://hub.docker.com/r/jorgeandresecheverriagarcia/2025-spiritblade
 
-**Documentation**:
-- [README.md](../README.md) - Main project page
-- [API.md](API.md) - REST API documentation and Swagger UI access
-- [SWAGGER.md](SWAGGER.md) - Complete Swagger/OpenAPI guide
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Step-by-step Swagger tutorial
-- [Funcionalidades.md](Funcionalidades.md) - Feature descriptions
-- [Ejecucion.md](Ejecucion.md) - Docker deployment guide
-- [Seguimiento.md](Seguimiento.md) - Quality control and metrics
-- [Inicio-Proyecto.md](Inicio-Proyecto.md) - Project objectives and phases
-- [Autores.md](Autores.md) - Team information
+Documentación:
+- [README.md](../README.md)
+- [API.md](API.md)
+- [SWAGGER.md](SWAGGER.md)
+- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md)
+- [Funcionalidades.md](Funcionalidades.md)
+- [Ejecucion.md](Ejecucion.md)
+- [Seguimiento.md](Seguimiento.md)
+- [Inicio-Proyecto.md](Inicio-Proyecto.md)
+- [Autores.md](Autores.md)
 
-**External Documentation**:
+Documentación externa:
 - [Spring Boot Reference](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Springdoc OpenAPI (Swagger)](https://springdoc.org/)
 - [Angular Documentation](https://angular.io/docs)
@@ -1666,19 +1609,19 @@ This development guide covers:
 
 ---
 
-## Authorship
+## Autoresía
 
-**Developer**: Jorge Andrés Echevarría  
-**Advisor**: Iván Chicano Capelo  
-**University**: Universidad Rey Juan Carlos (URJC)  
-**Course**: 2024-2025
+**Desarrollador**: Jorge Andrés Echevarría  
+**Tutor**: Iván Chicano Capelo  
+**Universidad**: Universidad Rey Juan Carlos (URJC)  
+**Curso**: 2024-2025
 
-**Contact**: j.echeverria.2021@alumnos.urjc.es
+Contacto: j.echeverria.2021@alumnos.urjc.es
 
-See [Autores.md](Autores.md) for full authorship information.
+Ver [Autores.md](Autores.md) para información completa de autoría.
 
 ---
 
-**Last Updated**: January 2025 (v0.1)
+**Última actualización**: Enero 2025 (v0.1)
 
-**[← Back to Main README](../README.md)** | **[View All Documentation →](../README.md#documentación)**
+**[← Volver al README principal](../README.md)** | **[Ver toda la documentación →](../README.md#documentación)**

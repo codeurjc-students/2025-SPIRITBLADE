@@ -195,6 +195,53 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Pass .env variables as environment variables to Spring Boot (same as docker-compose.yml) -->
+                    <!-- Note: Run with script that loads .env or set system environment variables -->
+                    <environmentVariables>
+                        <!-- Database Configuration -->
+                        <SPRING_DATASOURCE_URL>${env.SPRING_DATASOURCE_URL}</SPRING_DATASOURCE_URL>
+                        <SPRING_DATASOURCE_USERNAME>${env.SPRING_DATASOURCE_USERNAME}</SPRING_DATASOURCE_USERNAME>
+                        <SPRING_DATASOURCE_PASSWORD>${env.SPRING_DATASOURCE_PASSWORD}</SPRING_DATASOURCE_PASSWORD>
+                        <SPRING_DATASOURCE_DRIVER_CLASS_NAME>${env.SPRING_DATASOURCE_DRIVER_CLASS_NAME}</SPRING_DATASOURCE_DRIVER_CLASS_NAME>
+                        <SPRING_JPA_DATABASE_PLATFORM>${env.SPRING_JPA_DATABASE_PLATFORM}</SPRING_JPA_DATABASE_PLATFORM>
+                        <SPRING_JPA_HIBERNATE_DDL_AUTO>${env.SPRING_JPA_HIBERNATE_DDL_AUTO}</SPRING_JPA_HIBERNATE_DDL_AUTO>
+                        <SPRING_JPA_SHOW_SQL>${env.SPRING_JPA_SHOW_SQL}</SPRING_JPA_SHOW_SQL>
+                        <SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL>${env.SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL}</SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL>
+                        
+                        <!-- Server Configuration -->
+                        <SERVER_PORT>${env.SERVER_PORT}</SERVER_PORT>
+                        <SERVER_SSL_ENABLED>${env.SERVER_SSL_ENABLED}</SERVER_SSL_ENABLED>
+                        <SERVER_SSL_KEY_STORE>${env.SERVER_SSL_KEY_STORE}</SERVER_SSL_KEY_STORE>
+                        <SERVER_SSL_KEY_STORE_PASSWORD>${env.SERVER_SSL_KEY_STORE_PASSWORD}</SERVER_SSL_KEY_STORE_PASSWORD>
+                        <SERVER_SSL_KEY_STORE_TYPE>${env.SERVER_SSL_KEY_STORE_TYPE}</SERVER_SSL_KEY_STORE_TYPE>
+                        <SERVER_SSL_KEY_ALIAS>${env.SERVER_SSL_KEY_ALIAS}</SERVER_SSL_KEY_ALIAS>
+                        
+                        <!-- File Upload Configuration -->
+                        <SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE>${env.SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE}</SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE>
+                        <SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE>${env.SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE}</SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE>
+                        
+                        <!-- Security Configuration -->
+                        <JWT_SECRET>${env.JWT_SECRET}</JWT_SECRET>
+                        <JWT_EXPIRATION>${env.JWT_EXPIRATION}</JWT_EXPIRATION>
+                        
+                        <!-- API Keys -->
+                        <RIOT_API_KEY>${env.RIOT_API_KEY}</RIOT_API_KEY>
+                        <GOOGLE_AI_API_KEY>${env.GOOGLE_AI_API_KEY}</GOOGLE_AI_API_KEY>
+                        
+                        <!-- MinIO Configuration -->
+                        <MINIO_ENDPOINT>${env.MINIO_ENDPOINT}</MINIO_ENDPOINT>
+                        <MINIO_ACCESS_KEY>${env.MINIO_ACCESS_KEY}</MINIO_ACCESS_KEY>
+                        <MINIO_SECRET_KEY>${env.MINIO_SECRET_KEY}</MINIO_SECRET_KEY>
+                        <MINIO_BUCKET_NAME>${env.MINIO_BUCKET_NAME}</MINIO_BUCKET_NAME>
+                        <MINIO_REGION>${env.MINIO_REGION}</MINIO_REGION>
+                        
+                        <!-- Logging Configuration -->
+                        <LOGGING_LEVEL_COM_TFG_TFG>${env.LOGGING_LEVEL_COM_TFG_TFG}</LOGGING_LEVEL_COM_TFG_TFG>
+                        <LOGGING_LEVEL_ORG_SPRINGFRAMEWORK>${env.LOGGING_LEVEL_ORG_SPRINGFRAMEWORK}</LOGGING_LEVEL_ORG_SPRINGFRAMEWORK>
+                        <LOGGING_LEVEL_ORG_HIBERNATE>${env.LOGGING_LEVEL_ORG_HIBERNATE}</LOGGING_LEVEL_ORG_HIBERNATE>
+                        <LOGGING_LEVEL_ORG_HIBERNATE_SQL>${env.LOGGING_LEVEL_ORG_HIBERNATE_SQL}</LOGGING_LEVEL_ORG_HIBERNATE_SQL>
+                        <LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER>${env.LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER}</LOGGING_LEVEL_ORG_HIBERNATE_BASICBINDER>
+                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>

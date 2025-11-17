@@ -114,29 +114,47 @@ Las siguientes versiones incluirán funcionalidades avanzadas para enriquecer la
 
 ## 🚀 Inicio Rápido
 
-### 🔐 Credenciales de Desarrollo
+### 🔐 Configuración de Seguridad
 
-**⚠️ Para demos y desarrollo local:**
+**⚠️ IMPORTANTE**: Este proyecto usa variables de entorno para gestionar credenciales.
+
+```bash
+# 1. Copiar template de variables de entorno
+cp .env.example .env
+
+# 2. Editar .env con tus credenciales reales
+# NUNCA commitees el archivo .env
+```
+
+📖 **[Ver SECURITY.md](SECURITY.md)** - Guía rápida de configuración de seguridad  
+📖 **[Ver docs/Seguridad.md](docs/Seguridad.md)** - Documentación completa de seguridad
+
+### 🔑 Credenciales de Desarrollo
+
+**⚠️ Solo para demos y desarrollo local:**
 
 - **Admin:** `admin` / `admin`
 - **Usuario:** `user` / `pass`
 
-📖 **[Ver guía completa de credenciales](CREDENTIALS.md)** - Incluye gestión de roles, configuración de producción y seguridad.
+**⚠️ NUNCA uses estas credenciales en producción**
+
+📖 **[Ver docs/Credenciales.md](docs/Credenciales.md)** - Incluye gestión de roles y configuración de producción.
 
 ---
 
 ### Ejecutar con Docker (Recomendado)
 
 ```bash
-# Descargar docker-compose.yml
-curl -O https://raw.githubusercontent.com/codeurjc-students/2025-SPIRITBLADE/main/docker/docker-compose.yml
+# 1. Clonar repositorio
+git clone https://github.com/codeurjc-students/2025-SPIRITBLADE.git
+cd 2025-SPIRITBLADE
 
-# Configurar variables de entorno
-echo "DOCKER_USERNAME=yourusername" > .env
-echo "RIOT_API_KEY=your-riot-api-key" >> .env
-echo "MYSQL_PASSWORD=your-password" >> .env
+# 2. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales (ver SECURITY.md)
 
-# Iniciar aplicación
+# 3. Iniciar aplicación
+cd docker
 docker-compose up -d
 ```
 

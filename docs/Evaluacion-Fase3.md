@@ -1,38 +1,38 @@
-# Evaluation — Phase 3: Version 0.1 — Basic functionality and Docker
+# Evaluación — Fase 3: Versión 0.1 — Funcionalidad básica y Docker
 
-**Evaluation date:** November 4, 2025  
-**Project:** SPIRITBLADE — League of Legends Stats Tracker
+**Fecha de evaluación:** 4 de noviembre de 2025  
+**Proyecto:** SPIRITBLADE — Rastreador de estadísticas de League of Legends
 
 ---
 
 ## Backend
 
-### ✅ Security (Spring Security)
-Status: COMPLETED
+### ✅ Seguridad (Spring Security)
+Estado: COMPLETADO
 
-- Spring Security configured in `SecurityConfiguration.java`
-- JWT implemented via `JwtTokenProvider` and authentication filters
-- Role-based protection (USER, ADMIN) applied to endpoints
-- Password encoding with BCrypt
-- CSRF protection configured
+- Spring Security configurado en `SecurityConfiguration.java`
+- JWT implementado mediante `JwtTokenProvider` y filtros de autenticación
+- Protección por roles (USER, ADMIN) aplicada a endpoints
+- Encriptado de contraseñas con BCrypt
+- Protección CSRF configurada
 
-Key files: `SecurityConfiguration.java`, `JwtTokenProvider.java`, `UserLoginService.java`
+Archivos clave: `SecurityConfiguration.java`, `JwtTokenProvider.java`, `UserLoginService.java`
 
-### ✅ Secure communication (HTTPS, port 443)
-Status: COMPLETED
+### ✅ Comunicación segura (HTTPS, puerto 443)
+Estado: COMPLETADO
 
-- HTTPS configured in `application.properties`
-- Server port set to 443 (`server.port=443`)
-- SSL enabled (`server.ssl.enabled=true`)
-- Keystore included in resources (`keystore.jks`)
+- HTTPS configurado en `application.properties`
+- Puerto del servidor establecido en 443 (`server.port=443`)
+- SSL habilitado (`server.ssl.enabled=true`)
+- Keystore incluido en recursos (`keystore.jks`)
 
-Config file: `backend/src/main/resources/application.properties`
+Archivo de configuración: `backend/src/main/resources/application.properties`
 
-### ✅ Image storage (MinIO via AWS S3 SDK)
-Status: COMPLETED
+### ✅ Almacenamiento de imágenes (MinIO vía AWS S3 SDK)
+Estado: COMPLETADO
 
-- MinIO integration implemented in `MinioStorageService.java`
-- Configuration example in `application.properties`:
+- Integración con MinIO implementada en `MinioStorageService.java`
+- Ejemplo de configuración en `application.properties`:
 
 ```properties
 minio.endpoint=http://localhost:9000
@@ -40,24 +40,24 @@ minio.access-key=minioadmin
 minio.bucket-name=spiritblade-uploads
 ```
 
-- Avatar management provided by `UserAvatarService`
-- Dependency: `aws-java-sdk-s3` v1.12.772
+- Gestión de avatares proporcionada por `UserAvatarService`
+- Dependencia: `aws-java-sdk-s3` v1.12.772
 
-Key files: `MinioStorageService.java`, `UserAvatarService.java`, `FileController.java`
+Archivos clave: `MinioStorageService.java`, `UserAvatarService.java`, `FileController.java`
 
-### ✅ Layered architecture
-Status: COMPLETED
+### ✅ Arquitectura en capas
+Estado: COMPLETADO
 
-- Controllers (6 REST controllers): `LoginRestController`, `UserController`, `SummonerController`, `DashboardController`, `AdminController`, `FileController`
-- Services (7): `UserService`, `RiotService`, `DataDragonService`, `MatchAnalysisService`, `UserAvatarService`, `MinioStorageService`, etc.
-- Repositories (4): `UserModelRepository`, `SummonerRepository`, `MatchRepository`, `MatchEntityRepository`
+- Controladores (6 REST controllers): `LoginRestController`, `UserController`, `SummonerController`, `DashboardController`, `AdminController`, `FileController`
+- Servicios (7): `UserService`, `RiotService`, `DataDragonService`, `MatchAnalysisService`, `UserAvatarService`, `MinioStorageService`, etc.
+- Repositorios (4): `UserModelRepository`, `SummonerRepository`, `MatchRepository`, `MatchEntityRepository`
 
-Clear separation of responsibilities across layers.
+Separación clara de responsabilidades entre capas.
 
-### ✅ API paths use `/api/v1`
-Status: COMPLETED
+### ✅ Rutas API usan `/api/v1`
+Estado: COMPLETADO
 
-Examples:
+Ejemplos:
 
 ```java
 @RequestMapping("/api/v1/auth")      // LoginRestController
@@ -68,28 +68,28 @@ Examples:
 @RequestMapping("/api/v1/files")     // FileController
 ```
 
-### ✅ REST API good practices
-Status: COMPLETED
+### ✅ Buenas prácticas REST
+Estado: COMPLETADO
 
-- Correct HTTP methods: GET, POST, PUT, DELETE, PATCH
-- Resource-oriented URLs (`/users/{id}`, `/summoners/{name}`)
-- Proper HTTP status codes (200, 201, 204, 400, 401, 404)
-- `Content-Type: application/json` used consistently
-- `ResponseEntity` used for responses
+- Métodos HTTP correctos: GET, POST, PUT, DELETE, PATCH
+- URLs orientadas a recursos (`/users/{id}`, `/summoners/{name}`)
+- Códigos HTTP apropiados (200, 201, 204, 400, 401, 404)
+- `Content-Type: application/json` usado de forma consistente
+- `ResponseEntity` usado para respuestas
 
-### ✅ Parametrized searches
-Status: COMPLETED
+### ✅ Búsquedas parametrizadas
+Estado: COMPLETADO
 
-- Users: `GET /api/v1/users?search={query}&page={n}&size={m}`
-- Filters: `role`, `active`, `search`
-- Summoner search: `GET /api/v1/summoners/search/{name}`
+- Usuarios: `GET /api/v1/users?search={query}&page={n}&size={m}`
+- Filtros: `role`, `active`, `search`
+- Búsqueda de summoner: `GET /api/v1/summoners/search/{name}`
 
-Reference: `UserController.java` (lines ~65–90)
+Referencia: `UserController.java` (líneas ~65–90)
 
-### ✅ Pagination
-Status: COMPLETED
+### ✅ Paginación
+Estado: COMPLETADO
 
-Pagination implemented with Spring Data, for example:
+Paginación implementada con Spring Data, por ejemplo:
 
 ```java
 @GetMapping
@@ -101,255 +101,255 @@ public ResponseEntity<Page<UserDTO>> getAllUsers(
 }
 ```
 
-Paginated endpoints include `/api/v1/users`, `/api/v1/summoners`, `/api/v1/dashboard/me/ranked-matches`.
+Endpoints paginados incluyen `/api/v1/users`, `/api/v1/summoners`, `/api/v1/dashboard/me/ranked-matches`.
 
-Key files: `UserController.java`, `SummonerController.java`, `DashboardController.java`
+Archivos clave: `UserController.java`, `SummonerController.java`, `DashboardController.java`
 
-### ✅ Sample data
-Status: COMPLETED
+### ✅ Datos de ejemplo
+Estado: COMPLETADO
 
-- `DataInitializer.java` seeds example users at startup (admin and regular user)
-- Data loaded with `@PostConstruct`
-- Secure passwords generated for seeded accounts
+- `DataInitializer.java` siembra usuarios de ejemplo al iniciar (admin y usuario regular)
+- Datos cargados con `@PostConstruct`
+- Contraseñas seguras generadas para cuentas sembradas
 
-File: `DataInitializer.java`
+Archivo: `DataInitializer.java`
 
 ---
 
 ## Frontend
 
-### ❌ UI component libraries
-Status: TODO
+### ❌ Librerías de componentes UI
+Estado: TODO
 
-- No integration with Angular Material or ng-bootstrap — UI uses custom CSS and components.
-- Recommendation: integrate a component library to improve UX.
+- No hay integración con Angular Material ni ng-bootstrap — la UI usa CSS y componentes personalizados.
+- Recomendación: integrar una librería de componentes para mejorar la experiencia de usuario.
 
-### ✅ Angular architecture (components + services)
-Status: COMPLETED
+### ✅ Arquitectura Angular (componentes + servicios)
+Estado: COMPLETADO
 
-- Components: `DashboardComponent`, `LoginComponent`, `HomeComponent`, `SummonerComponent`, `AdminComponent`, `HeaderComponent`, `FooterComponent`
-- Services: `AuthService`, `UserService`, `DashboardService`, `SummonerService`, `AdminService`
-- Uses Angular standalone components (Angular 17+)
+- Componentes: `DashboardComponent`, `LoginComponent`, `HomeComponent`, `SummonerComponent`, `AdminComponent`, `HeaderComponent`, `FooterComponent`
+- Servicios: `AuthService`, `UserService`, `DashboardService`, `SummonerService`, `AdminService`
+- Usa componentes standalone de Angular (Angular 17+)
 
-### ❌ Error pages
-Status: TODO
+### ❌ Páginas de error
+Estado: TODO
 
-- No dedicated error components (404, 500) found.
-- Recommendation: add an `ErrorComponent` and configure error routes.
+- No se encontraron componentes dedicados de error (404, 500).
+- Recomendación: añadir un `ErrorComponent` y configurar rutas de error.
 
-### ⚠️ Frontend pagination
-Status: PARTIAL
+### ⚠️ Paginación en frontend
+Estado: PARCIAL
 
-- Backend supports pagination, but the frontend uses hardcoded values (e.g., loads 30 matches by default)
-- Admin user list lacks 'load more' or infinite scroll
-- Recommendation: implement incremental loading UI (buttons or infinite scroll)
-
----
-
-## Quality controls
-
-### ⚠️ Automated tests
-Status: PARTIAL — INSUFFICIENT
-
-Existing tests:
-
-- Unit tests: ~16 files under `/backend/src/test/java/unit/`
-- System tests: only 1 (`SummonerSystemTest.java`)
-- E2E tests: 1 file (possibly empty/incomplete)
-
-Functionality coverage (system tests):
-
-1. Authentication — unit tests present ✅
-2. Personal dashboard — no system tests ❌
-3. Summoner search — no system tests ❌
-4. Favorites management — partial (unit tests) ⚠️
-5. Match history — no system tests ❌
-6. LP statistics — no system tests ❌
-7. Admin panel — no system tests ❌
-8. User management — no system tests ❌
-9. Avatar upload — no system tests ❌
-
-System test coverage: ~11% (1 of 9 key functionalities)
-
-❌ Requirement not met: >50% coverage of functionalities in system tests.
-
-Action required: add system tests for at least 5 more functionalities, e.g.:
-
-- `DashboardSystemTest.java` (ranked stats, LP progression)
-- `AuthSystemTest.java` (login, registration, logout)
-- `SearchSystemTest.java` (summoner search)
-- `FavoritesSystemTest.java` (add/remove favorites)
-- `AdminSystemTest.java` (user management)
-
-Frontend tests:
-
-- Component specs (`.spec.ts`) exist for components ✅ but may need updates ⚠️
-
-### ⚠️ Code quality
-Status: PARTIAL
-
-- Logging (`Logger`) is used across services ✅
-- Code formatting is consistent ✅
-- Some controllers lack inline comments; add clarifying comments where helpful ⚠️
-- JaCoCo configured for test coverage ✅
-- Some methods (e.g., in `DashboardController`) show high cyclomatic complexity — refactor recommended (complexity > 15)
+- El backend soporta paginación, pero el frontend usa valores hardcodeados (por ejemplo, carga 30 partidas por defecto)
+- La lista de usuarios en admin carece de 'cargar más' o scroll infinito
+- Recomendación: implementar carga incremental en la UI (botones o scroll infinito)
 
 ---
 
-## Docker packaging
+## Controles de calidad
+
+### ⚠️ Pruebas automatizadas
+Estado: PARCIAL — INSUFICIENTE
+
+Pruebas existentes:
+
+- Pruebas unitarias: ~16 archivos bajo `/backend/src/test/java/unit/`
+- Pruebas de sistema: solo 1 (`SummonerSystemTest.java`)
+- Pruebas E2E: 1 archivo (posiblemente vacío/incompleto)
+
+Cobertura por funcionalidades (pruebas de sistema):
+
+1. Autenticación — pruebas unitarias presentes ✅
+2. Dashboard personal — sin pruebas de sistema ❌
+3. Búsqueda de summoners — sin pruebas de sistema ❌
+4. Gestión de favoritos — parcial (pruebas unitarias) ⚠️
+5. Historial de partidas — sin pruebas de sistema ❌
+6. Estadísticas de LP — sin pruebas de sistema ❌
+7. Panel de administración — sin pruebas de sistema ❌
+8. Gestión de usuarios — sin pruebas de sistema ❌
+9. Subida de avatar — sin pruebas de sistema ❌
+
+Cobertura de pruebas de sistema: ~11% (1 de 9 funcionalidades clave)
+
+❌ Requisito no cumplido: >50% de cobertura de funcionalidades en pruebas de sistema.
+
+Acción requerida: añadir pruebas de sistema para al menos 5 funcionalidades más, por ejemplo:
+
+- `DashboardSystemTest.java` (estadísticas ranked, progresión de LP)
+- `AuthSystemTest.java` (login, registro, logout)
+- `SearchSystemTest.java` (búsqueda de summoner)
+- `FavoritesSystemTest.java` (añadir/quitar favoritos)
+- `AdminSystemTest.java` (gestión de usuarios)
+
+Pruebas frontend:
+
+- Specs de componentes (`.spec.ts`) existen ✅ pero pueden necesitar actualizaciones ⚠️
+
+### ⚠️ Calidad de código
+Estado: PARCIAL
+
+- Logging (`Logger`) usado en servicios ✅
+- Formato de código consistente ✅
+- Algunos controladores carecen de comentarios inline; añadir comentarios aclaratorios donde sea útil ⚠️
+- JaCoCo configurado para cobertura de pruebas ✅
+- Algunos métodos (p. ej. en `DashboardController`) muestran complejidad ciclomática alta — se recomienda refactorizar (complejidad > 15)
+
+---
+
+## Empaquetado con Docker
 
 ### ✅ Dockerfile
-Status: COMPLETED
+Estado: COMPLETADO
 
-- `docker/Dockerfile` present and uses a multi-stage build for optimization
+- `docker/Dockerfile` presente y usa multi-stage build para optimización
 
-### ✅ `docker-compose.yml` (v0.1.0)
-Status: COMPLETED
+### ✅ `docker-compose.yml`
+Estado: COMPLETADO
 
-- Compose file located at `/docker/docker-compose.yml`
-- Services: MySQL 8.0 (with healthcheck), app image `spiritblade:0.1`
-- Environment variables, volumes, and health checks configured
+- Archivo de compose ubicado en `/docker/docker-compose.yml`
+- Servicios: MySQL 8.0 (con healthcheck), imagen de la app `spiritblade:0.1`
+- Variables de entorno, volúmenes y health checks configurados
 
 ### ✅ `docker-compose-dev.yml`
-Status: COMPLETED
+Estado: COMPLETADO
 
-- Dev compose file present and configured for development tag `dev`
+- Archivo dev compose presente y configurado para la etiqueta de desarrollo `dev`
 
-### ✅ Docker Compose best practices
-Status: COMPLETED
+### ✅ Buenas prácticas Docker Compose
+Estado: COMPLETADO
 
-- MySQL healthcheck present
-- Startup ordering handled with `depends_on` and health conditions
-- Environment variables with defaults and overridable values
+- Healthcheck de MySQL presente
+- Orden de inicio gestionado con `depends_on` y condiciones de salud
+- Variables de entorno con valores por defecto y sobrescribibles
 
 ---
 
-## CI / Delivery
+## CI / Entrega
 
-### ✅ Dev pipeline (merge → dev tag)
-Status: COMPLETED
+### ✅ Pipeline de dev (merge → tag dev)
+Estado: COMPLETADO
 
-- Workflow: `.github/workflows/deploy-dev.yml` triggers on pushes to `main` and publishes a `dev` tag image to Docker Hub
+- Flujo: `.github/workflows/deploy-dev.yml` se dispara en pushes a `main` y publica una etiqueta `dev` en Docker Hub
 
-### ✅ Release pipeline (GitHub release → version tag)
-Status: COMPLETED
+### ✅ Pipeline de release (GitHub release → tag versión)
+Estado: COMPLETADO
 
-- Workflow: `.github/workflows/deploy-release.yml` builds and publishes a versioned image and the compose artifact as OCI
+- Flujo: `.github/workflows/deploy-release.yml` construye y publica una imagen versionada y el artifact compose como OCI
 
-### ✅ Manual build workflow
-Status: COMPLETED
+### ✅ Workflow de build manual
+Estado: COMPLETADO
 
 - Workflow: `.github/workflows/manual-build.yml`
 
-### ✅ Reusable workflows and DRY
-Status: COMPLETED
+### ✅ Workflows reutilizables y DRY
+Estado: COMPLETADO
 
-- `build-push.yml` is reusable and other workflows call it with parameters
+- `build-push.yml` es reutilizable y otros workflows lo invocan con parámetros
 
 ### ❌ Release 0.1.0
-Status: TODO
+Estado: TODO
 
-- No `0.1.0` tag found in the repository
-- No GitHub release exists
-- Action required: create release `0.1.0` to trigger the release pipeline
+- No se encontró la etiqueta `0.1.0` en el repositorio
+- No existe un release en GitHub
+- Acción requerida: crear el release `0.1.0` para activar el pipeline de release
 
-### ❌ Docker images for 0.1.0 / latest
-Status: TODO
+### ❌ Imágenes Docker para 0.1.0 / latest
+Estado: TODO
 
-- Since no release exists the `0.1.0` image and `latest` tag were not published
-
----
-
-## Documentation
-
-### ⚠️ Documentation status
-Status: PARTIAL
-
-- Docs present: `API.md`, `Funcionalidades.md`, `Guia-Desarrollo.md`, `Ejecucion.md`, `Inicio-Proyecto.md`, `Seguimiento.md`
-- Some docs may be outdated relative to Phase 3 changes
-
-Recommendation: update docs to reflect new dashboard features, LP tracking, and testing status.
-
-### ⚠️ Blog post
-Status: PARTIAL
-
-- Existing Medium post covers Phase 1 only: https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3
-- Action required: publish a Phase 3 post describing the dashboard, Riot API integration, Docker and CI/CD
+- Al no existir release, las imágenes `0.1.0` y `latest` no fueron publicadas
 
 ---
 
-## Summary
+## Documentación
 
-### Completed (17/27)
-1. Spring Security implemented
-2. HTTPS on port 443
-3. MinIO/S3 for images
-4. Layered architecture
-5. `/api/v1` endpoints
-6. REST best practices
-7. Parametrized searches
-8. Backend pagination
-9. Sample data
-10. Angular architecture
+### ⚠️ Estado de la documentación
+Estado: PARCIAL
+
+- Docs presentes: `API.md`, `Funcionalidades.md`, `Guia-Desarrollo.md`, `Ejecucion.md`, `Inicio-Proyecto.md`, `Seguimiento.md`
+- Algunos documentos pueden estar desactualizados respecto a cambios de la Fase 3
+
+Recomendación: actualizar la documentación para reflejar nuevas funciones del dashboard, seguimiento de LP y estado de pruebas.
+
+### ⚠️ Entrada de blog
+Estado: PARCIAL
+
+- Post de Medium existente cubre solo la Fase 1: https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3
+- Acción requerida: publicar un post de la Fase 3 describiendo el dashboard, integración con la API de Riot, Docker y CI/CD
+
+---
+
+## Resumen
+
+### Completado (17/27)
+1. Spring Security implementado
+2. HTTPS en puerto 443
+3. MinIO/S3 para imágenes
+4. Arquitectura en capas
+5. Endpoints `/api/v1`
+6. Buenas prácticas REST
+7. Búsquedas parametrizadas
+8. Paginación backend
+9. Datos de ejemplo
+10. Arquitectura Angular
 11. Dockerfile
 12. `docker-compose.yml`
 13. `docker-compose-dev.yml`
-14. Docker best practices
-15. Dev pipeline
-16. Release pipeline
-17. Reusable workflows
+14. Buenas prácticas en Docker
+15. Pipeline de dev
+16. Pipeline de release
+17. Workflows reutilizables
 
-### Partial (4/27)
-1. Frontend pagination (backend OK)
-2. System tests (only 1; need 5+)
-3. Code quality (improvements needed)
-4. Documentation (update needed)
+### Parcial (4/27)
+1. Paginación frontend (backend OK)
+2. Pruebas de sistema (solo 1; se necesitan 5+)
+3. Calidad de código (mejoras necesarias)
+4. Documentación (actualizar necesaria)
 
-### To do (6/27)
-1. Add UI component library (ng-bootstrap/Material)
-2. Error pages (ErrorComponent)
-3. Create release 0.1.0
-4. Publish Docker image tagged 0.1.0
-5. Publish compose artifact (OCI) for 0.1.0
-6. Publish Phase 3 blog post
-
----
-
-## Priority actions
-
-### High priority (blocking)
-1. Create system tests for at least 5 additional functionalities
-2. Publish release `0.1.0` on GitHub to trigger pipelines
-3. Publish a Phase 3 blog post
-
-### Medium priority
-4. Implement error pages and UX improvements
-5. Integrate Angular Material or ng-bootstrap
-6. Improve frontend pagination UX
-7. Update technical documentation
-
-### Low priority
-8. Refactor high complexity methods
-9. Improve code comments and documentation
-10. Improve frontend test coverage
+### Pendiente (6/27)
+1. Añadir librería UI (ng-bootstrap/Material)
+2. Páginas de error (ErrorComponent)
+3. Crear release 0.1.0
+4. Publicar imagen Docker etiquetada 0.1.0
+5. Publicar artifact compose (OCI) para 0.1.0
+6. Publicar post de la Fase 3
 
 ---
 
-## Conclusion
+## Acciones prioritarias
 
-Overall compliance: ~63% (17/27 completed)
+### Alta prioridad (bloqueantes)
+1. Crear pruebas de sistema para al menos 5 funcionalidades adicionales
+2. Publicar release `0.1.0` en GitHub para activar pipelines
+3. Publicar un post de la Fase 3
 
-The project has a solid base:
+### Prioridad media
+4. Implementar páginas de error y mejoras UX
+5. Integrar Angular Material o ng-bootstrap
+6. Mejorar la UX de paginación en frontend
+7. Actualizar documentación técnica
 
-- Backend is well-structured with Spring Security and HTTPS
-- REST API follows good practices
-- Docker and CI/CD infrastructure are in place
-- Frontend architecture is sound
+### Baja prioridad
+8. Refactorizar métodos de alta complejidad
+9. Mejorar comentarios en el código y documentación
+10. Incrementar cobertura de pruebas frontend
 
-Main deficiencies:
+---
 
-- System tests are insufficient (11% vs required 50%) — CRITICAL
-- No `0.1.0` release published — straightforward to fix
-- Frontend lacks a component library — UX improvement
+## Conclusión
 
-Recommendation: prioritize system tests and publishing the `0.1.0` release to meet Phase 3 requirements.
+Cumplimiento general: ~63% (17/27 completados)
+
+La base del proyecto es sólida:
+
+- Backend bien estructurado con Spring Security y HTTPS
+- API REST sigue buenas prácticas
+- Infraestructura Docker y CI/CD en su lugar
+- Arquitectura frontend razonable
+
+Deficiencias principales:
+
+- Pruebas de sistema insuficientes (11% vs requisito 50%) — CRÍTICO
+- No existe release `0.1.0` publicado — solución directa
+- Frontend carece de una librería de componentes — mejora de UX
+
+Recomendación: priorizar las pruebas de sistema y la publicación del release `0.1.0` para cumplir los requisitos de la Fase 3.
