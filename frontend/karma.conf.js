@@ -29,7 +29,12 @@ module.exports = function(config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'lcovonly' }
-      ]
+      ],
+      check: {
+        global: {
+          lines: 80
+        }
+      }
     },
     reporters: ['progress', 'kjhtml'],
     browsers: ['Chrome'],

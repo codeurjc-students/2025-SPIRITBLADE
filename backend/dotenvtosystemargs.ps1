@@ -1,7 +1,7 @@
 # Load .env file and run Spring Boot application
 # This script loads environment variables from ../.env and runs mvn spring-boot:run
 
-$envFile = Join-Path $PSScriptRoot "../.env"
+$envFile = Join-Path $PSScriptRoot "../docker/.env"
 
 if (-not (Test-Path $envFile)) {
     Write-Host "ERROR: .env file not found at $envFile" -ForegroundColor Red
