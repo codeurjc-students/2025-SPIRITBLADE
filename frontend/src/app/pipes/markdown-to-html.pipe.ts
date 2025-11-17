@@ -26,17 +26,20 @@ export class MarkdownToHtmlPipe implements PipeTransform {
     // Italic
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
     
-    // Lists
+    // Lists - process before paragraphs and line breaks
     html = html.replace(/^\- (.*$)/gm, '<li>$1</li>');
     // Support '*' as list bullet in addition to '-'
     html = html.replace(/^\* (.*$)/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+    // Wrap consecutive list items in ul tags and remove line breaks between them
+    html = html.replace(/(<li>.*?<\/li>(\n<li>.*?<\/li>)*)/g, (match) => {
+      return '<ul>' + match.replace(/\n/g, '') + '</ul>';
+    });
     
     // Paragraphs
     html = html.replace(/\n\n/g, '</p><p>');
     html = '<p>' + html + '</p>';
     
-    // Line breaks
+    // Line breaks (avoid adding them inside existing tags)
     html = html.replace(/\n/g, '<br>');
 
     return this.sanitizer.bypassSecurityTrustHtml(html);

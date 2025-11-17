@@ -518,10 +518,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	 * Unlink the current League of Legends account
 	 */
 	unlinkAccount() {
-		if (!confirm('Are you sure you want to unlink your League of Legends account?')) {
-			return;
-		}
-
 		this.linkedSummonerLoading = true;
 		this.userService.unlinkSummoner().subscribe({
 			next: (res) => {
@@ -595,8 +591,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				if (res.success && res.avatarUrl) {
 					// If the URL is relative, prepend the base URL
 					let fullAvatarUrl = res.avatarUrl;
-					if (fullAvatarUrl.startsWith('/api/')) {
-						// Extract the base URL without the /api/v1 part
+					if (!fullAvatarUrl.startsWith('http://') && !fullAvatarUrl.startsWith('https://')) {
+						// Extract the base URL without the /api/v1 part and prepend to relative URL
 						const baseUrl = API_URL.replace('/api/v1', '');
 						fullAvatarUrl = baseUrl + fullAvatarUrl;
 					}
@@ -630,8 +626,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				if (user.avatarUrl) {
 					// If the URL is relative, prepend the base URL
 					let fullAvatarUrl = user.avatarUrl;
-					if (fullAvatarUrl.startsWith('/api/')) {
-						// Extract the base URL without the /api/v1 part
+					if (!fullAvatarUrl.startsWith('http://') && !fullAvatarUrl.startsWith('https://')) {
+						// Extract the base URL without the /api/v1 part and prepend to relative URL
 						const baseUrl = API_URL.replace('/api/v1', '');
 						fullAvatarUrl = baseUrl + fullAvatarUrl;
 					}

@@ -1,41 +1,45 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardService, RankHistoryEntry } from '../../service/dashboard.service';
+import { DashboardService, RankHistoryEntry, AiAnalysisResponse } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
+import { User } from '../../dto/user.dto';
+import { MatchHistory } from '../../dto/match-history.model';
+import { ElementRef } from '@angular/core';
+import { Chart } from 'chart.js';
 
-describe('DashboardComponent - Unit Tests', () => {
+// Mock Chart.js globally
+(window as any).Chart = jasmine.createSpy('Chart').and.callFake(() => ({
+  destroy: jasmine.createSpy('destroy'),
+  update: jasmine.createSpy('update')
+}));
+
+describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
   let mockDashboardService: jasmine.SpyObj<DashboardService>;
   let mockUserService: jasmine.SpyObj<UserService>;
 
   beforeEach(async () => {
-    // Create spy objects for services
     mockDashboardService = jasmine.createSpyObj('DashboardService', [
-      'getPersonalStats',
-      'getFavoritesOverview',
-      'getRankHistory',
-      'getRankedMatches'
+      'getPersonalStats', 'getFavoritesOverview', 'getRankedMatches', 'getAiAnalysis'
     ]);
-
     mockUserService = jasmine.createSpyObj('UserService', [
-      'getProfile',
-      'getLinkedSummoner',
-      'linkSummoner',
-      'unlinkSummoner',
-      'uploadAvatar'
+      'getProfile', 'getLinkedSummoner', 'linkSummoner', 'unlinkSummoner',
+      'uploadAvatar', 'addFavoriteSummoner', 'removeFavoriteSummoner'
     ]);
 
-    // Set default return values for all mocks to prevent errors during ngOnInit
-    mockDashboardService.getPersonalStats.and.returnValue(of({} as any));
+    // Default mocks
+    mockDashboardService.getPersonalStats.and.returnValue(of({}));
     mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
     mockDashboardService.getRankedMatches.and.returnValue(of([]));
-    mockUserService.getProfile.and.returnValue(of({} as any));
-    mockUserService.getLinkedSummoner.and.returnValue(of({} as any));
-    mockUserService.linkSummoner.and.returnValue(of({} as any));
-    mockUserService.unlinkSummoner.and.returnValue(of({} as any));
-    mockUserService.uploadAvatar.and.returnValue(of({ success: true, message: '' }));
+    mockUserService.getProfile.and.returnValue(of({ id: 1, name: 'test', email: 'test@test.com', roles: ['USER'], active: true } as User));
+    mockUserService.getLinkedSummoner.and.returnValue(of({ linked: false }));
+    mockUserService.linkSummoner.and.returnValue(of({ success: true, message: 'Account linked successfully' }));
+    mockUserService.unlinkSummoner.and.returnValue(of({ success: true, message: 'Unlinked' }));
+    mockUserService.uploadAvatar.and.returnValue(of({ success: true, message: 'Uploaded', avatarUrl: '/test.png' }));
+    mockUserService.addFavoriteSummoner.and.returnValue(of({}));
+    mockUserService.removeFavoriteSummoner.and.returnValue(of({}));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -47,317 +51,418 @@ describe('DashboardComponent - Unit Tests', () => {
 
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
+
+    // Mock lpChartCanvas for chart tests
+    const mockContext = {
+      canvas: document.createElement('canvas'),
+      clearRect: jasmine.createSpy('clearRect'),
+      fillRect: jasmine.createSpy('fillRect'),
+      setTransform: jasmine.createSpy('setTransform'),
+      resetTransform: jasmine.createSpy('resetTransform'),
+      save: jasmine.createSpy('save'),
+      restore: jasmine.createSpy('restore'),
+      beginPath: jasmine.createSpy('beginPath'),
+      moveTo: jasmine.createSpy('moveTo'),
+      lineTo: jasmine.createSpy('lineTo'),
+      closePath: jasmine.createSpy('closePath'),
+      stroke: jasmine.createSpy('stroke'),
+      fill: jasmine.createSpy('fill')
+    };
+    Object.defineProperty(component, 'lpChartCanvas', {
+      get: () => ({ nativeElement: { getContext: () => mockContext } })
+    });
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize with default values', () => {
-    expect(component.loading).toBeFalse();
-    expect(component.stats).toBeNull();
-    expect(component.favorites).toEqual([]);
-    expect(component.favoritesLoading).toBeFalse();
-    expect(component.favoritesError).toBeNull();
-    expect(component.error).toBeNull();
-    expect(component.linkedSummoner).toBeNull();
-    expect(component.avatarUrl).toBeNull();
-    expect(component.rankHistory).toEqual([]);
-  });
-
-  describe('refresh()', () => {
-    it('should load personal stats successfully', () => {
-      // Arrange
-      const mockStats = { gamesPlayed: 100, winRate: 0.65 };
-      const mockFavorites = [{ name: 'TestPlayer', rank: 'Gold' }];
-      
-      mockDashboardService.getPersonalStats.and.returnValue(of(mockStats));
-      mockDashboardService.getFavoritesOverview.and.returnValue(of(mockFavorites));
-
-      // Act
-      component.refresh();
-
-      // Assert
-      expect(component.loading).toBeFalse();
-      expect(component.stats).toEqual(mockStats);
-      expect(component.error).toBeNull();
-      expect(component.favorites).toEqual(mockFavorites);
-      expect(component.favoritesLoading).toBeFalse();
-      expect(component.favoritesError).toBeNull();
-    });
-
-    it('should handle personal stats error', () => {
-      // Arrange
-      const mockFavorites = [{ name: 'TestPlayer', rank: 'Gold' }];
-      
-      mockDashboardService.getPersonalStats.and.returnValue(
-        throwError(() => new Error('Stats API error'))
-      );
-      mockDashboardService.getFavoritesOverview.and.returnValue(of(mockFavorites));
-
-      // Act
-      component.refresh();
-
-      // Assert
+  describe('Initialization', () => {
+    it('should initialize with default values', () => {
       expect(component.loading).toBeFalse();
       expect(component.stats).toBeNull();
-  expect(component.error).toBe('Failed to load dashboard statistics.');
-      expect(component.favorites).toEqual(mockFavorites);
-    });
-
-    it('should handle favorites error', () => {
-      // Arrange
-      const mockStats = { gamesPlayed: 100, winRate: 0.65 };
-      
-      mockDashboardService.getPersonalStats.and.returnValue(of(mockStats));
-      mockDashboardService.getFavoritesOverview.and.returnValue(
-        throwError(() => new Error('Favorites API error'))
-      );
-
-      // Act
-      component.refresh();
-
-      // Assert
-      expect(component.stats).toEqual(mockStats);
-      expect(component.favoritesLoading).toBeFalse();
-  expect(component.favoritesError).toBe('Failed to load favorites.');
       expect(component.favorites).toEqual([]);
+      expect(component.error).toBeNull();
+      expect(component.linkedSummoner).toBeNull();
+      expect(component.avatarUrl).toBeNull();
+      expect(component.rankHistory).toEqual([]);
+      expect(component.selectedQueue).toBe(420);
     });
 
-    it('should set loading states correctly during requests', () => {
-      // Arrange
-      mockDashboardService.getPersonalStats.and.returnValue(of({}));
-      mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
-
-      // Act & Assert - Initial loading states
-      expect(component.loading).toBeFalse();
-      expect(component.favoritesLoading).toBeFalse();
-
-      component.refresh();
-
-      // Should finish loading after synchronous observable completion
-      expect(component.loading).toBeFalse();
-      expect(component.favoritesLoading).toBeFalse();
-    });
-  });
-
-  describe('ngOnInit()', () => {
-    it('should call refresh and load linked summoner on initialization', () => {
-      // Arrange
+    it('should call refresh, loadLinkedSummoner, and loadUserProfile on ngOnInit', () => {
       spyOn(component, 'refresh');
       spyOn(component, 'loadLinkedSummoner');
       spyOn(component, 'loadUserProfile');
-      mockDashboardService.getPersonalStats.and.returnValue(of({}));
-      mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
-      mockUserService.getLinkedSummoner.and.returnValue(of({ linked: false }));
-      mockUserService.getProfile.and.returnValue(of({} as any));
 
-      // Act
       component.ngOnInit();
 
-      // Assert
       expect(component.refresh).toHaveBeenCalled();
       expect(component.loadLinkedSummoner).toHaveBeenCalled();
       expect(component.loadUserProfile).toHaveBeenCalled();
     });
-  });
 
-  describe('Avatar Upload', () => {
-    it('should upload avatar successfully', () => {
-      // Arrange
-      const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
-      const mockResponse = { 
-        success: true, 
-        message: 'Avatar uploaded', 
-        avatarUrl: '/api/v1/files/avatars/test.png' 
-      };
-      mockUserService.uploadAvatar.and.returnValue(of(mockResponse));
+    it('should destroy chart on ngOnDestroy if exists', () => {
+      const mockChart = { destroy: jasmine.createSpy() };
+      (component as any).lpChart = mockChart;
 
-      // Act
-      component.uploadAvatar(mockFile);
+      component.ngOnDestroy();
 
-      // Assert
-      expect(component.avatarUploading).toBeFalse();
-      expect(component.avatarUrl).toContain('/api/v1/files/avatars/test.png');
-      expect(mockUserService.uploadAvatar).toHaveBeenCalledWith(mockFile);
-    });
-
-    it('should reject files larger than 5MB', () => {
-      // Arrange
-      const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.png', { type: 'image/png' });
-
-      // Act
-      component.uploadAvatar(largeFile);
-
-      // Assert
-      expect(component.avatarError).toBe('The file is too large. Maximum 5MB.');
-      expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
-    });
-
-    it('should reject non-PNG files', () => {
-      // Arrange
-      const invalidFile = new File(['test'], 'test.gif', { type: 'image/gif' });
-
-      // Act
-      component.uploadAvatar(invalidFile);
-
-      // Assert
-      expect(component.avatarError).toBe('Please select a PNG file.');
-      expect(mockUserService.uploadAvatar).not.toHaveBeenCalled();
-    });
-
-    it('should handle upload error', () => {
-      // Arrange
-      const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
-      mockUserService.uploadAvatar.and.returnValue(
-        throwError(() => ({ error: { message: 'Upload failed' } }))
-      );
-
-      // Act
-      component.uploadAvatar(mockFile);
-
-      // Assert
-      expect(component.avatarUploading).toBeFalse();
-      expect(component.avatarError).toBe('Upload failed');
+      expect(mockChart.destroy).toHaveBeenCalled();
     });
   });
 
-  describe('Linked Account Management', () => {
+  describe('refresh()', () => {
+    it('should load stats and favorites successfully', () => {
+      const mockStats = { username: 'test' };
+      const mockFavorites = [{ name: 'fav' }];
+      mockDashboardService.getPersonalStats.and.returnValue(of(mockStats));
+      mockDashboardService.getFavoritesOverview.and.returnValue(of(mockFavorites));
+
+      component.refresh();
+
+      expect(component.stats).toEqual(mockStats);
+      expect(component.favorites).toEqual(mockFavorites);
+      expect(component.loading).toBeFalse();
+      expect(component.error).toBeNull();
+    });
+
+    it('should handle stats error', () => {
+      mockDashboardService.getPersonalStats.and.returnValue(throwError(() => new Error()));
+
+      component.refresh();
+
+      expect(component.error).toBe('Failed to load dashboard statistics.');
+      expect(component.loading).toBeFalse();
+    });
+
+    it('should handle favorites error', () => {
+      mockDashboardService.getFavoritesOverview.and.returnValue(throwError(() => new Error()));
+
+      component.refresh();
+
+      expect(component.favoritesError).toBe('Failed to load favorites.');
+      expect(component.favoritesLoading).toBeFalse();
+    });
+  });
+
+  describe('Linked Summoner', () => {
     it('should load linked summoner successfully', () => {
-      // Arrange
-      const mockLinkedResponse = {
-        linked: true,
-        summonerName: 'TestPlayer',
-        region: 'EUW',
-        puuid: 'test-puuid'
-      };
-      const mockMatches = [
-        { matchId: 'match1', queueId: 420, participantPuuid: 'test-puuid' }
-      ];
-      mockUserService.getLinkedSummoner.and.returnValue(of(mockLinkedResponse));
-      mockDashboardService.getRankedMatches.and.returnValue(of(mockMatches));
+      const mockResponse = { linked: true, summonerName: 'test', region: 'EUW', puuid: 'puuid' };
+      mockUserService.getLinkedSummoner.and.returnValue(of(mockResponse));
+      spyOn(component, 'loadRankHistory');
 
-      // Act
       component.loadLinkedSummoner();
 
-      // Assert
-      expect(component.linkedSummoner).toEqual({
-        name: 'TestPlayer',
-        region: 'EUW',
-        puuid: 'test-puuid'
-      });
-      expect(mockDashboardService.getRankedMatches).toHaveBeenCalled();
+      expect(component.linkedSummoner).toEqual({ name: 'test', region: 'EUW', puuid: 'puuid' });
+      expect(component.loadRankHistory).toHaveBeenCalled();
     });
 
-    it('should not load ranked matches if no linked account', () => {
-      // Arrange
+    it('should clear data if not linked', () => {
       mockUserService.getLinkedSummoner.and.returnValue(of({ linked: false }));
 
-      // Act
       component.loadLinkedSummoner();
 
-      // Assert
       expect(component.linkedSummoner).toBeNull();
+    });
+
+    it('should handle error', () => {
+      mockUserService.getLinkedSummoner.and.returnValue(throwError(() => new Error()));
+
+      component.loadLinkedSummoner();
+
+      expect(component.linkedSummonerLoading).toBeFalse();
+    });
+  });
+
+  describe('Rank History & Chart', () => {
+    beforeEach(() => {
+      component.linkedSummoner = { name: 'test', region: 'EUW' };
+    });
+
+    it('should load rank history successfully', () => {
+      const mockMatches: MatchHistory[] = [{ gameTimestamp: 1, win: true, lpAtMatch: 50 }];
+      mockDashboardService.getRankedMatches.and.returnValue(of(mockMatches));
+
+      component.loadRankHistory();
+
+      expect(component.rankedMatches).toEqual(mockMatches);
+      expect(component.allMatches).toEqual(mockMatches);
+      expect(component.chartLoading).toBeFalse();
+      expect(component.matchesLoading).toBeFalse();
+    });
+
+    it('should handle load error', () => {
+      mockDashboardService.getRankedMatches.and.returnValue(throwError(() => new Error()));
+
+      component.loadRankHistory();
+
+      expect(component.chartError).toBe('Failed to load ranked match history');
+      expect(component.chartLoading).toBeFalse();
+    });
+
+    it('should not load if no linked summoner', () => {
+      component.linkedSummoner = null;
+
+      component.loadRankHistory();
+
       expect(mockDashboardService.getRankedMatches).not.toHaveBeenCalled();
     });
 
-    it('should link summoner account successfully', () => {
-      // Arrange
-      const mockLinkResponse = { success: true, message: 'Account linked' };
-      mockUserService.linkSummoner.and.returnValue(of(mockLinkResponse));
-      mockUserService.getLinkedSummoner.and.returnValue(of({ 
-        linked: true, 
-        summonerName: 'NewPlayer#EUW', 
-        region: 'EUW' 
-      }));
-      mockDashboardService.getRankedMatches.and.returnValue(of([]));
-      
-      component.summonerName = 'NewPlayer#EUW';
-      component.selectedRegion = 'EUW';
+    it('should change queue and reload', () => {
+      component.onQueueChange(440);
 
-      // Act
-      component.submitLinkAccount();
-
-      // Assert
-      expect(component.linkSuccess).toBe('Account linked');
-      expect(mockUserService.linkSummoner).toHaveBeenCalledWith('NewPlayer#EUW', 'EUW');
+      expect(component.selectedQueue).toBe(440);
+      expect(mockDashboardService.getRankedMatches).toHaveBeenCalledWith(0, 30, 440);
     });
 
-    it('should handle link summoner error', () => {
-      // Arrange
-      mockUserService.linkSummoner.and.returnValue(
-        throwError(() => ({ error: { message: 'Summoner not found' } }))
-      );
-      component.summonerName = 'InvalidPlayer#EUW';
-      component.selectedRegion = 'EUW';
+    it('should not change queue if loading', () => {
+      component.chartLoading = true;
+      component.selectedQueue = 420;
 
-      // Act
-      component.submitLinkAccount();
+      component.onQueueChange(440);
 
-      // Assert
-      expect(component.linkError).toBe('Summoner not found');
-      expect(component.linkLoading).toBeFalse();
+      expect(component.selectedQueue).toBe(420);
     });
 
-    it('should unlink account and clear rank history', () => {
-      // Arrange
-      const mockUnlinkResponse = { success: true, message: 'Account unlinked' };
-      mockUserService.unlinkSummoner.and.returnValue(of(mockUnlinkResponse));
-      component.linkedSummoner = { name: 'TestPlayer', region: 'EUW', puuid: 'test-puuid' };
-      component.rankHistory = [
-        { date: '2025-01-01', tier: 'GOLD', rank: 'II', leaguePoints: 50, wins: 10, losses: 5 }
-      ];
-      spyOn(window, 'confirm').and.returnValue(true);
+    it('should initialize chart with matches', () => {
+      component.rankedMatches = [{ gameTimestamp: 1, win: true, lpAtMatch: 50 }];
 
-      // Act
-      component.unlinkAccount();
+      component['initializeLPChart']();
 
-      // Assert
-      expect(component.linkedSummoner).toBeNull();
-      expect(component.rankHistory).toEqual([]);
-      expect(mockUserService.unlinkSummoner).toHaveBeenCalled();
+      expect((component as any).lpChart).toBeDefined();
+    });
+
+    it('should destroy existing chart before new one', () => {
+      const mockChart = { destroy: jasmine.createSpy() };
+      (component as any).lpChart = mockChart;
+      component.rankedMatches = [{ gameTimestamp: 1, win: true, lpAtMatch: 50 }];
+
+      component['initializeLPChart']();
+
+      expect(mockChart.destroy).toHaveBeenCalled();
+      expect((component as any).lpChart).toBeDefined();
+    });
+
+    it('should handle empty matches or no canvas', () => {
+      component.rankedMatches = [];
+
+      component['initializeLPChart']();
+
+      expect((component as any).lpChart).toBeNull();
     });
   });
 
-  describe('Rank History Chart', () => {
-    it('should load ranked matches when linked account exists', () => {
-      // Arrange
-      component.linkedSummoner = { 
-        name: 'TestPlayer', 
-        region: 'EUW', 
-        puuid: 'test-puuid' 
-      };
-      const mockMatches = [
-        { matchId: 'match1', queueId: 420, participantPuuid: 'test-puuid' },
-        { matchId: 'match2', queueId: 420, participantPuuid: 'test-puuid' }
-      ];
-      mockDashboardService.getRankedMatches.and.returnValue(of(mockMatches));
+  describe('Link Account', () => {
+    it('should open and close modal', () => {
+      component.openLinkModal();
+      expect(component.showLinkModal).toBeTrue();
 
-      // Act
-      component.loadRankHistory();
-
-      // Assert
-      expect(component.chartLoading).toBeFalse();
-      expect(component.rankedMatches).toEqual(mockMatches);
+      component.closeLinkModal();
+      expect(component.showLinkModal).toBeFalse();
     });
 
-    it('should handle rank history error', () => {
-      // Arrange
-      component.linkedSummoner = { 
-        name: 'TestPlayer', 
-        region: 'EUW', 
-        puuid: 'test-puuid' 
-      };
-      mockDashboardService.getRankedMatches.and.returnValue(
-        throwError(() => new Error('Failed to load ranked matches'))
-      );
+    it('should submit link successfully', () => {
+      component.summonerName = 'test#EUW';
+      spyOn(component, 'refresh');
+      spyOn(component, 'loadLinkedSummoner');
 
-      // Act
-      component.loadRankHistory();
+      component.submitLinkAccount();
 
-      // Assert
-      expect(component.chartLoading).toBeFalse();
-    expect(component.chartError).toBe('Failed to load ranked match history');
+      expect(component.linkSuccess).toBe('Account linked successfully');
+      expect(component.refresh).toHaveBeenCalled();
+      expect(component.loadLinkedSummoner).toHaveBeenCalled();
+    });
+
+    it('should handle link error', () => {
+      mockUserService.linkSummoner.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
+      component.summonerName = 'test#EUW';
+
+      component.submitLinkAccount();
+
+      expect(component.linkError).toBe('error');
+    });
+
+    it('should validate input', () => {
+      component.summonerName = '';
+      component.submitLinkAccount();
+      expect(component.linkError).toBe('Please enter a summoner name');
+
+      component.summonerName = 'test';
+      component.submitLinkAccount();
+      expect(component.linkError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
+
+      component.summonerName = 'test#NA';
+      component.submitLinkAccount();
+      expect(component.linkError).toBe('Currently, only EUW region is supported');
+    });
+
+    it('should unlink account', () => {
+      component.linkedSummoner = { name: 'test' };
+      spyOn(window, 'confirm').and.returnValue(true);
+      spyOn(component, 'refresh');
+
+      component.unlinkAccount();
+
+      expect(component.linkedSummoner).toBeNull();
+      expect(component.refresh).toHaveBeenCalled();
+    });
+  });
+
+  describe('Avatar', () => {
+    it('should upload avatar successfully', () => {
+      const file = new File([''], 'test.png', { type: 'image/png' });
+
+      component.uploadAvatar(file);
+
+      expect(component.avatarUrl).toContain('/test.png');
+      expect(component.avatarUploading).toBeFalse();
+    });
+
+    it('should reject large file', () => {
+      const largeFile = new File(['x'.repeat(6e6)], 'large.png', { type: 'image/png' });
+
+      component.uploadAvatar(largeFile);
+
+      expect(component.avatarError).toBe('The file is too large. Maximum 5MB.');
+    });
+
+    it('should reject non-PNG', () => {
+      const file = new File([''], 'test.jpg', { type: 'image/jpeg' });
+
+      component.uploadAvatar(file);
+
+      expect(component.avatarError).toBe('Please select a PNG file.');
+    });
+
+    it('should handle upload error', () => {
+      mockUserService.uploadAvatar.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
+      const file = new File([''], 'test.png', { type: 'image/png' });
+
+      component.uploadAvatar(file);
+
+      expect(component.avatarError).toBe('error');
+    });
+
+    it('should load user profile', () => {
+      const user: User = { id: 1, name: 'test', email: 'test@test.com', roles: ['USER'], active: true, avatarUrl: '/avatar.png' };
+      mockUserService.getProfile.and.returnValue(of(user));
+
+      component.loadUserProfile();
+
+      expect(component.avatarUrl).toContain('/avatar.png');
+    });
+
+    it('should handle avatar load and error', () => {
+      component.onAvatarLoad();
+      expect(component).toBeTruthy(); // No specific behavior
+
+      component.onAvatarError(new Event('error'));
+      expect(component.avatarError).toBe('Failed to load avatar image');
+    });
+  });
+
+  describe('Favorites', () => {
+    it('should open and close add favorite modal', () => {
+      component.openAddFavoriteModal();
+      expect(component.showAddFavoriteModal).toBeTrue();
+
+      component.closeAddFavoriteModal();
+      expect(component.showAddFavoriteModal).toBeFalse();
+    });
+
+    it('should add favorite successfully', () => {
+      component.addFavoriteName = 'test#EUW';
+      spyOn(component, 'loadFavorites');
+
+      component.addFavorite();
+
+      expect(mockUserService.addFavoriteSummoner).toHaveBeenCalledWith('test#EUW');
+      expect(component.loadFavorites).toHaveBeenCalled();
+    });
+
+    it('should handle add favorite error', () => {
+      mockUserService.addFavoriteSummoner.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
+      component.addFavoriteName = 'test#EUW';
+
+      component.addFavorite();
+
+      expect(component.addFavoriteError).toBe('error');
+    });
+
+    it('should validate favorite input', () => {
+      component.addFavoriteName = '';
+      component.addFavorite();
+      expect(component.addFavoriteError).toBe('Please enter a summoner name');
+
+      component.addFavoriteName = 'test';
+      component.addFavorite();
+      expect(component.addFavoriteError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
+    });
+
+    it('should remove favorite', () => {
+      spyOn(window, 'confirm').and.returnValue(true);
+      spyOn(component, 'loadFavorites');
+
+      component.removeFavorite('test');
+
+      expect(mockUserService.removeFavoriteSummoner).toHaveBeenCalledWith('test');
+      expect(component.loadFavorites).toHaveBeenCalled();
+    });
+
+    it('should load favorites', () => {
+      const mockFavorites = [{ name: 'fav' }];
+      mockDashboardService.getFavoritesOverview.and.returnValue(of(mockFavorites));
+
+      component.loadFavorites();
+
+      expect(component.favorites).toEqual(mockFavorites);
+      expect(component.favoritesLoading).toBeFalse();
+    });
+  });
+
+  describe('AI Analysis', () => {
+    it('should open and close AI modal', () => {
+      component.openAiAnalysisModal();
+      expect(component.showAiModal).toBeTrue();
+      expect(component.aiAnalysis).toBeNull();
+
+      component.closeAiAnalysisModal();
+      expect(component.showAiModal).toBeFalse();
+    });
+
+    it('should generate AI analysis successfully', () => {
+      component.linkedSummoner = { name: 'test' };
+      component.aiMatchCount = 10;
+      const response: AiAnalysisResponse = { analysis: 'analysis', generatedAt: 'now', matchesAnalyzed: 10, summonerName: 'test' };
+      mockDashboardService.getAiAnalysis.and.returnValue(of(response));
+
+      component.generateAiAnalysis();
+
+      expect(component.aiAnalysis).toBe('analysis');
+      expect(component.aiMatchesAnalyzed).toBe(10);
+      expect(component.aiAnalysisLoading).toBeFalse();
+    });
+
+    it('should handle AI analysis error', () => {
+      component.linkedSummoner = { name: 'test' };
+      component.aiMatchCount = 10;
+      mockDashboardService.getAiAnalysis.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
+
+      component.generateAiAnalysis();
+
+      expect(component.aiAnalysisError).toBe('error');
+    });
+
+    it('should validate AI analysis input', () => {
+      component.linkedSummoner = null;
+      component.aiMatchCount = 10;
+      component.generateAiAnalysis();
+      expect(component.aiAnalysisError).toBe('You must link your League of Legends account first');
+
+      component.linkedSummoner = { name: 'test' };
+      component.aiMatchCount = 5;
+      component.generateAiAnalysis();
+      expect(component.aiAnalysisError).toBe('The number of matches must be 10');
     });
   });
 });

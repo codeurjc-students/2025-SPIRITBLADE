@@ -18,7 +18,8 @@ describe('SummonerComponent - Unit Tests', () => {
     mockSummonerService = jasmine.createSpyObj('SummonerService', [
       'getByName',
       'getTopChampions',
-      'getRecentMatches'
+      'getRecentMatches',
+      'getMatchDetails'
     ]);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockActivatedRoute = {
@@ -29,6 +30,7 @@ describe('SummonerComponent - Unit Tests', () => {
     mockSummonerService.getByName.and.returnValue(of({} as any));
     mockSummonerService.getTopChampions.and.returnValue(of([]));
     mockSummonerService.getRecentMatches.and.returnValue(of([]));
+    mockSummonerService.getMatchDetails.and.returnValue(of({} as any));
 
     await TestBed.configureTestingModule({
       imports: [SummonerComponent],
@@ -210,6 +212,162 @@ describe('SummonerComponent - Unit Tests', () => {
       // Assert
       expect(mockRouter.navigate).not.toHaveBeenCalled();
       expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)');
+    });
+  });
+
+  describe('Data Loading', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should load summoner data on init', () => {
+      const summoner: Summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+      mockSummonerService.getByName.and.returnValue(of(summoner));
+
+      component.ngOnInit();
+
+      expect(mockSummonerService.getByName).toHaveBeenCalledWith('TestSummoner');
+      expect(component.summoner).toEqual(summoner);
+    });
+
+    it('should load top champions', () => {
+      const champions = [{ championId: 1, championName: 'Ahri' }];
+      mockSummonerService.getTopChampions.and.returnValue(of(champions));
+
+      component.loadSummoner('TestSummoner');
+
+      expect(mockSummonerService.getTopChampions).toHaveBeenCalledWith('TestSummoner');
+      expect(component.championMasteries).toEqual(champions);
+    });
+
+    it('should load recent matches', () => {
+      const matches = [{ matchId: 'match1' }];
+      mockSummonerService.getRecentMatches.and.returnValue(of(matches));
+
+      component.loadSummoner('TestSummoner');
+
+      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner', 0, 5);
+      expect(component.matchHistory).toEqual(matches);
+    });
+
+    it('should handle summoner not found', () => {
+      mockSummonerService.getByName.and.returnValue(throwError(() => ({ status: 404 })));
+      component.searchQuery = 'InvalidSummoner#EUW';
+
+      component.loadSummoner('InvalidSummoner#EUW');
+
+      expect(component.error).toBe('Summoner "InvalidSummoner#EUW" not found. Make sure to use the format: gameName#tagLine');
+      expect(component.loading).toBeFalse();
+    });
+  });
+
+  describe('Navigation', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should navigate to summoner on valid search', () => {
+      component.searchQuery = 'ValidSummoner#1234';
+
+      component.onSearch();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'ValidSummoner#1234']);
+    });
+
+    it('should not navigate on invalid search', () => {
+      component.searchQuery = 'invalid';
+
+      component.onSearch();
+
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Pagination', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      component.summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+    });
+
+    it('should load more matches', () => {
+      component.hasMoreMatches = true;
+      component.currentMatchPage = 0;
+      component.searchQuery = 'TestSummoner';
+      mockSummonerService.getRecentMatches.and.returnValue(of([]));
+
+      component.loadNextMatchPage();
+
+      expect(component.currentMatchPage).toBe(1);
+      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner', 1, 5);
+    });
+
+    it('should not load more if no more matches', () => {
+      component.hasMoreMatches = false;
+      mockSummonerService.getRecentMatches.calls.reset();
+
+      component.loadNextMatchPage();
+
+      expect(mockSummonerService.getRecentMatches).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Match Details', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      component.summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+    });
+
+    it('should toggle match expansion', () => {
+      component.toggleMatchDetails('match1');
+      expect(component.isMatchExpanded('match1')).toBeTrue();
+
+      component.toggleMatchDetails('match1');
+      expect(component.isMatchExpanded('match1')).toBeFalse();
+    });
+
+    it('should load match details when expanding', () => {
+      const matchDetail = { matchId: 'match1', participants: [] };
+      mockSummonerService.getMatchDetails.and.returnValue(of(matchDetail));
+
+      component.toggleMatchDetails('match1');
+
+      expect(component.isMatchExpanded('match1')).toBeTrue();
+      expect(component.getMatchDetail('match1')).toEqual(matchDetail);
+    });
+
+    it('should handle match details error', () => {
+      mockSummonerService.getMatchDetails.and.returnValue(throwError(() => new Error('Error')));
+
+      component.toggleMatchDetails('match1');
+
+      expect(component.isMatchExpanded('match1')).toBeTrue();
+      expect(component.getMatchDetail('match1')).toBeNull();
+    });
+  });
+
+  describe('Search Validation', () => {
+    it('should validate search format with missing #', () => {
+      component.searchQuery = 'SummonerWithoutTag';
+
+      component.onSearch();
+
+      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)');
+    });
+
+    it('should validate search format with empty parts', () => {
+      component.searchQuery = '#EUW';
+
+      component.onSearch();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', '#EUW']);
+    });
+
+    it('should validate search format with empty tag', () => {
+      component.searchQuery = 'Summoner#';
+
+      component.onSearch();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Summoner#']);
     });
   });
 });
