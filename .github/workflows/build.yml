@@ -414,17 +414,9 @@ jobs:
           mvn clean verify sonar:sonar \
             -Dsonar.projectKey=codeurjc-students_2025-SPIRITBLADE \
             -Dsonar.organization=codeurjc-students \
+            -Dsonar.projectName=2025-SPIRITBLADE \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-
-      - name: 🔍 Run SonarCloud Analysis for Frontend
-        working-directory: ./frontend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm install -g sonarqube-scanner
-          sonar-scanner
 
   # ============================================
   # FINAL MERGE VALIDATION
