@@ -31,8 +31,3 @@ Esta separación garantiza:
 - Mejor seguridad (los administradores no pueden realizar acciones de usuario por error)
 - Fomenta la gestión adecuada de cuentas
 - Sigue el principio de menor privilegio
-
-### Ejemplo de uso
-Si un administrador quiere:
-1. Gestionar usuarios → Iniciar sesión como `admin`
-2. Buscar invocadores o usar el panel → Iniciar sesión como `user` (o crear una cuenta de usuario separada)

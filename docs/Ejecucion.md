@@ -16,7 +16,6 @@ SPIRITBLADE utiliza Docker para el despliegue. Instala Docker según tu sistema 
 
 Guías oficiales de instalación de Docker:
 
-- https://docs.docker.com/desktop/install/
 - https://docs.docker.com/engine/install/
 
 ---
@@ -34,19 +33,8 @@ mkdir spiritblade; cd spiritblade
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/codeurjc-students/2025-SPIRITBLADE/main/docker/docker-compose.yml" -OutFile docker-compose.yml
 ```
 
-2) Crea un archivo `.env` junto a `docker-compose.yml` con las variables de entorno requeridas (ejemplo):
+2) Crea un archivo `.env` junto a `docker-compose.yml` con las variables de entorno requeridas (basarse en .env.example):
 
-```text
-DOCKER_USERNAME=codeurjcstudents
-# Consulte .env.example. Copie los valores en .env y NO comitee .env
-RIOT_API_KEY=RGAPI-your-riot-api-key-here
-MYSQL_ROOT_PASSWORD=rootpassword
-MYSQL_DATABASE=spiritblade_db
-MYSQL_USER=spiritblade_user
-MYSQL_PASSWORD=spiritblade_pass
-JWT_SECRET=your-secure-jwt-secret-min-256-bits
-SERVER_PORT=443
-```
 
 3) Inicia la pila:
 
@@ -90,36 +78,6 @@ docker compose up -d
 
 ---
 
-## Configuración
-
-Coloca un archivo `.env` junto a `docker-compose.yml` con al menos estas variables:
-
-```text
-# Namespace de las imágenes Docker (opcional)
-DOCKER_USERNAME=codeurjcstudents
-
-# Clave de la API de Riot Games (requerida)
-RIOT_API_KEY=RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-
-# Configuración MySQL
-MYSQL_ROOT_PASSWORD=rootpassword
-MYSQL_DATABASE=spiritblade_db
-MYSQL_USER=spiritblade_user
-MYSQL_PASSWORD=spiritblade_pass
-
-# Secreto JWT (usa un valor aleatorio seguro, mínimo ~32 caracteres)
-JWT_SECRET=your-very-secure-secret-key-min-256-bits-long
-
-# Puerto del servidor (por defecto 443 para HTTPS)
-SERVER_PORT=443
-```
-
-Obtén una clave de Riot Games en: https://developer.riotgames.com/
-
-Nota: Las claves de desarrollo expiran con frecuencia y tienen límites de tasa (aprox. 20 req/s, 100 req/2min). Para producción, solicita una clave de producción a Riot.
-
----
-
 ## Estructura del stack Docker
 
 La pila de compose ejecuta un conjunto pequeño de servicios:
@@ -135,6 +93,10 @@ La pila de compose ejecuta un conjunto pequeño de servicios:
   - variables de entorno: RIOT_API_KEY, JWT_SECRET, etc.
   - healthcheck: curl -k https://localhost:443/actuator/health
 
+- spiritblade-Minio (Almacenamiento de objetos compatible con S3)
+  - puerto interno: 9000
+  - volumen persistente: spiritblade_minio_data
+
 ---
 
 ## Acceder a la aplicación
@@ -148,105 +110,7 @@ Como la configuración de desarrollo usa un certificado autofirmado necesitarás
 
 ### Credenciales de prueba (usuarios de ejemplo preconfigurados)
 
-Cuenta de usuario (normal):
-
-```
-username: testuser
-password: password
-```
-
-Cuenta de administrador:
-
-```
-username: admin
-password: admin
-```
-
----
-
-## Datos de ejemplo y comprobaciones básicas
-
-En la primera ejecución la aplicación inserta usuarios de ejemplo y datos de muestra.
-
-Usuarios preconfigurados:
-
-- `admin` (rol: ADMIN, contraseña: `admin`)
-- `testuser` (rol: USER, contraseña: `password`)
-
-Prueba a buscar invocadores reales (región EUW por defecto), por ejemplo:
-
-- Player#EUW
-- Faker#KR1
-- G2Caps#EUW
-
----
-
-## Comandos útiles
-
-Usa estos comandos en PowerShell (o adáptalos a tu shell):
-
-```powershell
-# Ver logs de todos los servicios
-docker compose logs -f
-
-# Ver solo los logs de la app
-docker compose logs -f app
-
-# Ver solo los logs de MySQL
-docker compose logs -f mysql
-
-# Mostrar las últimas 100 líneas de los logs de la app
-docker compose logs --tail=100 app
-
-# Mostrar estado de los contenedores
-docker compose ps
-
-# Parar (mantiene volúmenes)
-docker compose stop
-
-# Reiniciar
-docker compose restart
-
-# Parar y eliminar contenedores (mantiene volúmenes)
-docker compose down
-
-# Eliminar todo incluyendo volúmenes (PÉRDIDA DE DATOS)
-docker compose down -v
-
-# Descargar imágenes actualizadas y recrear
-docker compose pull
-docker compose up -d
-
-# Ejecutar un comando en el contenedor de la app en ejecución
-docker compose exec app java -jar /app/app.jar --version
-```
-
----
-
-## Comprobaciones de estado y verificación
-
-Confirma que el backend está sano:
-
-```powershell
-# Acepta el certificado autofirmado con -k
-curl -k https://localhost:443/actuator/health
-
-# Respuesta esperada: {"status":"UP"}
-```
-
-Verifica la base de datos desde dentro del contenedor MySQL:
-
-```powershell
-docker compose exec mysql mysql -u spiritblade_user -p spiritblade_db
-# luego dentro de mysql: SHOW TABLES; SELECT COUNT(*) FROM USERS;
-```
-
-Busca errores en los logs:
-
-```powershell
-docker compose logs app | Select-String "ERROR"
-docker compose logs app | Select-String "WARN"
-```
+Revisar docs/Credenciales.md para más detalles.
 
 ---
 
@@ -297,7 +161,6 @@ docker compose logs app
 
 Causas comunes:
 
-- JWT_SECRET demasiado corto — usa una cadena aleatoria segura (recomendado ~32+ caracteres)
 - MySQL no está listo — espera a que pase el healthcheck
 - Variables de entorno faltantes — revisa `.env`
 
@@ -317,52 +180,8 @@ keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
 
 ---
 
-## Despliegue remoto (servidor)
-
-Requisitos mínimos del servidor:
-
-- SO: Ubuntu 20.04+/Debian 11+/RHEL 8+
-- RAM: 2GB (4GB recomendado)
-- Disco: 10GB libres
-- Docker & Docker Compose instalados
-- Puertos: 443 (HTTPS) y opcionalmente 3306 (MySQL)
-
-Pasos básicos (ejemplo):
-
-```bash
-# Conéctate por SSH al servidor
-ssh user@your-server
-
-# Instalar Docker (ejemplo para Ubuntu)
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# Instalar Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Desplegar
-mkdir /opt/spiritblade && cd /opt/spiritblade
-curl -O https://raw.githubusercontent.com/codeurjc-students/2025-SPIRITBLADE/main/docker/docker-compose.yml
-nano .env # rellena con valores seguros para producción
-docker compose up -d
-
-# Permitir HTTPS en el firewall
-sudo ufw allow 443/tcp
-sudo ufw enable
-```
-
----
-
 ## Documentación adicional
 
 - [Guía de desarrollo](Guia-Desarrollo.md)
 - [API REST](API.md)
-- [Docker README](../docker/README.md)
 
----
-
-[← Volver al README principal](../README.md)
-
-**Esto es normal en desarrollo.** El certificado es autofirmado.

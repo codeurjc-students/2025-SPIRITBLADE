@@ -1,379 +1,168 @@
-# Funcionalidades - SPIRITBLADE v0.1
+# Características detalladas — SPIRITBLADE
 
-Este documento describe las funcionalidades implementadas en SPIRITBLADE v0.1, ilustradas con capturas y descripciones detalladas del comportamiento.
+Este documento contiene la lista completa de características previstas para el proyecto SPIRITBLADE, indicando su estado de implementación y una descripción detallada.
 
----
-
-## 📑 Contenido
-1. [Usuario anónimo](#usuario-anónimo)
-2. [Usuario registrado](#usuario-registrado)
-3. [Administrador](#administrador)
+> 📝 Actualizado en octubre de 2025: Este documento fue revisado para reflejar un reajuste del alcance del proyecto basado en el tiempo de desarrollo disponible y la priorización de las características principales. Consulte [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para los detalles completos de los cambios.
 
 ---
 
-## Usuario anónimo
+## Estado de implementación
 
-Los visitantes anónimos pueden usar la búsqueda y ver contenidos sin registrarse.
-
-> **Nota de actualización (octubre 2025)**: Las funcionalidades en este documento se ajustaron para coincidir con el nuevo alcance del proyecto y el tiempo de desarrollo disponible. Ver [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para más detalles.
-
-### Funciones principales
-- Buscar invocadores y ver su perfil y clasificación
-- Ver historial público de partidas con capa de caché
-- Acceder a estadísticas básicas de campeones (maestría, campeones más jugados, métricas básicas de rendimiento)
-
-### 1.1 Búsqueda de invocador
-
-Descripción: Los usuarios pueden buscar cualquier invocador de League of Legends usando su Riot ID en el formato `gameName#tagLine`.
-
-Captura:
-![Home - Search](https://github.com/user-attachments/assets/f63da861-eb8b-41fe-9487-c8177f8054c9)
-
-Comportamiento:
-- Campo de búsqueda en la página de inicio
-- Validación del formato de entrada (debe incluir `#`)
-- Búsquedas recientes mostradas en la página de inicio
-- Redirección automática al perfil del invocador encontrado
-
-Ejemplo:
-1. Abrir la página de inicio
-2. Ingresar un Riot ID: `Player#EUW`
-3. Presionar Enter o hacer clic en "Search"
-4. El sistema redirige al perfil del invocador
+### Leyenda
+- ✅ Implementado — Función completa en v0.1
+- 🚧 En progreso — Iniciado pero no terminado
+- ✅ Planificado — Programado para versiones futuras
 
 ---
 
-### 1.2 Perfil del invocador
+## 1. Características principales (v0.1)
 
-Descripción: Muestra la información completa del invocador incluyendo nivel, rango, estadísticas y maestrías de campeones.
+### 1.1 Usuario anónimo
 
-Captura:
-![Summoner Profile](https://github.com/user-attachments/assets/9a6220c3-e4ed-459a-a5f2-414312de0f7a)
+#### Alcance (actualizado)
+Búsqueda de invocador y vista de su perfil (Elo, nivel, icono, Numero de partidas, Clasificatorias ganadas...), Estadísticas de campeones (maestrías y campeones más jugados), Lista de summoners buscados recientemente.
 
-Datos mostrados:
-- Encabezado de perfil:
-  - Icono de perfil (desde Data Dragon)
-  - Riot ID completo
-  - Nivel del invocador
-
-- Estadísticas clasificadas:
-  - División y liga (p. ej. Oro II)
-  - LP (League Points)
-  - Victorias y derrotas
-  - Porcentaje de victorias calculado
-  - Total de partidas jugadas
-
-- Top 3 campeones:
-  - Icono del campeón
-  - Nombre del campeón
-  - Nivel de maestría
-  - Puntos de maestría
-
-Fuente de datos: La mayor parte de los datos se obtienen en tiempo real desde la API de Riot Games y se cachean en la base de datos local para mejorar el rendimiento.
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.1.1 | Buscar invocadores | ✅ | El usuario introduce un Riot ID (gameName#tagLine) en el campo de búsqueda. El sistema valida el formato, consulta la API de Riot Games y muestra el perfil completo. Si el invocador no existe, se muestra un mensaje de error claro. Se implementa caché para mejorar el rendimiento. |
+| F1.1.2 | Ver perfil de invocador y rango | ✅ | La página de perfil muestra avatar, nivel, Riot ID, rango actual (tier/división/LP), victorias/derrotas, tasa de victorias y partidas totales. Los datos se obtienen de la API de Riot y se cachean localmente con una estrategia de actualización inteligente. |
+| F1.1.3 | Ver estadísticas básicas de campeones | ✅ | Acceso a maestría de campeón: top 3 campeones más jugados con nivel de maestría y puntos (1–7). Muestra icono, nombre, nivel de maestría y puntos totales. Datos provenientes de Champion-Mastery-v4. |
+| F1.1.4 | Búsquedas recientes | ✅ | La página de inicio lista las 10 búsquedas de invocador más recientes realizadas por cualquier usuario, ordenadas por fecha (más recientes primero). Cada elemento enlaza al perfil del invocador. |
 
 ---
 
-### 1.3 Historial de partidas
+### 1.2 Usuario registrado
 
-Descripción: Muestra las partidas recientes del invocador con detalles de rendimiento.
+#### Alcance (actualizado)
+Acceso a un panel de control personalizable (dashboard), Enlazar tu summoner de lol con tu cuenta de usuario, Gestion de foto de perfil propia.
 
-Captura:
-*(Sección del perfil del invocador mostrando historial de partidas)*
-
-Datos por partida:
-- Resultado: Victoria (verde) o Derrota (rojo)
-- Campeón jugado: icono y nombre
-- KDA: asesinatos/muertes/asistencias
-- Duración de la partida: minutos
-- Marca temporal de la partida: hora de finalización
-
-Paginación:
-- 5 partidas por página por defecto
-- Botones "Cargar más" para ver partidas anteriores
-- Carga dinámica sin recargar la página
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.2.1 | Panel de control personalizable | ✅ | Dashboard con información de perfil, estadísticas básicas y acciones rápidas. Requiere JWT válido. |
+| F1.2.2 | Enlazar cuenta de LoL | ✅ | Vincular cuenta de League of Legends usando Riot ID para análisis automático. Planificado para v0.2. |
+| F1.2.3 | Gestión de foto de perfil | ✅ | Subir y gestionar avatar de usuario (PNG only, MinIO). Planificado para v0.2. |
+| F1.2.4 | Editar información personal | ✅ | Actualizar nombre, email y contraseña. Validación de email y fortaleza de contraseña. |
+| F1.2.5 | Inicio de sesión y registro | ✅ | Registro con email y contraseña, inicio de sesión con JWT. Validación y manejo de errores. |
 
 ---
 
-### 1.4 Búsquedas recientes
+## 2. Funcionalidades intermedias (v1.0)
 
-Descripción: La página de inicio lista las búsquedas más recientes de invocadores realizadas por cualquier usuario.
+### 2.1 Usuario anónimo
 
-Comportamiento:
-- Muestra los 10 invocadores más buscados recientemente
-- Ordenado por fecha de búsqueda (más nuevo primero)
-- Clic para abrir el perfil
-- Se actualiza automáticamente con nuevas búsquedas
+#### Alcance (actualizado)
+Winrate del invocador, usando datos detallados de partidas, Detalles completos de cada partida del historial.
 
-Características planificadas intermedias:
-- Estadísticas agregadas por invocador usando datos de partidas cacheadas
-
-Características avanzadas planificadas:
-- Sistema de caché inteligente que minimice tiempos de carga y garantice frescura de datos
-- Estrategia híbrida de acceso a datos que equilibre rendimiento y frescura
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| F2.1.1 | Estadísticas agregadas de invocadores | ✅ | Motor de agregación que combina datos de múltiples invocadores buscados: tasa de victorias media por campeón, KDA medio por rol, tasas de selección de campeones populares. Dashboard público con gráficos, optimizado con detalles de partidas en caché para reducir tiempos de carga. |
 
 ---
 
-## Usuario registrado
+### 2.2 Usuario registrado
 
-Los usuarios registrados obtienen acceso a funcionalidades adicionales tras iniciar sesión.
+#### Alcance (actualizado)
+Estadisticas sobre el summoner vinculado (Rango actual, LP ganado, rol principal, campeon favorito), Sistema de permite marcar como favorito otros summoner para seguimiento rápido, Analisis por inteligencia artificial de rendimiento del summoner vinculado.
 
-### Funciones principales
-- Panel personalizado
-- Datos de partida detallados enriquecidos usando la API de Riot
-- Ver campeones con mayor maestría y rendimiento personal
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| F2.2.1 | Estadísticas del summoner vinculado | ✅ | Mostrar rango actual, LP ganado en los últimos 7 días, rol principal basado en historial, campeón favorito por maestría. |
+| F2.2.2 | Sistema de favoritos | ✅ | Marcar summoners como favoritos para seguimiento rápido. Lista en el dashboard con acceso directo a perfiles. |
+| F2.2.3 | Análisis por IA | ✅ | Integración con Gemini AI para análisis avanzado de rendimiento del summoner vinculado. Recomendaciones personalizadas. |
 
-### Funciones intermedias
-- Acceso a datos de rendimiento personal detallados para campeones favoritos
-- Historial de partidas enriquecido con información contextual
-
-### 2.1 Autenticación
-
-Descripción: Inicio de sesión y registro usan autenticación basada en JWT.
-
-Captura de inicio de sesión:
-![Login](https://github.com/user-attachments/assets/381dfdd6-e915-4c34-ba98-b3cf9985855d)
-
-Comportamiento de inicio de sesión:
-- Validación de credenciales
-- Emisión de token JWT
-- Mensajes de error informativos:
-  - Credenciales inválidas
-  - Servidor no disponible
-  - Errores de red
-- Redirección automática al panel tras inicio exitoso
-
-Comportamiento de registro:
-- Validaciones del formulario:
-  - Nombre de usuario requerido
-  - Formato de email válido
-  - Contraseña requerida
-  - Confirmación de contraseña
-- Las contraseñas deben coincidir
-- Detección de usuario duplicado
-- Inicio de sesión automático tras registro exitoso
-
-Seguridad:
-- Contraseñas hasheadas con BCrypt
-- Tokens JWT con expiración
-- Cookies HttpOnly usadas para almacenar tokens
 
 ---
 
-### 2.2 Panel personal
+## 3. Funcionalidades avanzadas (v1.0)
 
-Descripción: Panel personalizado con estadísticas y accesos rápidos.
+### 3.1 Usuario anónimo
 
-Captura:
-![Dashboard](https://github.com/user-attachments/assets/d63561f9-b167-4059-8c2e-c1dca6cbe1fe)
+#### Alcance (actualizado)
+Avanzado: historial público de partidas paginable.
 
-Secciones del panel:
-- Perfil del usuario:
-  - Nombre de usuario
-  - Email registrado
-  - Avatar (implementación parcial)
-
-- Estadísticas personales:
-  - Total de búsquedas realizadas
-  - Invocadores favoritos guardados
-  - Campeón más buscado (planificado)
-
-- Acciones rápidas:
-  - Buscar un invocador
-  - Ver favoritos
-  - Editar perfil
-
-Nota: Algunas funciones del panel están planificadas para la v0.2 (gráficas, tendencias).
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| F3.1.1 | Historial público paginable | ✅ | Historial de partidas públicas con paginación avanzada, optimizado con caché para reducir tiempos de carga. |
 
 ---
 
-### 2.3 Gestión de favoritos
+### 3.2 Usuario registrado
 
-Descripción: Los usuarios pueden guardar invocadores favoritos para acceso rápido.
+#### Alcance (actualizado)
+Grafico de evolución de rango del summoner vinculado por cada cola de clasificatoria.
 
-Estado actual (en desarrollo):
-- Botón "Agregar a favoritos" en el perfil del invocador
-- Lista de favoritos en el panel
-- Notificaciones de actividad (planificadas para v0.2)
-- Eliminar de favoritos
-
-Estado: ✅ Modelo de datos implementado, UI en progreso
-
-Funciones avanzadas planificadas:
-- Panel personalizado con KPIs calculados desde el historial de partidas
-- Caché inteligente que priorice la BD sobre llamadas externas costosas
-- Validación automática de frescura con impacto mínimo en latencia
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| F3.2.1 | Gráfico de evolución de rango | ✅ | Visualización gráfica de la evolución del rango a lo largo del tiempo para cada cola de clasificatoria (SoloQ, Flex, etc.). Basado en datos históricos almacenados. |
 
 ---
 
-## Administrador
+## 4 Funcionalidades de administración
 
-Los administradores tienen acceso completo a las funciones de gestión del sistema.
+Gestión de usuarios (habilitar, deshabilitar, eliminar, editar), Filtros de búsqueda avanzada en el panel de administración y paginación, Creación de usuarios con personalización de rol.
 
-### 3.1 Panel de administración
+| ID | Función | Estado | Descripción del comportamiento |
+|----|---------|--------|-------------------------------|
+| F1.3.1 | Acceder al panel de administración | ✅ | Requiere rol ADMIN en el JWT. El panel muestra gestión de usuarios, métricas del sistema y logs. Usuarios no autorizados son redirigidos con un mensaje de error. |
+| F1.3.2 | Listar todos los usuarios | ✅ | Tabla de todos los usuarios registrados mostrando ID, nombre, email, roles, estado activo/inactivo y fecha de registro. Endpoint `/admin/users` protegido con `@PreAuthorize("hasRole('ADMIN')")`. |
+| F1.3.3 | Habilitar/deshabilitar usuarios | ✅ | Interruptor para cambiar el flag `active`. Usuarios deshabilitados no pueden iniciar sesión (verificado en UserLoginService). El cambio se aplica inmediatamente vía llamada API. |
+| F1.3.4 | Eliminar usuarios | ✅ | Botón de eliminar con confirmación. DELETE `/admin/users/{id}` elimina el usuario de la BD (cascade para relaciones). Los admins no pueden eliminar su propia cuenta. |
+| F1.3.5 | Editar roles de usuario | ✅ | El admin puede cambiar roles (USER ↔ ADMIN) mediante select inline + botón guardar. PUT `/admin/users/{id}/roles`. En progreso. |
+| F1.3.6 | Filtros de búsqueda avanzada | ✅ | Filtros por nombre, email, rol, estado activo. Paginación para listas grandes. Planificado para v1.0. |
+| F1.3.7 | Creación de usuarios | ✅ | Formulario para crear usuarios con asignación de rol inicial. Útil para testing o soporte. Planificado para v1.0. |
 
-Descripción: UI dedicada de administración con herramientas de gestión.
+## 5. Características técnicas
 
-Captura:
-![Admin Panel](https://github.com/user-attachments/assets/162964b0-f4f9-4521-837b-4e7b101fedd7)
+### 5.1 Seguridad
 
-Acceso:
-- Requiere rol `ADMIN` en el token JWT
-- Redirige automáticamente cuando faltan permisos
-- Enlace en el menú visible solo para administradores
-
----
-
-### 3.2 Gestión de usuarios
-
-Descripción: Los admins pueden ver y gestionar todos los usuarios registrados.
-
-Funciones:
-- Listar usuarios:
-  - Tabla con todos los usuarios registrados
-  - Campos visibles: nombre, email, roles, estado
-  - Búsqueda y filtros (en progreso)
-
-- Activar / Desactivar usuarios:
-  - Alternar la bandera `active` de un usuario
-  - Usuarios desactivados no pueden iniciar sesión
-  - Indicador visual del estado
-
-- Eliminar usuarios:
-  - Eliminación permanente
-  - Confirmación antes de eliminar
-  - Logs de auditoría (planificado para v0.2)
-
-- Editar roles:
-  - Asignar USER / ADMIN
-  - Cambios de permisos inmediatos
-
-Endpoints protegidos:
-```http
-GET  /admin/users                  # Listar usuarios
-POST /admin/users/{id}/activate    # Activar
-POST /admin/users/{id}/deactivate  # Desactivar
-DELETE /admin/users/{id}           # Eliminar
-```
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| FT.1 | Autenticación JWT | ✅ | Tokens firmados HS256, expiración 24 h, refresh token 7 días, almacenados en cookies HttpOnly. |
+| FT.2 | Autorización basada en roles | ✅ | Spring Security con `@PreAuthorize`. Roles: USER, ADMIN. Guards de Angular para rutas protegidas. |
+| FT.3 | Hash de contraseñas | ✅ | BCryptPasswordEncoder (strength 10). Las contraseñas nunca se almacenan en texto plano. |
+| FT.4 | HTTPS | ✅ | Certificado JKS autofirmado para desarrollo, TLS 1.3 en producción. Puerto 443. |
+| FT.5 | Validación de entrada | ✅ | `@Valid` en DTOs con Hibernate Validator. Saneamiento de cadenas para prevenir SQL injection. |
 
 ---
 
-### 3.3 Métricas del sistema
+### 5.2 Integración con APIs externas
 
-Descripción: Vista de métricas globales del sistema (planificado para v0.2).
-
-Métricas planificadas:
-- Total de usuarios registrados
-- Total de búsquedas realizadas
-- Invocadores más buscados
-- Actividad por día/semana
-- Uso de la API de Riot
-
-Estado: 📋 Planificado para v0.2
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| FT.6 | API de Riot Games | ✅ | Integración completa con Account-v1, Summoner-v4, League-v4, Champion-Mastery-v4, Match-v5. Usa RestTemplate con lógica de reintento. |
+| FT.7 | Data Dragon CDN | ✅ | Assets estáticos (imágenes de campeones, objetos, runas) cargados desde Riot Data Dragon. Versión 14.1.1. |
+| FT.8 | Limitación de tasa | ✅ | Implementar rate limiting para la API de Riot (20 req/s, 100 req/2min). Version v1.0. |
+| FT.9 | Gemini AI | ✅ | Integración con Gemini AI para análisis avanzado. En progreso para v1.0. |
 
 ---
 
-## Notas técnicas
+### 5.3 Rendimiento y escalabilidad
 
-### Integración con la API de Riot
-
-Todas las funciones de búsqueda dependen de las APIs oficiales de Riot Games:
-- Account-v1: traducir Riot ID a PUUID
-- Summoner-v4: datos del invocador
-- League-v4: datos de clasificación
-- Champion-Mastery-v4: estadísticas de maestría de campeones
-- Match-v5: historial de partidas
-
-### Base de datos
-
-MySQL 8.0 es la única base de datos soportada (H2 ya no se usa):
-- Almacena usuarios, invocadores, partidas y estadísticas
-- Configurado con MySQL8Dialect
-- Esquema autogenerado vía JPA/Hibernate
-- Codificación UTF-8 (utf8mb4_unicode_ci)
-
-### Caché
-
-Para mejorar rendimiento y reducir llamadas externas:
-- Los datos de invocador se cachean en MySQL
-- `lastSearchedAt` se actualiza en cada búsqueda
-- Las imágenes se sirven desde Data Dragon (CDN estático)
-
-### Almacenamiento de archivos (MinIO)
-
-MinIO se usa para almacenar avatares de usuario con validación estricta:
-- Solo se aceptan archivos PNG (validación en 3 capas)
-- Validación del encabezado PNG (`89 50 4E 47`)
-- Verificaciones de extensión y Content-Type
-- Bucket: `spiritblade-uploads`
-- Región: `us-east-1`
-
-### Seguridad
-
-HTTPS requerido:
-- El servidor funciona solo en HTTPS en el puerto 443
-- Certificado SSL autofirmado para desarrollo
-- JWT para autenticación (expiración 24h)
-- Control de acceso por roles (USER, ADMIN)
-
-Validación de archivos:
-- Avatares solo PNG
-- Verificación de "magic header"
-- Tamaño máximo de archivo: 10MB
-
-### Manejo de errores
-
-La aplicación maneja escenarios de error comunes:
-- Invocador no encontrado (404)
-- Errores de la API de Riot (429 límite de tasa, 503 servicio no disponible)
-- Errores de red
-- Formato de Riot ID inválido
-- Formato de archivo inválido (no PNG)
-- JWT expirado o inválido
-
-Todos los errores muestran mensajes informativos al usuario.
-
-### Documentación interactiva de la API (Swagger UI)
-
-Nuevo en v0.1: SPIRITBLADE incluye documentación REST interactiva usando Swagger UI.
-
-Características:
-- 📖 Exploración interactiva de todos los endpoints de la API
-- 🔐 Autenticación JWT integrada en la UI
-- 🧪 "Try it out" en vivo desde el navegador
-- 📊 Esquemas de datos completos con ejemplos
-- 🎨 UI moderna con filtro y búsqueda
-
-Acceso (solo HTTPS):
-- URL local: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
-- OpenAPI JSON: [https://localhost/v3/api-docs](https://localhost/v3/api-docs)
-- OpenAPI YAML: [https://localhost/v3/api-docs.yaml](https://localhost/v3/api-docs.yaml)
-
-⚠️ Importante: El servidor funciona solo en HTTPS en el puerto 443. Debes aceptar el certificado autofirmado la primera vez que lo visites.
-
-Beneficios:
-- Desarrolladores: explorar endpoints sin Postman
-- Testers: ejercitar visualmente el comportamiento de la API
-- Integradores: generar clientes desde OpenAPI
-- Documentadores: documentación siempre actualizada que coincide con el código
-
-Ejemplo de uso:
-1. Iniciar la aplicación
-2. Abrir [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) (aceptar el certificado SSL)
-3. Iniciar sesión mediante `POST /auth/login` para obtener un token
-4. Hacer clic en "Authorize" y pegar el token
-5. Probar cualquier endpoint autenticado con "Try it out"
-
-Documentación completa:
-- [API.md](API.md) - Guía rápida para acceder a Swagger UI
-- [SWAGGER.md](SWAGGER.md) - Guía completa de Swagger
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Tutorial paso a paso
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| FT.10 | Caché Sistema | ✅ | El sistema se asegura de que los datos esten al dia para evitar llamadas innecesarias a las APIs externas. |
+| FT.11 | Caché distribuida | ✅ | Redis con Spring Cache para respuestas de API y sesiones, reduciendo carga en BD y APIs externas. Implementado en v1.1 con reajuste. |
 
 ---
 
-## Próximas funciones
+### 5.4 Calidad y pruebas
 
-Ver **[Funcionalidades Detalladas](Funcionalidades-Detalladas.md)** para la lista completa de funciones planificadas para futuras versiones.
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| FT.13 | Tests unitarios backend | ✅ | JUnit 5 + Mockito. Meta de cobertura ≥80%. Tests para servicios, controladores y mappers. |
+| FT.14 | Tests unitarios frontend | ✅ | Jasmine + Karma. Meta de cobertura ≥80%. Tests de componentes, servicios y guards. |
+| FT.15 | Tests de integración | ✅ | Spring Boot Test con `@SpringBootTest`. Tests de endpoints usando MockMvc. |
+| FT.16 | Tests E2E | ✅ | Selenium WebDriver para flujos end-to-end: login → búsqueda → perfil. En progreso. |
+| FT.17 | Análisis estático | ✅ | SonarCloud en la pipeline de CI. Métricas: bugs, code smells, vulnerabilidades. Quality Gate configurado. |
 
 ---
 
-[← Volver al README principal](../README.md)
+### 5.5 Ci/CD
+
+| ID | Función | Estado | Descripción |
+|----|---------|--------|-------------|
+| FT.18 | Docker multi-stage | ✅ | Dockerfile con 3 etapas: build de Node (Angular), build de Maven (Spring Boot), runtime JRE. Imagen objetivo <200MB. |
+| FT.19 | Docker Compose | ✅ | Orquesta app + MySQL con healthchecks, depends_on y volúmenes persistentes. |
+| FT.20 | CI/CD (GitHub Actions) | ✅ | Workflows: build (tests + calidad), deploy-dev (main), deploy-release (releases), manual-build. |
+| FT.21 | Publicar en DockerHub | ✅ | Workflow automatizado publica imágenes con tags: dev, versión (0.1.0), latest. Artefactos OCI para compose. |
+
