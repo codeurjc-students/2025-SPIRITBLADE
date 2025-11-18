@@ -38,6 +38,6 @@ Write-Host "`nEnvironment variables loaded successfully!" -ForegroundColor Green
 Write-Host "Running Maven tests...`n" -ForegroundColor Cyan
 
 # Run Maven tests
-mvn test
+mvn test jacoco:report
 
 Write-Host "`nTests execution completed." -ForegroundColor Cyan

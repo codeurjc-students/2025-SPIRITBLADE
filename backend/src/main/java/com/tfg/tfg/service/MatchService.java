@@ -70,48 +70,4 @@ public class MatchService {
     public List<MatchEntity> saveAll(List<MatchEntity> matches) {
         return matchRepository.saveAll(matches);
     }
-
-    /**
-     * Saves a match and records its rank snapshot.
-     * Use this when you have rank data available at match save time.
-     * 
-     * @param match The match entity
-     * @param tier Tier at match time
-     * @param rank Rank at match time  
-     * @param leaguePoints LP at match time
-     * @return Saved match entity
-     */
-    public MatchEntity saveWithRankSnapshot(MatchEntity match, String tier, String rank, Integer leaguePoints) {
-        MatchEntity saved = matchRepository.save(match);
-        
-        if (tier != null && saved.getSummoner() != null) {
-            rankHistoryService.recordRankSnapshot(saved.getSummoner(), saved, tier, rank, leaguePoints);
-        }
-        
-        return saved;
-    }
-
-    /**
-     * Saves matches and records their rank snapshots.
-     * 
-     * @param matches List of match entities
-     * @param tier Tier at matches time
-     * @param rank Rank at matches time
-     * @param leaguePointsMap Map of matchId to LP at match time
-     * @return Saved match entities
-     */
-    public List<MatchEntity> saveAllWithRankSnapshots(List<MatchEntity> matches, String tier, String rank, Map<String, Integer> leaguePointsMap) {
-        List<MatchEntity> saved = matchRepository.saveAll(matches);
-        
-        saved.stream()
-                .filter(m -> m.getSummoner() != null)
-                .forEach(m -> {
-                    Integer lp = leaguePointsMap.get(m.getMatchId());
-                    if (lp != null) {
-                        rankHistoryService.recordRankSnapshot(m.getSummoner(), m, tier, rank, lp);
-                    }
-                });
-        
-        return saved;
-    }
 }

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 /**
@@ -49,8 +50,8 @@ public class RankHistory {
 
     private String queueType;      // RANKED_SOLO_5x5, RANKED_FLEX_SR
 
-    // Relation to match that triggered this snapshot
-    @ManyToOne(fetch = FetchType.LAZY)
+    // Relation to match that triggered this snapshot (1:1 relationship)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "match_id")
     private MatchEntity triggeringMatch;
 

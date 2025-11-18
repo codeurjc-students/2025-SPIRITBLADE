@@ -14,7 +14,7 @@
 
 **SPIRITBLADE v0.1** es una aplicación web que permite a los jugadores de League of Legends buscar y visualizar estadísticas de invocadores en tiempo real. La aplicación se conecta a la API oficial de Riot Games para obtener información actualizada sobre perfil, rango, historial de partidas y estadísticas de campeones.
 
-### Características principales de la v0.1:
+### Características principales:
 
 ✅ **Búsqueda de invocadores** por Riot ID (gameName#tagLine)  
 ✅ **Visualización de perfil** con nivel, icono y rango actual  
@@ -23,6 +23,7 @@
 ✅ **Sistema de autenticación** con JWT para usuarios registrados  
 ✅ **Panel de administración** para gestión de usuarios (rol ADMIN)  
 ✅ **Búsquedas recientes** en página de inicio  
+✅ **Analisis con IA** básico de rendimiento en partidas
 ✅ **Despliegue con Docker** listo para producción
 
 ---
@@ -62,41 +63,22 @@
 
 ---
 
-## 🎥 Video Demostración (v0.1)
+## 🎥 Video Demostración
 
 > **[🎬 Ver video demostrativo - 1 minuto](link-pendiente)**
 
-### Contenido del video:
+### Contenido del video (Placeholder):
 - **Usuario anónimo** (00:00-00:25): Búsqueda de invocadores, visualización de perfil, historial de partidas
 - **Usuario registrado** (00:25-00:45): Login, dashboard personal, favoritos
 - **Administrador** (00:45-01:00): Panel de administración, gestión de usuarios
 
----
-
-## 🔮 Próximas Versiones
-
-Las siguientes versiones incluirán funcionalidades avanzadas para enriquecer la experiencia de usuario:
-
-### Versión 0.2 (Funcionalidades Intermedias)
-- 📊 **Análisis avanzado de rendimiento** con gráficos de tendencias
-- 📝 **Sistema de notas** en partidas
-- ⭐ **Gestión de favoritos** mejorada
-- 🔔 **Notificaciones** de actividad de invocadores
-
-### Versión 1.0 (Funcionalidades Avanzadas)
-- 📈 **Estadísticas globales** de la comunidad
-- 🤖 **Recomendaciones inteligentes** basadas en estilo de juego
-- 📧 **Reportes por email** periódicos (tentativo)
-- 🏆 **Rankings personalizados**
-- 📊 **Análisis predictivo** de rendimiento
 
 ---
 
 ## 📚 Índice de Documentación
 
 ### Documentación Principal
-- **[Funcionalidades](docs/Funcionalidades.md)** - Capturas de pantalla y descripción de cada funcionalidad
-- **[Funcionalidades Detalladas](docs/Funcionalidades-Detalladas.md)** - Lista completa de funcionalidades implementadas y pendientes
+- **[Funcionalidades](docs/Funcionalidades.md)** - Lista completa de funcionalidades implementadas y su descripción
 - **[Ejecución](docs/Ejecucion.md)** - Instrucciones para ejecutar la aplicación con Docker
 - **[Guía de Desarrollo](docs/Guia-Desarrollo.md)** - Guía técnica completa para desarrolladores
 
@@ -104,11 +86,11 @@ Las siguientes versiones incluirán funcionalidades avanzadas para enriquecer la
 - **[Seguimiento](docs/Seguimiento.md)** - Control de calidad, proceso de desarrollo y métricas
 - **[Inicio del Proyecto](docs/Inicio-Proyecto.md)** - Objetivos, metodología y análisis inicial
 - **[Autores](docs/Autores.md)** - Información sobre el equipo y el proyecto
+- **[Reajuste de funcionalidades](docs/Reajuste-Funcionalidades.md)** - Cambios en el alcance y funcionalidades del proyecto
 
 ### Documentación Técnica Adicional
 - **[API REST](docs/API.md)** - Documentación de endpoints
-- **[Despliegue Docker](docker/README.md)** - Instrucciones de despliegue
-- **[Proceso de Release](docs/RELEASE-PROCESS.md)** - Guía de versionado y publicación
+- **[Credenciales](docs/Credenciales.md)** - Gestión de roles y configuración de producción
 
 ---
 
@@ -118,16 +100,6 @@ Las siguientes versiones incluirán funcionalidades avanzadas para enriquecer la
 
 **⚠️ IMPORTANTE**: Este proyecto usa variables de entorno para gestionar credenciales.
 
-```bash
-# 1. Copiar template de variables de entorno
-cp .env.example .env
-
-# 2. Editar .env con tus credenciales reales
-# NUNCA commitees el archivo .env
-```
-
-📖 **[Ver SECURITY.md](SECURITY.md)** - Guía rápida de configuración de seguridad  
-📖 **[Ver docs/Seguridad.md](docs/Seguridad.md)** - Documentación completa de seguridad
 
 ### 🔑 Credenciales de Desarrollo
 
@@ -137,8 +109,6 @@ cp .env.example .env
 - **Usuario:** `user` / `pass`
 
 **⚠️ NUNCA uses estas credenciales en producción**
-
-📖 **[Ver docs/Credenciales.md](docs/Credenciales.md)** - Incluye gestión de roles y configuración de producción.
 
 ---
 
@@ -183,8 +153,8 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 [![Build Status](https://github.com/codeurjc-students/2025-SPIRITBLADE/workflows/CI%2FCD%20-%20Quality%20Control%20%26%20Testing/badge.svg)](https://github.com/codeurjc-students/2025-SPIRITBLADE/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=codeurjc-students_2025-SPIRITBLADE&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=codeurjc-students_2025-SPIRITBLADE)
 
-**Versión actual**: 0.1.0  
-**Última actualización**: Diciembre 2024  
+**Versión actual**: 1.0.0 
+**Última actualización**: Noviembre 2025 
 **Estado**: ✅ Funcional - Desarrollo Activo
 
 ---
@@ -192,7 +162,7 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 ## 🔗 Enlaces
 
 - **Repositorio**: [GitHub - SPIRITBLADE](https://github.com/codeurjc-students/2025-SPIRITBLADE)
-- **Docker Hub**: [spiritblade:latest](https://hub.docker.com/r/yourusername/spiritblade)
+- **Docker Hub**: [Spiritblade Docker Hub](https://hub.docker.com/repository/docker/jae9104/spiritblade/general)
 - **Blog del proyecto**: [Medium - SPIRITBLADE](https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3)
 - **Issues y Tareas**: [GitHub Projects](https://github.com/codeurjc-students/2025-SPIRITBLADE/projects)
 
@@ -205,13 +175,13 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 - **Estudiante**: Jorge Andrés Echevarría
 - **Tutor**: Iván Chicano Capelo
 - **Universidad**: URJC - ETSII
-- **Curso**: 2024-2025
+- **Curso**: 2025-2026
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo licencia MIT. Ver archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo licencia. Ver archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 

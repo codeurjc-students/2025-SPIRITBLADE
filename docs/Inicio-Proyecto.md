@@ -14,20 +14,19 @@ Desarrollar una aplicación web completa que permita a jugadores de League of Le
 
 > 📝 Actualizado octubre de 2025: Los objetivos funcionales se re-ajustaron para alinearse con el tiempo de desarrollo disponible y priorizar las funcionalidades esenciales del sistema. Ver [REAJUSTE-FUNCIONALIDADES.md](REAJUSTE-FUNCIONALIDADES.md) para detalles completos.
 
-SPIRITBLADE pretende ofrecer distintos niveles de funcionalidad según el tipo de usuario:
+SPIRITBLADE pretendía ofrecer distintos niveles de funcionalidad según el tipo de usuario (revisar cambios en [REAJUSTE-FUNCIONALIDADES.md](Reajuste-Funcionalidades.md)):
 
 #### Usuarios anónimos
 
 Funciones básicas:
 - Buscar invocadores y ver su perfil y clasificación
-- Ver historial de partidas público con una capa de caché
+- Ver historial de partidas público
 - Acceder a estadísticas básicas de campeones incluyendo maestrías, campeones más jugados y datos de rendimiento generales
 
 Funciones intermedias:
-- Estadísticas agregadas de invocadores usando datos de partidas cacheadas
+- Estadísticas agregadas de invocadores usando datos de partidas
 
 Funciones avanzadas:
-- Sistema de caché inteligente que minimiza tiempos de carga garantizando datos frescos
 - Estrategia híbrida de acceso a datos que equilibra rendimiento y frescura
 
 #### Usuarios registrados
@@ -43,7 +42,6 @@ Funciones intermedias:
 
 Funciones avanzadas:
 - Dashboard personalizado con KPIs calculados a partir del historial de partidas
-- Estrategia cache-first priorizando la base de datos antes de llamadas externas costosas
 - Validación automática de frescura con impacto mínimo en tiempos percibidos de carga
 
 #### Administradores
@@ -63,12 +61,12 @@ El proyecto se enfoca en calidad de software y buenas prácticas de ingeniería:
 - Stack moderno:
   - Frontend: Angular 17, TypeScript, SCSS
   - Backend: Spring Boot 3.4.3, Java 21
-  - Base de datos: MySQL 8.0
+  - Base de datos: MySQL 8.0 / H2 para desarrollo
 - Seguridad: Spring Security + JWT para autenticación y autorización
 - API externa: Integración con la API de Riot Games
 
 #### Calidad y pruebas
-- Objetivo de cobertura: mínimo 55% global
+- Objetivo de cobertura: mínimo 80% global
 - Pruebas multinivel:
   - Unitarias: JUnit 5 + Mockito (backend), Jasmine + Karma (frontend)
   - Integración: Spring Boot Test
@@ -88,9 +86,8 @@ El proyecto se enfoca en calidad de software y buenas prácticas de ingeniería:
 #### Buenas prácticas
 - Control de versiones con Git y estrategia de ramas
 - Revisiones de código obligatorias mediante pull requests
-- Commits con Conventional Commits para un historial limpio
 - Documentación actualizada
-- Diseño responsive para escritorio y móvil
+- Diseño responsive
 
 ---
 
@@ -107,8 +104,7 @@ El proyecto sigue una metodología ágil iterativa e incremental:
 
 ### Fases planificadas
 
-#### Fase 1: Definición de funcionalidades y pantallas
-Duración: hasta 15 de septiembre  
+#### Fase 1: Definición de funcionalidades y pantallas 
 Estado: ✅ Completado
 
 Entregables:
@@ -122,7 +118,6 @@ Entregables:
 ---
 
 #### Fase 2: Configuración de repositorio y CI
-Duración: hasta 15 de octubre  
 Estado: ✅ Completado
 
 Entregables:
@@ -135,8 +130,7 @@ Entregables:
 
 ---
 
-#### Fase 3: Versión 0.1 — Funcionalidades núcleo
-Duración: hasta 15 de diciembre  
+#### Fase 3: Versión 0.1 — Funcionalidades núcleo  
 Estado: ✅ Completado
 
 Entregables:
@@ -161,8 +155,7 @@ Entregables:
 
 ---
 
-#### Fase 4: Versión 0.2 — Funcionalidades intermedias
-Duración: hasta 1 de marzo  
+#### Fase 4: Versión 1.0 — Funcionalidades intermedias Funcionalidades avanzadas
 Estado: 📋 Planificado
 
 Objetivos:
@@ -172,14 +165,6 @@ Objetivos:
 - Dashboard de moderación para admins
 - Tests E2E completos con Selenium
 - Mejoras de UI/UX basadas en feedback
-
----
-
-#### Fase 5: Versión 1.0 — Funcionalidades avanzadas
-Duración: hasta 15 de abril  
-Estado: 📋 Planificado
-
-Objetivos:
 - Estadísticas globales de la comunidad
 - Recomendaciones inteligentes basadas en ML
 - Clasificaciones personalizadas
@@ -190,7 +175,6 @@ Objetivos:
 ---
 
 #### Fase 6: Memoria del proyecto (TFG)
-Duración: hasta 15 de mayo  
 Estado: 📋 Planificado
 
 Objetivos:
@@ -201,8 +185,7 @@ Objetivos:
 
 ---
 
-#### Fase 7: Defensa
-Duración: hasta 15 de junio  
+#### Fase 7: Defensa  
 Estado: 📋 Planificado
 
 Objetivos:
@@ -213,45 +196,6 @@ Objetivos:
 ---
 
 ## 📐 Análisis inicial
-
-### Funcionalidades iniciales
-
-> 📝 Nota: Esta sección documenta las funcionalidades tal como se definieron originalmente en la Fase 1. Para el estado de implementación actual y las funcionalidades actualizadas, ver [Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md).
-
-La lista completa de funcionalidades con estado (✅ implementado, 🚧 en progreso, 📋 planificado) está disponible en **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)**.
-
-#### Resumen de funcionalidades por versión
-
-**Versión 0.1 — Funcionalidades núcleo** (✅ Completado):
-- Usuarios anónimos: búsqueda de invocador, vista de perfil y clasificación, historial de partidas cacheado, estadísticas básicas de campeones
-- Usuarios registrados: dashboard personalizable, datos detallados de partidas, vistas de maestría de campeones
-- Admin: panel de administración, gestión de usuarios, métricas del sistema
-
-**Versión 0.2 — Funcionalidades intermedias** (📋 Planificado):
-- Usuarios anónimos: estadísticas agregadas de invocadores con caché
-- Usuarios registrados: rendimiento personal detallado, historial de partidas enriquecido
-
-**Versión 1.0 — Funcionalidades avanzadas** (📋 Planificado):
-- Usuarios anónimos: caché inteligente, estrategia híbrida de acceso a datos
-- Usuarios registrados: dashboards con KPIs, estrategia priorizada de caché, validación automática de frescura
-
-Para más detalles:
-- **[Funcionalidades.md](Funcionalidades.md)** — Descripciones de UI con capturas
-- **[Funcionalidades-Detalladas.md](Funcionalidades-Detalladas.md)** — matriz completa de funcionalidades
-
-#### Usuarios y permisos (análisis Fase 1)
-
-Tipos de usuario:
-1. Anónimo: acceso de solo lectura a datos públicos
-2. Registrado: acceso a perfil personal y favoritos
-3. Administrador: control total del sistema
-
-Permisos por tipo:
-- Anónimo: buscar y ver perfiles y partidas
-- Registrado: lo anterior + dashboard personal, favoritos, notas
-- Admin: lo anterior + gestión de usuarios, moderación, métricas del sistema
-
----
 
 ### Entidades del dominio
 
@@ -321,7 +265,7 @@ Tipos de gráficas planificadas:
 - Pastel: distribución de roles, tipos de partida
 - Radar: perfil de habilidades (CS, visión, participación en kills)
 
-Implementación planificada para v0.2
+Implementación planificada para v1.0
 
 ---
 
@@ -339,7 +283,6 @@ Endpoints utilizados:
 Consideraciones:
 - Límites de tasa: 20 req/s, 100 req/2min (clave de desarrollo)
 - Región: EUW por defecto, configurable
-- Caché local para reducir llamadas
 
 ---
 
@@ -365,9 +308,6 @@ Predicción de rendimiento:
 - Modelo ML entrenado con datos históricos
 - Features: composición de equipo, picks, bans, elo, estadísticas recientes
 - Salida: probabilidad de victoria
-- Framework: TensorFlow / scikit-learn (tentativo)
-
-Estado: ⏸️ Tentativo para v1.0
 
 ---
 
@@ -393,6 +333,3 @@ Estos mockups sirvieron como referencia para el diseño del frontend en Angular.
 - Angular: https://angular.io/
 - Docker: https://docs.docker.com/
 
----
-
-[← Volver al README principal](../README.md) | [Ver Metodología →](Seguimiento.md)

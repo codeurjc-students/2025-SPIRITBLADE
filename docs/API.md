@@ -6,14 +6,13 @@
 - [Uso de Swagger UI](#uso-de-swagger-ui)
 - [Autenticación con JWT](#autenticación-con-jwt)
 - [Endpoints disponibles](#endpoints-disponibles)
-- [Inicio rápido](#inicio-rápido)
 - [Recursos adicionales](#recursos-adicionales)
 
 ---
 
 ## Visión general
 
-SPIRITBLADE expone una **API REST** construida con Spring Boot 3.4.3 que ofrece análisis de datos de League of Legends y gestión de usuarios.
+SPIRITBLADE expone una **API REST** construida con Spring Boot que ofrece análisis de datos de League of Legends y gestión de usuarios.
 
 **URL base**:
 - **HTTPS**: `https://localhost` (puerto 443)
@@ -50,12 +49,6 @@ Funciones:
 La especificación OpenAPI 3.0 en bruto está disponible en:
 - **JSON**: [https://localhost/v3/api-docs](https://localhost/v3/api-docs)
 - **YAML**: [https://localhost/v3/api-docs.yaml](https://localhost/v3/api-docs.yaml)
-
-Usa estas URLs para:
-- Importar en Postman o Insomnia
-- Generar SDKs cliente con OpenAPI Generator
-- Integrar con pipelines CI/CD
-- Compartir con desarrolladores externos
 
 ---
 
@@ -162,7 +155,7 @@ Swagger UI organiza la API en categorías lógicas (rutas base: `/api/v1/`):
 | Archivos | `/api/v1/files` | Subida/descarga de archivos (fotos de perfil, almacenamiento MinIO - solo PNG) |
 | Admin | `/api/v1/admin` | Operaciones administrativas (requiere rol ADMIN) |
 
-### Referencia rápida
+### Algunas Referencia rápida
 
 Endpoints públicos (sin autenticación):
 - `POST /api/v1/auth/login` - Inicio de sesión
@@ -180,8 +173,8 @@ Endpoints autenticados (JWT requerido):
 - `GET /api/v1/summoners/{puuid}/ranked-stats` - Obtener estadísticas ranked
 - `GET /api/v1/summoners/{puuid}/champion-mastery` - Obtener mastery por campeón
 - `GET /api/v1/dashboard/stats` - Estadísticas personales
-- `GET /api/v1/dashboard/matches` - Historial de partidas
-- `GET /api/v1/dashboard/performance` - Análisis de rendimiento
+- `GET /api/v1/dashboard/me/rank-progression` - Historial de partidas
+- `GET /api/v1/dashboard/me/favorites` - Análisis de rendimiento
 
 Endpoints de administrador (requiere rol ADMIN):
 - `GET /api/v1/admin/users` - Listar todos los usuarios
@@ -190,34 +183,6 @@ Endpoints de administrador (requiere rol ADMIN):
 - `GET /api/v1/admin/stats` - Estadísticas del sistema
 
 Para detalles completos, consulta Swagger UI que refleja el código en ejecución.
-
----
-
-## Inicio rápido
-
-### Probar la API en 5 minutos
-
-1. Inicia la aplicación:
-```powershell
-cd backend
-.\mvnw.cmd spring-boot:run
-```
-
-2. Abre Swagger UI: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
-
-Acepta el certificado autofirmado cuando se solicite.
-
-3. Registra un usuario:
-- Expande Authentication → POST /auth/register
-- Haz clic en "Try it out", introduce usuario/email/contraseña y luego Execute
-
-4. Inicia sesión:
-- Usa POST /auth/login con tus credenciales y copia el token devuelto
-
-5. Autoriza Swagger:
-- Haz clic en "Authorize" y pega tu token
-
-6. Prueba endpoints protegidos (p.ej. GET /users/me, GET /summoners/search)
 
 ---
 
@@ -241,8 +206,6 @@ Para documentación detallada de Swagger, ver:
 Pruebas de la API:
 - Swagger UI (recomendado) - `https://localhost/swagger-ui.html`
 - Postman - importar especificación OpenAPI desde `https://localhost/v3/api-docs`
-- Insomnia - importar especificación OpenAPI
-- REST Client (VS Code) - usar archivos `.http` con URLs HTTPS
 - curl - peticiones desde línea de comandos (usar `-k` para omitir verificación del certificado)
 
 Exportar la especificación:
@@ -312,8 +275,6 @@ Solo HTTPS: la API funciona únicamente sobre HTTPS (puerto 443).
 
 Certificado SSL: en desarrollo se usa un keystore autofirmado (`keystore.jks`). Acepta la advertencia del navegador para continuar.
 
-Expiración de JWT: los tokens expiran tras 24 horas. Usa `/auth/refresh` para renovar tokens.
-
 Deshabilitar Swagger UI en producción: establece `springdoc.swagger-ui.enabled=false` en `application.properties`.
 
 ---
@@ -327,12 +288,6 @@ Swagger / OpenAPI (HTTPS):
 - OpenAPI JSON: https://localhost/v3/api-docs
 - OpenAPI YAML: https://localhost/v3/api-docs.yaml
 
-Documentación:
-- [SWAGGER.md](SWAGGER.md)
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md)
-- [Guia-Desarrollo.md](Guia-Desarrollo.md)
-- [Funcionalidades.md](Funcionalidades.md)
-
 ---
 
 ## Autoría
@@ -341,10 +296,8 @@ Desarrollador: Jorge Andrés Echevarría
 Tutor: Iván Chicano Capelo
 Universidad: Universidad Rey Juan Carlos (URJC)
 Curso: 2024-2025
-Contacto: j.echeverria.2021@alumnos.urjc.es
+Contacto: j.andres.2022@alumnos.urjc.es
 
 ---
 
-Última actualización: enero 2025 (v0.1 - Integración Swagger)
-
-[← Volver al README principal](../README.md) | [Ver Swagger UI →](https://localhost/swagger-ui.html) | [Ver toda la documentación →](../README.md#documentation)
+Última actualización: Noviembre 2025 (v0.1)
