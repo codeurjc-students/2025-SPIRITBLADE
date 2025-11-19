@@ -69,43 +69,6 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Promote a user to ADMIN role.
-     * Only regular users can be promoted.
-     * 
-     * @param id User ID to promote
-     * @return Success response
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/users/{id}/promote")
-    public ResponseEntity<UserDTO> promoteToAdmin(@PathVariable Long id) {
-        UserModel user = userService.promoteToAdminOrThrow(id);
-        return ResponseEntity.ok(UserMapper.toDTO(user));
-    }
-
-    /**
-     * Demote a user from ADMIN role (keep USER role).
-     * Admins cannot demote other admins.
-     * 
-     * @param id User ID to demote
-     * @return Success response
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/users/{id}/demote")
-    public ResponseEntity<UserDTO> demoteFromAdmin(@PathVariable Long id) {
-        UserModel user = userService.getUserById(id);
-        
-        // Prevent demotion of admin users (they cannot demote each other)
-        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(403).build(); // Forbidden
-        }
-        
-        UserModel demoted = userService.demoteFromAdminOrThrow(id);
-        return ResponseEntity.ok(UserMapper.toDTO(demoted));
-    }
-
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> systemStats() {

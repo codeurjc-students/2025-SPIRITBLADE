@@ -55,12 +55,6 @@ class DataDragonServiceSimpleUnitTest {
     }
     
     @Test
-    void testLoadChampionDataSuccess() {
-        assertTrue(service.isDataLoaded());
-        assertEquals(2, service.getChampionCount());
-    }
-    
-    @Test
     void testGetChampionNameByIdFound() {
         String name = service.getChampionNameById(266L);
         assertEquals("Aatrox", name);
@@ -75,24 +69,6 @@ class DataDragonServiceSimpleUnitTest {
     @Test
     void testGetChampionNameByIdNull() {
         String name = service.getChampionNameById(null);
-        assertEquals("Unknown Champion", name);
-    }
-    
-    @Test
-    void testGetChampionNameByKeyFound() {
-        String name = service.getChampionNameByKey("Aatrox");
-        assertEquals("Aatrox", name);
-    }
-    
-    @Test
-    void testGetChampionNameByKeyNotFound() {
-        String name = service.getChampionNameByKey("UnknownChamp");
-        assertEquals("UnknownChamp", name);
-    }
-    
-    @Test
-    void testGetChampionNameByKeyNull() {
-        String name = service.getChampionNameByKey(null);
         assertEquals("Unknown Champion", name);
     }
     
@@ -134,10 +110,6 @@ class DataDragonServiceSimpleUnitTest {
         
         // Should not throw exception, just log error
         assertDoesNotThrow(serviceWithError::loadChampionData);
-        
-        // Service should continue with empty data
-        assertFalse(serviceWithError.isDataLoaded());
-        assertEquals(0, serviceWithError.getChampionCount());
     }
     
     @Test
@@ -154,19 +126,5 @@ class DataDragonServiceSimpleUnitTest {
         
         // Should not throw exception
         assertDoesNotThrow(serviceWithBadData::loadChampionData);
-        
-        // Service should continue with empty data
-        assertFalse(serviceWithBadData.isDataLoaded());
-    }
-    
-    @Test
-    void testIsDataLoadedEmptyService() {
-        DataDragonService emptyService = new DataDragonService();
-        assertFalse(emptyService.isDataLoaded());
-    }
-    
-    @Test
-    void testGetChampionCount() {
-        assertEquals(2, service.getChampionCount());
     }
 }

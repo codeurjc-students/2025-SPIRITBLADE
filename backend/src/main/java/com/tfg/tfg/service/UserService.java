@@ -29,10 +29,6 @@ public class UserService {
         return userRepository.findByName(username);
     }
 
-    public Optional<UserModel> findById(Long id) {
-        return userRepository.findById(id);
-    }
-
     /**
      * Get user by ID or throw exception if not found
      * @throws UserNotFoundException if user doesn't exist
@@ -102,26 +98,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Optional<UserModel> updateUser(Long id, UserDTO userDTO) {
-        return userRepository.findById(id).map(user -> {
-            if (userDTO.getName() != null) {
-                user.setName(userDTO.getName());
-            }
-            if (userDTO.getEmail() != null) {
-                user.setEmail(userDTO.getEmail());
-            }
-            if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
-                user.setPass(passwordEncoder.encode(userDTO.getPassword()));
-            }
-            if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
-                user.setRols(userDTO.getRoles());
-            }
-            user.setActive(userDTO.isActive());
-            
-            return userRepository.save(user);
-        });
-    }
-
     /**
      * Update user or throw exception if not found
      * @throws UserNotFoundException if user doesn't exist
@@ -165,32 +141,22 @@ public class UserService {
         });
     }
 
-    public boolean deleteUser(Long id) {
-        return userRepository.findById(id).map(user -> {
-            userRepository.delete(user);
-            return true;
-        }).orElse(false);
-    }
-
     /**
      * Delete user or throw exception if not found
      * @throws UserNotFoundException if user doesn't exist
      */
-    public void deleteUserOrThrow(Long id) {
-        UserModel user = getUserById(id);
-        userRepository.delete(user);
+    public void deleteUserOrThrow(Long id) throws UserNotFoundException {
+        try {
+            UserModel user = getUserById(id);
+            userRepository.delete(user);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            throw new UserNotFoundException("User with ID '" + id + "' not found");
+        }
     }
 
     public Optional<UserModel> toggleUserActive(Long id) {
         return userRepository.findById(id).map(user -> {
             user.setActive(!user.isActive());
-            return userRepository.save(user);
-        });
-    }
-
-    public Optional<UserModel> setUserActive(Long id, boolean active) {
-        return userRepository.findById(id).map(user -> {
-            user.setActive(active);
             return userRepository.save(user);
         });
     }
@@ -227,90 +193,8 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public boolean existsById(Long id) {
-        return userRepository.existsById(id);
-    }
-
     public long countUsers() {
         return userRepository.count();
-    }
-
-    public Optional<UserModel> promoteToAdmin(Long id) {
-        return userRepository.findById(id).map(user -> {
-            List<String> roles = user.getRols();
-            if (roles == null) {
-                roles = new java.util.ArrayList<>();
-            } else {
-                roles = new java.util.ArrayList<>(roles); // Make mutable
-            }
-            
-            // Add ADMIN role if not present
-            if (!roles.contains("ADMIN")) {
-                roles.add("ADMIN");
-                user.setRols(roles);
-                return userRepository.save(user);
-            }
-            return user;
-        });
-    }
-
-    /**
-     * Promote user to ADMIN or throw exception if not found
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    public UserModel promoteToAdminOrThrow(Long id) {
-        UserModel user = getUserById(id);
-        List<String> roles = user.getRols();
-        if (roles == null) {
-            roles = new java.util.ArrayList<>();
-        } else {
-            roles = new java.util.ArrayList<>(roles); // Make mutable
-        }
-        
-        // Add ADMIN role if not present
-        if (!roles.contains("ADMIN")) {
-            roles.add("ADMIN");
-            user.setRols(roles);
-            return userRepository.save(user);
-        }
-        return user;
-    }
-
-    public Optional<UserModel> demoteFromAdmin(Long id) {
-        return userRepository.findById(id).map(user -> {
-            List<String> roles = user.getRols();
-            if (roles != null) {
-                roles = new java.util.ArrayList<>(roles); // Make mutable
-                roles.remove("ADMIN");
-                // Keep at least USER role
-                if (roles.isEmpty()) {
-                    roles.add("USER");
-                }
-                user.setRols(roles);
-                return userRepository.save(user);
-            }
-            return user;
-        });
-    }
-
-    /**
-     * Demote user from ADMIN or throw exception if not found
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    public UserModel demoteFromAdminOrThrow(Long id) {
-        UserModel user = getUserById(id);
-        List<String> roles = user.getRols();
-        if (roles != null) {
-            roles = new java.util.ArrayList<>(roles); // Make mutable
-            roles.remove("ADMIN");
-            // Keep at least USER role
-            if (roles.isEmpty()) {
-                roles.add("USER");
-            }
-            user.setRols(roles);
-            return userRepository.save(user);
-        }
-        return user;
     }
 
     public UserModel save(UserModel user) {

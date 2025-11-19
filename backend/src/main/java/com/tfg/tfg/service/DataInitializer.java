@@ -11,6 +11,8 @@ import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.storage.MinioStorageService;
 
 import jakarta.annotation.PostConstruct;
+import java.nio.file.Files;
+import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class DataInitializer {
@@ -20,6 +22,8 @@ public class DataInitializer {
     private static final String USER_USERNAME = "user";
     private static final String DEFAULT_ADMIN_PASSWORD = "admin";
     private static final String DEFAULT_USER_PASSWORD = "pass";
+    private static final String DEFAULT_AVATAR_FILENAME = "default-profile.png";
+    private static final String DEFAULT_AVATAR_CONTENT_TYPE = "image/png";
     
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -70,11 +74,17 @@ public class DataInitializer {
             admin = userRepository.save(admin);
 
             // Upload default avatar to storage (MinIO) and set avatarUrl
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png")) {
-                String key = minioStorageService.store(is, "default-profile.png", "image/png", "avatars");
-                String publicUrl = minioStorageService.getPublicUrl(key);
-                admin.setAvatarUrl(publicUrl);
-                userRepository.save(admin);
+            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
+                if (is == null) {
+                    logger.warn("Default avatar resource not found: {}", DEFAULT_AVATAR_FILENAME);
+                } else {
+                    byte[] bytes = is.readAllBytes();
+                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME, DEFAULT_AVATAR_CONTENT_TYPE);
+                    String key = minioStorageService.store(multipartFile, "avatars");
+                    String publicUrl = minioStorageService.getPublicUrl(key);
+                    admin.setAvatarUrl(publicUrl);
+                    userRepository.save(admin);
+                }
             } catch (Exception e) {
                 logger.warn("Failed to upload default avatar for admin user: {}", e.getMessage());
             }
@@ -91,11 +101,17 @@ public class DataInitializer {
             user = userRepository.save(user);
 
             // Upload default avatar to storage (MinIO) and set avatarUrl
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/default-profile.png")) {
-                String key = minioStorageService.store(is, "default-profile.png", "image/png", "avatars");
-                String publicUrl = minioStorageService.getPublicUrl(key);
-                user.setAvatarUrl(publicUrl);
-                userRepository.save(user);
+            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
+                if (is == null) {
+                    logger.warn("Default avatar resource not found: {}", DEFAULT_AVATAR_FILENAME);
+                } else {
+                    byte[] bytes = is.readAllBytes();
+                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME, DEFAULT_AVATAR_CONTENT_TYPE);
+                    String key = minioStorageService.store(multipartFile, "avatars");
+                    String publicUrl = minioStorageService.getPublicUrl(key);
+                    user.setAvatarUrl(publicUrl);
+                    userRepository.save(user);
+                }
             } catch (Exception e) {
                 logger.warn("Failed to upload default avatar for regular user: {}", e.getMessage());
             }
@@ -116,5 +132,47 @@ public class DataInitializer {
     private String generateSecurePassword(String prefix) {
         // Generate a more secure password for development
         return prefix + "Secure" + System.currentTimeMillis() % 10000 + "!";
+    }
+
+    /**
+     * Lightweight MultipartFile implementation backed by a byte[] array.
+     * Used only for creating default avatar files in DataInitializer.
+     */
+    private static class SimpleMultipartFile implements org.springframework.web.multipart.MultipartFile {
+        private final byte[] content;
+        private final String fileName;
+        private final String contentType;
+
+        public SimpleMultipartFile(byte[] content, String fileName, String contentType) {
+            this.content = content == null ? new byte[0] : content;
+            this.fileName = fileName;
+            this.contentType = contentType;
+        }
+
+        @Override
+        public String getName() { return fileName; }
+
+        @Override
+        public String getOriginalFilename() { return getName(); }
+
+        @Override
+        public String getContentType() { return contentType; }
+
+        @Override
+        public boolean isEmpty() { return content.length == 0; }
+
+        @Override
+        public long getSize() { return content.length; }
+
+        @Override
+        public byte[] getBytes() { return content; }
+
+        @Override
+        public java.io.InputStream getInputStream() { return new java.io.ByteArrayInputStream(content); }
+
+        @Override
+        public void transferTo(java.io.File dest) throws java.io.IOException, java.lang.IllegalStateException {
+            Files.write(dest.toPath(), content);
+        }
     }
 }

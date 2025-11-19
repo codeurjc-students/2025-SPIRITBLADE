@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,28 +60,6 @@ public class LoginRestController {
 			HttpServletResponse response) {
 		
 		return userLoginService.login(loginRequest);
-	}
-
-	@Operation(
-		summary = "Refresh JWT token",
-		description = "Refreshes an expired JWT token using the refresh token cookie"
-	)
-	@ApiResponses(value = {
-		@ApiResponse(
-			responseCode = "200",
-			description = "Token refreshed successfully",
-			content = @Content(schema = @Schema(implementation = AuthResponse.class))
-		),
-		@ApiResponse(
-			responseCode = "401",
-			description = "Invalid or expired refresh token"
-		)
-	})
-	@PostMapping("/refresh")
-	public ResponseEntity<AuthResponse> refreshToken(
-			@CookieValue(name = "RefreshToken", required = false) String refreshToken, HttpServletResponse response) {
-
-		return userLoginService.refresh(response, refreshToken);
 	}
 
 	@Operation(

@@ -1,7 +1,6 @@
 package com.tfg.tfg.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -72,29 +71,6 @@ class MatchServiceUnitTest {
         matchWithoutLane.setTimestamp(LocalDateTime.now().minusDays(4));
         matchWithoutLane.setSummoner(testSummoner);
         matchWithoutLane.setLane("");
-    }
-
-    @Test
-    void testFindBySummonerOrderByTimestampDesc() {
-        List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithoutRank);
-        when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(matches);
-
-        List<MatchEntity> result = matchService.findBySummonerOrderByTimestampDesc(testSummoner);
-
-        assertEquals(2, result.size());
-        verify(matchRepository).findBySummonerOrderByTimestampDesc(testSummoner);
-    }
-
-    @Test
-    void testFindRankedMatchesBySummoner() {
-        String queueType = "RANKED_SOLO_5x5";
-        List<MatchEntity> matches = Arrays.asList(matchWithRank);
-        when(matchRepository.findRankedMatchesBySummoner(testSummoner, queueType)).thenReturn(matches);
-
-        List<MatchEntity> result = matchService.findRankedMatchesBySummoner(testSummoner, queueType);
-
-        assertEquals(1, result.size());
-        verify(matchRepository).findRankedMatchesBySummoner(testSummoner, queueType);
     }
 
     @Test

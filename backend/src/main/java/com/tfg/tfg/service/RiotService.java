@@ -18,6 +18,7 @@ import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.SummonerMapper;
+import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 
 import org.slf4j.Logger;
@@ -60,13 +61,13 @@ public class RiotService {
     private static final String MATCH_BY_ID_URL = RIOT_REGIONAL_BASE_URL + "/lol/match/v5/matches/{matchId}?api_key={apiKey}";
     
     private final SummonerRepository summonerRepository;
-    private final com.tfg.tfg.repository.MatchEntityRepository matchRepository;
+    private final MatchRepository matchRepository;
     private final DataDragonService dataDragonService;
     private final RankHistoryService rankHistoryService;
     private final RestTemplate restTemplate;
 
     public RiotService(SummonerRepository summonerRepository, 
-                      com.tfg.tfg.repository.MatchEntityRepository matchRepository,
+                      MatchRepository matchRepository,
                       DataDragonService dataDragonService,
                       RankHistoryService rankHistoryService) {
         this.summonerRepository = summonerRepository;

@@ -135,56 +135,6 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetUserByIdFound() {
-        // Arrange
-        when(userService.getUserById(1L)).thenReturn(testUser);
-
-        // Act
-        ResponseEntity<UserDTO> response = controller.getUserById(1L);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("testuser", response.getBody().getName());
-        verify(userService).getUserById(1L);
-    }
-
-    @Test
-    void testGetUserByIdNotFound() {
-        // Arrange
-        when(userService.getUserById(999L)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
-
-        // Act & Assert
-        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> controller.getUserById(999L));
-        verify(userService).getUserById(999L);
-    }
-
-    @Test
-    void testGetByNameFound() {
-        // Arrange
-        when(userService.getUserByName("testuser")).thenReturn(testUser);
-
-        // Act
-        ResponseEntity<UserDTO> response = controller.getByName("testuser");
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("testuser", response.getBody().getName());
-        verify(userService).getUserByName("testuser");
-    }
-
-    @Test
-    void testGetByNameNotFound() {
-        // Arrange
-        when(userService.getUserByName("nonexistent")).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
-
-        // Act & Assert
-        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> controller.getByName("nonexistent"));
-        verify(userService).getUserByName("nonexistent");
-    }
-
-    @Test
     void testGetMyProfileUserFound() {
         // Arrange
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(

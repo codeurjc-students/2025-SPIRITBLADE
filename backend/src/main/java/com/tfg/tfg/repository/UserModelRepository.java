@@ -12,8 +12,10 @@ import com.tfg.tfg.model.entity.UserModel;
 @Repository
 public interface UserModelRepository extends JpaRepository<UserModel, Long> {
     
+    /**
+     * Find user by name.
+     */
     Optional<UserModel> findByName(String name);
-    Optional<UserModel> findByEmail(String email);
     
     /**
      * Finds the first user ordered by ID (ascending).

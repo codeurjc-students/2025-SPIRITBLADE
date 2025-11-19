@@ -92,12 +92,4 @@ export class AuthService {
       })
     );
   }
-
-  getCurrentUser() {
-    return this.currentUser;
-  }
-
-  getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
-  }
 }

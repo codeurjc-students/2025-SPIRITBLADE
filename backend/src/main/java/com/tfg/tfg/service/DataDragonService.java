@@ -94,18 +94,6 @@ public class DataDragonService {
     }
     
     /**
-     * Get champion name by champion key (string identifier)
-     * @param championKey String champion key (e.g., "Aatrox")
-     * @return Champion name or the key itself if not found
-     */
-    public String getChampionNameByKey(String championKey) {
-        if (championKey == null) {
-            return "Unknown Champion";
-        }
-        return championKeyToName.getOrDefault(championKey, championKey);
-    }
-    
-    /**
      * Get champion icon URL by champion ID
      * @param championId Numeric champion ID
      * @return URL to champion icon image
@@ -135,21 +123,5 @@ public class DataDragonService {
             return "";
         }
         return CDN_BASE + "/img/profileicon/" + profileIconId + ".png";
-    }
-    
-    /**
-     * Check if champion data is loaded
-     * @return true if champion data is available
-     */
-    public boolean isDataLoaded() {
-        return !championIdToName.isEmpty();
-    }
-    
-    /**
-     * Get total number of champions loaded
-     * @return number of champions
-     */
-    public int getChampionCount() {
-        return championIdToName.size();
     }
 }

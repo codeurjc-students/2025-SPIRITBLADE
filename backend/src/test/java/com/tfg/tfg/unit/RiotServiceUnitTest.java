@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.tfg.tfg.exception.SummonerNotFoundException;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotAccountDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
@@ -29,7 +28,7 @@ import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
 import com.tfg.tfg.model.dto.riot.RiotSummonerDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.repository.MatchEntityRepository;
+import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.RankHistoryService;
@@ -42,7 +41,7 @@ class RiotServiceUnitTest {
     private SummonerRepository summonerRepository;
     
     @Mock
-    private MatchEntityRepository matchRepository;
+    private MatchRepository matchRepository;
     
     @Mock
     private DataDragonService dataDragonService;
@@ -138,9 +137,42 @@ class RiotServiceUnitTest {
     }
 
     @Test
-    void testGetSummonerByNameNotFound() {
+    void testGetSummonerByNameInvalidRiotIdFormat() {
+        // Given - Riot ID without # separator
+        String invalidRiotId = "TestPlayer";
+        
+        // When
+        SummonerDTO result = riotService.getSummonerByName(invalidRiotId);
+        
+        // Then - Should return null (fallback to database lookup)
+        assertNull(result);
+        verify(summonerRepository).findByName(invalidRiotId);
+    }
+
+    @Test
+    void testGetSummonerByNameDatabaseFallback() {
+        // Given - Invalid Riot ID format, but exists in database
+        String invalidRiotId = "TestPlayer";
+        Summoner summonerEntity = new Summoner();
+        summonerEntity.setName("TestPlayer");
+        summonerEntity.setPuuid("test-puuid");
+        summonerEntity.setLevel(50);
+        
+        when(summonerRepository.findByName(invalidRiotId)).thenReturn(Optional.of(summonerEntity));
+        
+        // When
+        SummonerDTO result = riotService.getSummonerByName(invalidRiotId);
+        
+        // Then - Should return DTO from database
+        assertNotNull(result);
+        assertEquals("TestPlayer", result.getName());
+        verify(summonerRepository).findByName(invalidRiotId);
+    }
+
+    @Test
+    void testGetSummonerByNameApiErrorOtherThanNotFound() {
         // Given
-        String riotId = "NonExistent#EUW";
+        String riotId = "TestPlayer#EUW";
         
         when(restTemplate.exchange(
             anyString(),
@@ -150,18 +182,42 @@ class RiotServiceUnitTest {
             anyString(),
             anyString(),
             anyString()
-        )).thenThrow(HttpClientErrorException.NotFound.create(
-            HttpStatus.NOT_FOUND, 
-            "Not Found", 
-            null, 
-            null, 
+        )).thenThrow(HttpClientErrorException.BadRequest.create(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            null,
+            null,
             null
         ));
         
-        // When & Then
-        assertThrows(SummonerNotFoundException.class, () -> {
+        // When & Then - Should throw RiotApiException
+        assertThrows(com.tfg.tfg.exception.RiotApiException.class, () -> {
             riotService.getSummonerByName(riotId);
         });
+    }
+
+    @Test
+    void testGetMatchHistoryWithNullMatchIds() {
+        // Given
+        String puuid = "test-puuid";
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(String[].class),
+            anyString(),
+            anyInt(),
+            anyInt(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok((String[]) null));
+        
+        // When
+        var result = riotService.getMatchHistory(puuid, 0, 10);
+        
+        // Then - Should return empty list when matchIds is null
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test

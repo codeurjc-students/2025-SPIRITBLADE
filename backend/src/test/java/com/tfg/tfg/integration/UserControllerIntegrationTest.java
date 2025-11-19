@@ -38,14 +38,11 @@ class UserControllerIntegrationTest {
     private static final String ROLE_USER = "USER";
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String API_USERS = "/api/v1/users";
-    private static final String API_USERS_PATH = "/api/v1/users/";
     private static final String API_USERS_ME = "/api/v1/users/me";
-    private static final String API_USERS_NOT_FOUND = "/api/v1/users/99999";
     private static final String JSON_CONTENT = "$.content";
     private static final String JSON_CONTENT_NAME = "$.content[0].name";
     private static final String JSON_NAME = "$.name";
     private static final String JSON_EMAIL = "$.email";
-    private static final String UPDATED_NAME = "updatedname";
 
     @Autowired
     private MockMvc mockMvc;
@@ -168,39 +165,6 @@ class UserControllerIntegrationTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void testGetUserById() throws Exception {
-        mockMvc.perform(get(API_USERS_PATH + testUser.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(testUser.getId().intValue())))
-                .andExpect(jsonPath(JSON_NAME, is(TEST_USER_NAME)))
-                .andExpect(jsonPath(JSON_EMAIL, is(TEST_USER_EMAIL)));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testGetUserByIdNotFound() throws Exception {
-        mockMvc.perform(get(API_USERS_NOT_FOUND))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testGetUserByName() throws Exception {
-        mockMvc.perform(get("/api/v1/users/name/" + TEST_USER_NAME))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(JSON_NAME, is(TEST_USER_NAME)))
-                .andExpect(jsonPath(JSON_EMAIL, is(TEST_USER_EMAIL)));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testGetUserByNameNotFound() throws Exception {
-        mockMvc.perform(get("/api/v1/users/name/nonexistent"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
     void testCreateUser() throws Exception {
         UserDTO newUser = new UserDTO();
         newUser.setName("newuser");
@@ -214,65 +178,6 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(JSON_NAME, is("newuser")))
                 .andExpect(jsonPath(JSON_EMAIL, is("newuser@example.com")));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testUpdateUser() throws Exception {
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName(UPDATED_NAME);
-        updateDTO.setEmail("updated@example.com");
-
-        mockMvc.perform(put(API_USERS_PATH + testUser.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(JSON_NAME, is(UPDATED_NAME)))
-                .andExpect(jsonPath(JSON_EMAIL, is("updated@example.com")));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testUpdateUserNotFound() throws Exception {
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName(UPDATED_NAME);
-
-        mockMvc.perform(put(API_USERS_NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateDTO)))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testToggleUserActive() throws Exception {
-        // Toggle to inactive
-        mockMvc.perform(put(API_USERS_PATH + testUser.getId() + "/toggle-active"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active", is(false)));
-
-        // Toggle back to active
-        mockMvc.perform(put(API_USERS_PATH + testUser.getId() + "/toggle-active"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active", is(true)));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testDeleteUser() throws Exception {
-        mockMvc.perform(delete(API_USERS_PATH + testUser.getId()))
-                .andExpect(status().isNoContent());
-
-        // Verify user is deleted
-        mockMvc.perform(get(API_USERS_PATH + testUser.getId()))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testDeleteUserNotFound() throws Exception {
-        mockMvc.perform(delete(API_USERS_NOT_FOUND))
-                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -322,20 +227,5 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].email", is("test@example.com")));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void testUpdateUserPartialData() throws Exception {
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setEmail("onlyemail@example.com");
-        // Don't set name - should keep existing
-
-        mockMvc.perform(put("/api/v1/users/" + testUser.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("testuser"))) // Should remain unchanged
-                .andExpect(jsonPath("$.email", is("onlyemail@example.com")));
     }
 }

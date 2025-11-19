@@ -22,18 +22,6 @@ public final class PngFileValidator {
     }
 
     /**
-     * Validates that a file is a PNG image by checking content type and extension.
-     *
-     * @param contentType The content type of the file
-     * @param fileName The name of the file
-     * @throws IllegalArgumentException if validation fails
-     */
-    public static void validatePngFile(String contentType, String fileName) {
-        validateContentType(contentType);
-        validateExtension(fileName);
-    }
-
-    /**
      * Validates that a MultipartFile is a PNG image.
      *
      * @param file The file to validate

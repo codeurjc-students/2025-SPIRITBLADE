@@ -40,10 +40,6 @@ export class UserService {
     return this.http.get<User>(`${API_URL}/users/me`);
   }
 
-  updateProfile(payload: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${API_URL}/users/me`, payload);
-  }
-
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${API_URL}/admin/users`);
   }
@@ -98,16 +94,6 @@ export class UserService {
     return this.http.post<{ success: boolean; message: string; avatarUrl?: string }>(
       `${API_URL}/users/avatar`, 
       formData
-    );
-  }
-
-  /**
-   * Delete avatar for the current user.
-   * @returns Observable with delete result
-   */
-  deleteAvatar(): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<{ success: boolean; message: string }>(
-      `${API_URL}/users/avatar`
     );
   }
 }

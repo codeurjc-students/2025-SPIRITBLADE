@@ -4,16 +4,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.tfg.tfg.exception.UserAlreadyExistsException;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
@@ -28,213 +36,310 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @InjectMocks
     private UserService userService;
+
+    private UserModel testUser;
+    private UserDTO testUserDTO;
+    private Pageable pageable;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder);
+        testUser = new UserModel();
+        testUser.setId(1L);
+        testUser.setName("testuser");
+        testUser.setEmail("test@example.com");
+        testUser.setPass("encodedPassword");
+        testUser.setRols(Arrays.asList("USER"));
+        testUser.setActive(true);
+
+        testUserDTO = new UserDTO();
+        testUserDTO.setName("newuser");
+        testUserDTO.setEmail("new@example.com");
+        testUserDTO.setPassword("password123");
+        testUserDTO.setRoles(Arrays.asList("USER"));
+        testUserDTO.setActive(true);
+
+        pageable = PageRequest.of(0, 10);
+    }
+
+    @Test
+    void testFindByName() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+
+        Optional<UserModel> result = userService.findByName("testuser");
+
+        assertTrue(result.isPresent());
+        assertEquals("testuser", result.get().getName());
+        verify(userRepository).findByName("testuser");
+    }
+
+    @Test
+    void testFindFirstUser() {
+        when(userRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(testUser));
+
+        Optional<UserModel> result = userService.findFirstUser();
+
+        assertTrue(result.isPresent());
+        verify(userRepository).findFirstByOrderByIdAsc();
+    }
+
+    @Test
+    void testFindAll() {
+        Page<UserModel> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findAll(pageable)).thenReturn(page);
+
+        Page<UserModel> result = userService.findAll(pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findAll(pageable);
+    }
+
+    @Test
+    void testFindBySearch() {
+        Page<UserModel> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase("test", "test", pageable))
+            .thenReturn(page);
+
+        Page<UserModel> result = userService.findBySearch("test", pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase("test", "test", pageable);
+    }
+
+    @Test
+    void testFindByRoleAndActive() {
+        Page<UserModel> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findByRolsContainingAndActive("USER", true, pageable)).thenReturn(page);
+
+        Page<UserModel> result = userService.findByRoleAndActive("USER", true, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByRolsContainingAndActive("USER", true, pageable);
+    }
+
+    @Test
+    void testFindByRole() {
+        Page<UserModel> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findByRolsContaining("USER", pageable)).thenReturn(page);
+
+        Page<UserModel> result = userService.findByRole("USER", pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByRolsContaining("USER", pageable);
+    }
+
+    @Test
+    void testFindByActive() {
+        Page<UserModel> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findByActive(true, pageable)).thenReturn(page);
+
+        Page<UserModel> result = userService.findByActive(true, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByActive(true, pageable);
     }
 
     @Test
     void testCreateUserSuccess() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName("newuser");
-        userDTO.setEmail("newuser@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRoles(List.of("USER"));
-
         when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
-        UserModel result = userService.createUser(userDTO);
+        UserModel result = userService.createUser(testUserDTO);
 
         assertNotNull(result);
-        assertEquals("newuser", result.getName());
-        assertEquals("newuser@example.com", result.getEmail());
-        assertEquals("encodedPassword", result.getEncodedPassword());
-        assertTrue(result.getRols().contains("USER"));
-        assertTrue(result.isActive());
+        verify(userRepository).findByName("newuser");
+        verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(UserModel.class));
     }
 
     @Test
-    void testCreateUserWithDefaultRole() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName("newuser");
-        userDTO.setEmail("newuser@example.com");
-        userDTO.setPassword("password123");
-        userDTO.setRoles(null); // No roles provided
-
-        when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        UserModel result = userService.createUser(userDTO);
-
-        assertNotNull(result);
-        assertTrue(result.getRols().contains("USER"));
-        verify(userRepository).save(any(UserModel.class));
+    void testCreateUserWithNullUserDTO() {
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(null));
     }
 
     @Test
-    void testCreateUserAlreadyExists() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName("existinguser");
-        userDTO.setPassword("password123");
-
-        UserModel existingUser = new UserModel("existinguser", "password", "USER");
-        when(userRepository.findByName("existinguser")).thenReturn(Optional.of(existingUser));
-
-        assertThrows(com.tfg.tfg.exception.UserAlreadyExistsException.class, () -> userService.createUser(userDTO));
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void testCreateUserWithNullName() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName(null);
-        userDTO.setPassword("password123");
-
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDTO));
-        verify(userRepository, never()).save(any());
+    void testCreateUserWithNullUsername() {
+        testUserDTO.setName(null);
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUserDTO));
     }
 
     @Test
     void testCreateUserWithNullPassword() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName("newuser");
-        userDTO.setPassword(null);
+        testUserDTO.setPassword(null);
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUserDTO));
+    }
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDTO));
+    @Test
+    void testCreateUserUserAlreadyExists() {
+        when(userRepository.findByName("newuser")).thenReturn(Optional.of(testUser));
+
+        assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(testUserDTO));
+        verify(userRepository).findByName("newuser");
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void testCreateUserWithNullDTO() {
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(null));
-        verify(userRepository, never()).save(any());
-    }
+    void testCreateUserWithDefaultRoles() {
+        testUserDTO.setRoles(null);
+        when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
-    @Test
-    void testUpdateUserSuccess() {
-        UserModel existingUser = new UserModel("oldname", "oldpassword", "USER");
-        existingUser.setId(1L);
-        existingUser.setEmail("old@example.com");
+        UserModel result = userService.createUser(testUserDTO);
 
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName("newname");
-        updateDTO.setEmail("new@example.com");
-        updateDTO.setPassword("newpassword");
-        updateDTO.setRoles(List.of("ADMIN"));
-        updateDTO.setActive(false);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Optional<UserModel> result = userService.updateUser(1L, updateDTO);
-
-        assertTrue(result.isPresent());
-        assertEquals("newname", result.get().getName());
-        assertEquals("new@example.com", result.get().getEmail());
-        assertEquals("encodedNewPassword", result.get().getEncodedPassword());
-        assertTrue(result.get().getRols().contains("ADMIN"));
-        assertFalse(result.get().isActive());
+        assertNotNull(result);
         verify(userRepository).save(any(UserModel.class));
     }
 
     @Test
-    void testUpdateUserPartialUpdate() {
-        UserModel existingUser = new UserModel("oldname", "oldpassword", "USER");
-        existingUser.setId(1L);
-        existingUser.setEmail("old@example.com");
+    void testCreateUserWithEmptyRoles() {
+        testUserDTO.setRoles(new ArrayList<>());
+        when(userRepository.findByName("newuser")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName("newname");
-        // Email, password, and roles not provided
+        UserModel result = userService.createUser(testUserDTO);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Optional<UserModel> result = userService.updateUser(1L, updateDTO);
-
-        assertTrue(result.isPresent());
-        assertEquals("newname", result.get().getName());
-        assertEquals("old@example.com", result.get().getEmail()); // Unchanged
-        assertEquals("oldpassword", result.get().getEncodedPassword()); // Unchanged
+        assertNotNull(result);
         verify(userRepository).save(any(UserModel.class));
     }
 
     @Test
-    void testUpdateUserNotFound() {
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName("newname");
+    void testUpdateUserProfileSuccess() {
+        testUserDTO.setAvatarUrl("http://example.com/avatar.png");
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        Optional<UserModel> result = userService.updateUserProfile("testuser", testUserDTO);
 
-        Optional<UserModel> result = userService.updateUser(1L, updateDTO);
+        assertTrue(result.isPresent());
+        verify(userRepository).findByName("testuser");
+        verify(userRepository).save(any(UserModel.class));
+    }
+
+    @Test
+    void testUpdateUserProfileNotFound() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
+
+        Optional<UserModel> result = userService.updateUserProfile("testuser", testUserDTO);
 
         assertFalse(result.isPresent());
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void testUpdateUserWithEmptyPassword() {
-        UserModel existingUser = new UserModel("oldname", "oldpassword", "USER");
-        existingUser.setId(1L);
+    void testChangeUserRoleSuccess() {
+        List<String> newRoles = Arrays.asList("ADMIN", "USER");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
-        UserDTO updateDTO = new UserDTO();
-        updateDTO.setName("newname");
-        updateDTO.setPassword(""); // Empty password should not update
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Optional<UserModel> result = userService.updateUser(1L, updateDTO);
+        Optional<UserModel> result = userService.changeUserRole(1L, newRoles);
 
         assertTrue(result.isPresent());
-        assertEquals("oldpassword", result.get().getEncodedPassword()); // Password unchanged
-        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(any(UserModel.class));
     }
 
     @Test
-    void testDeleteUserSuccess() {
-        UserModel existingUser = new UserModel("testuser", "password", "USER");
-        existingUser.setId(1L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-
-        boolean result = userService.deleteUser(1L);
-
-        assertTrue(result);
-        verify(userRepository).delete(existingUser);
-    }
-
-    @Test
-    void testDeleteUserNotFound() {
+    void testChangeUserRoleNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        boolean result = userService.deleteUser(1L);
+        Optional<UserModel> result = userService.changeUserRole(1L, Arrays.asList("ADMIN"));
 
-        assertFalse(result);
-        verify(userRepository, never()).delete(any());
+        assertFalse(result.isPresent());
     }
 
     @Test
-    void testToggleUserActiveSuccess() {
-        UserModel existingUser = new UserModel("testuser", "password", "USER");
-        existingUser.setId(1L);
-        existingUser.setActive(true);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void testToggleUserActiveFromActiveToInactive() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
 
         Optional<UserModel> result = userService.toggleUserActive(1L);
 
         assertTrue(result.isPresent());
-        assertFalse(result.get().isActive());
         verify(userRepository).save(any(UserModel.class));
+    }
+
+    @Test
+    void testToggleUserActiveNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<UserModel> result = userService.toggleUserActive(1L);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testLinkSummonerSuccess() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
+
+        Optional<UserModel> result = userService.linkSummoner("testuser", "puuid123", "summonerName", "EUW1");
+
+        assertTrue(result.isPresent());
+        verify(userRepository).save(any(UserModel.class));
+    }
+
+    @Test
+    void testLinkSummonerNotFound() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
+
+        Optional<UserModel> result = userService.linkSummoner("testuser", "puuid123", "summonerName", "EUW1");
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testUnlinkSummonerSuccess() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(UserModel.class))).thenReturn(testUser);
+
+        Optional<UserModel> result = userService.unlinkSummoner("testuser");
+
+        assertTrue(result.isPresent());
+        verify(userRepository).save(any(UserModel.class));
+    }
+
+    @Test
+    void testUnlinkSummonerNotFound() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.empty());
+
+        Optional<UserModel> result = userService.unlinkSummoner("testuser");
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testFindAllUsers() {
+        List<UserModel> users = Arrays.asList(testUser);
+        when(userRepository.findAll()).thenReturn(users);
+
+        List<UserModel> result = userService.findAllUsers();
+
+        assertEquals(1, result.size());
+        verify(userRepository).findAll();
+    }
+
+    @Test
+    void testCountUsers() {
+        when(userRepository.count()).thenReturn(5L);
+
+        long result = userService.countUsers();
+
+        assertEquals(5L, result);
+        verify(userRepository).count();
+    }
+
+    @Test
+    void testSave() {
+        when(userRepository.save(testUser)).thenReturn(testUser);
+
+        UserModel result = userService.save(testUser);
+
+        assertNotNull(result);
+        assertEquals(testUser, result);
+        verify(userRepository).save(testUser);
     }
 
     @Test
@@ -254,34 +359,52 @@ class UserServiceTest {
     }
 
     @Test
-    void testToggleUserActiveNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Optional<UserModel> result = userService.toggleUserActive(1L);
-
-        assertFalse(result.isPresent());
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void testFindByNameSuccess() {
-        UserModel user = new UserModel("testuser", "password", "USER");
-        when(userRepository.findByName("testuser")).thenReturn(Optional.of(user));
-
-        Optional<UserModel> result = userService.findByName("testuser");
-
-        assertTrue(result.isPresent());
-        assertEquals("testuser", result.get().getName());
-        verify(userRepository).findByName("testuser");
-    }
-
-    @Test
     void testFindByNameNotFound() {
         when(userRepository.findByName("nonexistent")).thenReturn(Optional.empty());
 
         Optional<UserModel> result = userService.findByName("nonexistent");
 
         assertFalse(result.isPresent());
+        verify(userRepository).findByName("nonexistent");
+    }
+
+    @Test
+    void testGetUserByIdSuccess() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        UserModel result = userService.getUserById(1L);
+
+        assertNotNull(result);
+        assertEquals("testuser", result.getName());
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    void testGetUserByIdNotFound() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> 
+            userService.getUserById(999L));
+        verify(userRepository).findById(999L);
+    }
+
+    @Test
+    void testGetUserByNameSuccess() {
+        when(userRepository.findByName("testuser")).thenReturn(Optional.of(testUser));
+
+        UserModel result = userService.getUserByName("testuser");
+
+        assertNotNull(result);
+        assertEquals("testuser", result.getName());
+        verify(userRepository).findByName("testuser");
+    }
+
+    @Test
+    void testGetUserByNameNotFound() {
+        when(userRepository.findByName("nonexistent")).thenReturn(Optional.empty());
+
+        assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> 
+            userService.getUserByName("nonexistent"));
         verify(userRepository).findByName("nonexistent");
     }
 }

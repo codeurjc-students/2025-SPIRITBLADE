@@ -230,19 +230,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			// Calculate the raw LP change
 			let lpChange = currentLP - prevLP;
 			
-			// Detect division changes by checking for large jumps (>50 LP difference)
-			// This happens when someone gets promoted or demoted between divisions
 			if (Math.abs(lpChange) > 50) {
-				// Division change detected
 				if (lpChange < 0) {
-					// Negative large jump: Demotion (e.g., 5 LP -> 95 LP going backwards in time)
-					// or Promotion being undone when going forward
-					// Adjust by adding 100 to make it continuous
 					lpChange += 100;
 				} else {
-					// Positive large jump: Promotion (e.g., 95 LP -> 5 LP going forward)
-					// or Demotion being undone when going backwards
-					// Adjust by subtracting 100 to make it continuous
 					lpChange -= 100;
 				}
 			}

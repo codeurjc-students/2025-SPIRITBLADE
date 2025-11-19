@@ -173,7 +173,6 @@ Endpoints autenticados (JWT requerido):
 - `GET /api/v1/summoners/{puuid}/ranked-stats` - Obtener estadísticas ranked
 - `GET /api/v1/summoners/{puuid}/champion-mastery` - Obtener mastery por campeón
 - `GET /api/v1/dashboard/stats` - Estadísticas personales
-- `GET /api/v1/dashboard/me/rank-progression` - Historial de partidas
 - `GET /api/v1/dashboard/me/favorites` - Análisis de rendimiento
 
 Endpoints de administrador (requiere rol ADMIN):

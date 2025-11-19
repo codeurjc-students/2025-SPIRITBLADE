@@ -87,7 +87,7 @@ class RiotServiceIntegrationTest {
         summoner.setRiotId("CaseSensitive#EUW");
         summonerRepository.save(summoner);
         
-        Summoner found = summonerRepository.findByNameIgnoreCase("casesensitive").orElse(null);
+        Summoner found = summonerRepository.findByName("casesensitive").orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getName()).isEqualTo("CaseSensitive");
     }

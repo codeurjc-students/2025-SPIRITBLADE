@@ -2,9 +2,6 @@ package com.tfg.tfg.controller;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,20 +28,6 @@ public class SummonerController {
     public SummonerController(SummonerService summonerService, RiotService riotService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<SummonerDTO>> getAllSummoners(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        
-        PageRequest pageable = PageRequest.of(page, size, Sort.by("lastSearchedAt").descending());
-        Page<Summoner> summonersPage = summonerService.findAll(pageable);
-        
-        DataDragonService dataDragonService = riotService.getDataDragonService();
-        Page<SummonerDTO> dtos = summonersPage.map(s -> SummonerMapper.toDTO(s, dataDragonService));
-        
-        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/recent")

@@ -115,32 +115,6 @@ public class RankHistoryService {
     }
 
     /**
-     * Gets rank history for a summoner in Ranked Solo/Duo queue.
-     * 
-     * @param summoner The summoner
-     * @return List of rank history DTOs
-     */
-    public List<RankHistoryDTO> getRankHistory(Summoner summoner) {
-        return getRankHistory(summoner, RANKED_SOLO_QUEUE);
-    }
-
-    /**
-     * Gets rank history for a summoner in a specific queue.
-     * 
-     * @param summoner The summoner
-     * @param queueType The queue type
-     * @return List of rank history DTOs
-     */
-    public List<RankHistoryDTO> getRankHistory(Summoner summoner, String queueType) {
-        List<RankHistory> history = rankHistoryRepository
-                .findBySummonerAndQueueTypeOrderByTimestampDesc(summoner, queueType);
-        
-        return history.stream()
-                .map(RankHistoryMapper::toDTO)
-                .toList();
-    }
-
-    /**
      * Gets rank progression data (ordered chronologically for charts).
      * 
      * @param summonerId The summoner ID
@@ -157,19 +131,6 @@ public class RankHistoryService {
     }
 
     /**
-     * Gets the most recent rank snapshot for a summoner.
-     * 
-     * @param summoner The summoner
-     * @param queueType The queue type
-     * @return Optional containing the most recent rank history DTO
-     */
-    public Optional<RankHistoryDTO> getCurrentRank(Summoner summoner, String queueType) {
-        return rankHistoryRepository
-                .findFirstBySummonerAndQueueTypeOrderByTimestampDesc(summoner, queueType)
-                .map(RankHistoryMapper::toDTO);
-    }
-
-    /**
      * Gets the peak rank (highest LP) ever reached by a summoner.
      * 
      * @param summoner The summoner
@@ -180,36 +141,6 @@ public class RankHistoryService {
         return rankHistoryRepository
                 .findPeakRank(summoner, queueType)
                 .map(RankHistoryMapper::toDTO);
-    }
-
-    /**
-     * Calculates average LP gain/loss over a time period.
-     * 
-     * @param summoner The summoner
-     * @param queueType The queue type
-     * @param startDate Start date
-     * @param endDate End date
-     * @return Average LP change per game
-     */
-    public Double calculateAverageLpChange(Summoner summoner, String queueType, 
-                                          LocalDateTime startDate, LocalDateTime endDate) {
-        List<RankHistory> history = rankHistoryRepository
-                .findBySummonerAndTimestampBetweenOrderByTimestampDesc(summoner, startDate, endDate);
-        
-        if (history.isEmpty()) {
-            return 0.0;
-        }
-
-        double totalLpChange = history.stream()
-                .filter(rh -> rh.getLpChange() != null)
-                .mapToInt(RankHistory::getLpChange)
-                .sum();
-        
-        long countWithLpChange = history.stream()
-                .filter(rh -> rh.getLpChange() != null)
-                .count();
-
-        return countWithLpChange > 0 ? totalLpChange / countWithLpChange : 0.0;
     }
 
     /**
@@ -228,26 +159,5 @@ public class RankHistoryService {
             case 440 -> "RANKED_FLEX_SR";
             default -> RANKED_SOLO_QUEUE;
         };
-    }
-
-    /**
-     * Cleans up old rank history entries (for maintenance).
-     * 
-     * @param beforeDate Delete entries before this date
-     */
-    @Transactional
-    public void cleanupOldEntries(LocalDateTime beforeDate) {
-        logger.info("Cleaning up rank history entries before {}", beforeDate);
-        rankHistoryRepository.deleteByTimestampBefore(beforeDate);
-    }
-
-    /**
-     * Gets count of rank history entries for a summoner.
-     * 
-     * @param summoner The summoner
-     * @return Count of entries
-     */
-    public long getEntryCount(Summoner summoner) {
-        return rankHistoryRepository.countBySummoner(summoner);
     }
 }

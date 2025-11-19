@@ -72,36 +72,6 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetAllSummonersWithPaginationReturnsPagedResults() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .queryParam("page", 0)
-            .queryParam("size", 10)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(200)
-            .body("content", instanceOf(java.util.List.class))
-            .body("totalElements", notNullValue())
-            .body("totalPages", notNullValue())
-            .body("size", notNullValue());
-    }
-
-    @Test
-    void testGetAllSummonersFirstPageReturnsData() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(200);
-    }
-
-    @Test
     void testGetRecentSummonersReturnsRecentSearches() {
         given()
             .port(port)
@@ -151,36 +121,6 @@ class SearchSystemTest {
     }
 
     @Test
-    void testGetSummonersWithLargePageSizeReturnsLimitedResults() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .queryParam("page", 0)
-            .queryParam("size", 100)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(200)
-            .body("content.size()", lessThanOrEqualTo(100));
-    }
-
-    @Test
-    void testGetSummonersSecondPageReturnsNextResults() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(200)
-            .body("number", equalTo(1)); // Page number
-    }
-
-    @Test
     void testSearchSummonerReturnsExpectedFields() {
         given()
             .port(port)
@@ -191,24 +131,5 @@ class SearchSystemTest {
         .then()
             .statusCode(anyOf(is(200), is(404)));
             // Response may be empty (404) if summoner not found in Riot API
-    }
-
-    @Test
-    void testGetSummonersContainsPaginationMetadata() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .queryParam("page", 0)
-            .queryParam("size", 5)
-        .when()
-            .get("/api/v1/summoners")
-        .then()
-            .statusCode(200)
-            .body("pageable", notNullValue())
-            .body("totalElements", notNullValue())
-            .body("totalPages", notNullValue())
-            .body("last", notNullValue())
-            .body("first", notNullValue());
     }
 }

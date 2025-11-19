@@ -274,37 +274,6 @@ class AuthSystemTest {
     }
 
     @Test
-    void testRefreshTokenWithValidTokenReturnsNewToken() {
-        // First login
-        String refreshToken = given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "user123"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .extract()
-            .path("refreshToken");
-
-        // Then refresh using cookie
-        given()
-            .port(port)
-            .cookie("RefreshToken", refreshToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .post("/api/v1/auth/refresh")
-        .then()
-            .statusCode(anyOf(is(200), is(201)))
-            .body("status", equalTo("SUCCESS"));
-    }
-
-    @Test
     void testLoginReturnsUserWithCorrectRole() {
         // Login response contains accessToken but not roles (roles are in JWT token itself)
         given()

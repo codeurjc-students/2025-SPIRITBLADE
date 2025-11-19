@@ -3,7 +3,6 @@ package com.tfg.tfg.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,8 +18,11 @@ import com.tfg.tfg.model.entity.UserModel;
 @Service
 public class RepositoryUserDetailsService implements UserDetailsService {
 
-	@Autowired
-	private UserModelRepository userRepository;
+	private final UserModelRepository userRepository;
+
+	public RepositoryUserDetailsService(UserModelRepository userRepository) {
+		this.userRepository = userRepository;
+	}
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

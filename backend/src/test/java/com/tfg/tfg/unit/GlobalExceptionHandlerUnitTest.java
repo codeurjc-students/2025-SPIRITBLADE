@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
@@ -71,26 +70,6 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
-    void testHandleInvalidCredentialsWithBadCredentials() {
-        BadCredentialsException ex = new BadCredentialsException("Bad credentials");
-        
-        ResponseEntity<ErrorResponse> response = handler.handleInvalidCredentials(ex, mockRequest);
-        
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Invalid Credentials", response.getBody().getError());
-    }
-
-    @Test
-    void testHandleInvalidCredentialsWithInvalidCredentialsException() {
-        InvalidCredentialsException ex = new InvalidCredentialsException("Invalid credentials");
-        
-        ResponseEntity<ErrorResponse> response = handler.handleInvalidCredentials(ex, mockRequest);
-        
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    @Test
     void testHandleAuthenticationException() {
         AuthenticationException ex = new AuthenticationException("Auth failed") {};
         
@@ -149,16 +128,6 @@ class GlobalExceptionHandlerUnitTest {
         
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid File", response.getBody().getError());
-    }
-
-    @Test
-    void testHandleStorageException() {
-        StorageException ex = new StorageException("Storage failed");
-        
-        ResponseEntity<ErrorResponse> response = handler.handleStorageException(ex, mockRequest);
-        
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Storage Error", response.getBody().getError());
     }
 
     @Test

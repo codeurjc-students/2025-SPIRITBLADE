@@ -22,14 +22,6 @@ public class MatchService {
         this.rankHistoryService = rankHistoryService;
     }
 
-    public List<MatchEntity> findBySummonerOrderByTimestampDesc(Summoner summoner) {
-        return matchRepository.findBySummonerOrderByTimestampDesc(summoner);
-    }
-
-    public List<MatchEntity> findRankedMatchesBySummoner(Summoner summoner, String queueType) {
-        return matchRepository.findRankedMatchesBySummoner(summoner, queueType);
-    }
-
     public List<MatchEntity> findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(Summoner summoner, Integer queueId) {
         return matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
     }

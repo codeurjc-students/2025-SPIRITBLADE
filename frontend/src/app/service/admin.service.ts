@@ -29,13 +29,6 @@ export class AdminService {
   }
 
   /**
-   * Get a single user by ID.
-   */
-  getUserById(userId: number): Observable<User> {
-    return this.http.get<User>(`${this.usersUrl}/${userId}`);
-  }
-
-  /**
    * Create a new user.
    */
   createUser(user: User): Observable<User> {
@@ -50,13 +43,6 @@ export class AdminService {
   }
 
   /**
-   * Change user role.
-   */
-  changeUserRole(userId: number, role: string): Observable<User> {
-    return this.http.put<User>(`${this.usersUrl}/${userId}/role`, role);
-  }
-
-  /**
    * Toggle user active status.
    */
   toggleUserActive(userId: number): Observable<User> {
@@ -68,20 +54,5 @@ export class AdminService {
    */
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`${this.usersUrl}/${userId}`);
-  }
-
-  /**
-   * Set user active status (deprecated - use toggleUserActive instead).
-   * @deprecated Use toggleUserActive() instead
-   */
-  setUserActive(userId: number, active: boolean): Observable<any> {
-    return this.http.patch<any>(`${API_URL}/admin/users/${userId}`, { active });
-  }
-
-  /**
-   * Get system statistics.
-   */
-  getSystemStats(): Observable<any> {
-    return this.http.get<any>(`${API_URL}/admin/stats`);
   }
 }

@@ -166,7 +166,7 @@ class DashboardControllerUnitTest {
 
         // User has linked summoner
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(summonerService.findByName("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // dashboardService should compute and return personal stats for the summoner
     Map<String, Object> stats = new HashMap<>();
@@ -286,7 +286,7 @@ class DashboardControllerUnitTest {
         favoriteSummoner.setName("FavoriteSummoner");
         
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("FavoriteSummoner")).thenReturn(Optional.of(favoriteSummoner));
+        when(summonerService.findByName("FavoriteSummoner")).thenReturn(Optional.of(favoriteSummoner));
         when(userService.save(any(UserModel.class))).thenReturn(testUser);
 
         // Execute
@@ -312,7 +312,7 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(summonerService.findByName("TestSummoner")).thenReturn(Optional.of(testSummoner));
     Map<String, Object> stats = new HashMap<>();
     stats.put("lp7days", 0);
     when(dashboardService.getPersonalStats(testSummoner)).thenReturn(stats);
@@ -353,7 +353,7 @@ class DashboardControllerUnitTest {
         when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.of(30)); // Started at 30 LP
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(summonerService.findByName("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         testSummoner.setLp(50); // Current LP is 50
 
@@ -399,7 +399,7 @@ class DashboardControllerUnitTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("NonExistent")).thenReturn(Optional.empty());
+        when(summonerService.findByName("NonExistent")).thenReturn(Optional.empty());
 
         // Execute
         ResponseEntity<Map<String, Object>> response = dashboardController.removeFavorite("NonExistent");
@@ -432,7 +432,7 @@ class DashboardControllerUnitTest {
         testUser.addFavoriteSummoner(favoriteToRemove);
         
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("FavoriteToRemove")).thenReturn(Optional.of(favoriteToRemove));
+        when(summonerService.findByName("FavoriteToRemove")).thenReturn(Optional.of(favoriteToRemove));
         when(userService.save(any(UserModel.class))).thenReturn(testUser);
 
         // Execute
@@ -502,7 +502,7 @@ class DashboardControllerUnitTest {
         );
         
         when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(summonerService.findByName("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock cached matches (vamos por el camino de API ya que el cache check es complejo)
         when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(testSummoner))
@@ -564,7 +564,7 @@ class DashboardControllerUnitTest {
         );
         
         when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
+        when(summonerService.findByName("TestSummoner")).thenReturn(Optional.of(testSummoner));
         
         // Mock empty cached matches (will fetch from API)
         when(matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, 440))
@@ -598,88 +598,6 @@ class DashboardControllerUnitTest {
         assertEquals(440, response.getBody().get(0).getQueueId());
         
     verify(dashboardService).getRankedMatchesWithLP(testSummoner, 440, 0, 30);
-        
-        // Cleanup
-        SecurityContextHolder.clearContext();
-    }
-
-    // ==================== refreshMatches Tests ====================
-    
-    @Test
-    void testRefreshMatchesAsGuest() {
-        // Setup: No authentication
-        SecurityContextHolder.clearContext();
-        
-        // Execute
-        ResponseEntity<Map<String, Object>> response = dashboardController.refreshMatches();
-        
-        // Verify: Returns error for guests
-        assertNotNull(response);
-        assertEquals(400, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(false, response.getBody().get("success"));
-        assertEquals("No linked summoner account found", response.getBody().get("message"));
-    }
-    
-    @Test
-    void testRefreshMatchesNoLinkedSummoner() {
-        // Setup: Authenticated user without linked summoner
-        testUser.setLinkedSummonerName(null);
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
-        );
-        
-        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        
-        // Execute
-        ResponseEntity<Map<String, Object>> response = dashboardController.refreshMatches();
-        
-        // Verify: Returns error
-        assertNotNull(response);
-        assertEquals(400, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(false, response.getBody().get("success"));
-        assertEquals("No linked summoner account found", response.getBody().get("message"));
-        
-        // Cleanup
-        SecurityContextHolder.clearContext();
-    }
-    
-    @Test
-    void testRefreshMatchesSuccess() {
-        // Setup: Authenticated user with linked summoner
-        testUser.setLinkedSummonerName("TestSummoner");
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken(testUser.getName(), null, List.of())
-        );
-        
-        when(userService.findByName(testUser.getName())).thenReturn(Optional.of(testUser));
-        when(summonerService.findByNameIgnoreCase("TestSummoner")).thenReturn(Optional.of(testSummoner));
-        
-        // Mock API response with matches
-        com.tfg.tfg.model.dto.MatchHistoryDTO match1 = new com.tfg.tfg.model.dto.MatchHistoryDTO();
-        match1.setMatchId("EUW1_111");
-        match1.setQueueId(420);
-        
-        com.tfg.tfg.model.dto.MatchHistoryDTO match2 = new com.tfg.tfg.model.dto.MatchHistoryDTO();
-        match2.setMatchId("EUW1_222");
-        match2.setQueueId(420);
-        
-        when(riotService.getMatchHistory(eq(testSummoner.getPuuid()), anyInt(), anyInt()))
-            .thenReturn(List.of(match1, match2));
-        
-        // Execute
-        ResponseEntity<Map<String, Object>> response = dashboardController.refreshMatches();
-        
-        // Verify: Returns success
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(true, response.getBody().get("success"));
-        assertEquals("Match history refreshed successfully", response.getBody().get("message"));
-        assertEquals(2, response.getBody().get("matchesProcessed"));
-        
-        verify(riotService).getMatchHistory(testSummoner.getPuuid(), 0, 30);
         
         // Cleanup
         SecurityContextHolder.clearContext();

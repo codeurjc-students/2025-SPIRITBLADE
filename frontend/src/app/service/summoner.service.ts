@@ -15,18 +15,6 @@ export class SummonerService {
     return this.http.get<Summoner>(`${API_URL}/summoners/name/${encodeURIComponent(name)}`);
   }
 
-  getById(id: string): Observable<Summoner> {
-    return this.http.get<Summoner>(`${API_URL}/summoners/${id}`);
-  }
-
-  getChampionStats(summonerId: string): Observable<any> {
-    return this.http.get(`${API_URL}/summoners/${summonerId}/champion-stats`);
-  }
-
-  getMatchHistory(summonerId: string, page = 0, size = 20): Observable<any> {
-    return this.http.get(`${API_URL}/summoners/${summonerId}/matches?page=${page}&size=${size}`);
-  }
-
   getTopChampions(name: string): Observable<ChampionMastery[]> {
     return this.http.get<ChampionMastery[]>(`${API_URL}/summoners/name/${encodeURIComponent(name)}/masteries`);
   }

@@ -208,4 +208,79 @@ class DataInitializerUnitTest {
         // Then - DataInitializer should be initialized
         assertNotNull(dataInitializer);
     }
+
+    @Test
+    void testSimpleMultipartFileWithNullContent() throws Exception {
+        // Given
+        byte[] nullContent = null;
+        
+        // When - Use reflection to create SimpleMultipartFile
+        java.lang.reflect.Constructor<?> constructor = 
+            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+                .getDeclaredConstructor(byte[].class, String.class, String.class);
+        constructor.setAccessible(true);
+        org.springframework.web.multipart.MultipartFile file = 
+            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(nullContent, "test.txt", "text/plain");
+        
+        // Then
+        assertEquals("test.txt", file.getName());
+        assertEquals("test.txt", file.getOriginalFilename());
+        assertEquals("text/plain", file.getContentType());
+        assertTrue(file.isEmpty());
+        assertEquals(0, file.getSize());
+        assertNotNull(file.getBytes());
+        assertEquals(0, file.getBytes().length);
+    }
+
+    @Test
+    void testSimpleMultipartFileWithContent() throws Exception {
+        // Given
+        byte[] content = "Hello World".getBytes();
+        
+        // When - Use reflection to create SimpleMultipartFile
+        java.lang.reflect.Constructor<?> constructor = 
+            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+                .getDeclaredConstructor(byte[].class, String.class, String.class);
+        constructor.setAccessible(true);
+        org.springframework.web.multipart.MultipartFile file = 
+            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(content, "hello.txt", "text/plain");
+        
+        // Then
+        assertEquals("hello.txt", file.getName());
+        assertEquals("hello.txt", file.getOriginalFilename());
+        assertEquals("text/plain", file.getContentType());
+        assertFalse(file.isEmpty());
+        assertEquals(11, file.getSize());
+        assertArrayEquals(content, file.getBytes());
+        
+        // Test InputStream
+        try (java.io.InputStream is = file.getInputStream()) {
+            byte[] readContent = is.readAllBytes();
+            assertArrayEquals(content, readContent);
+        }
+    }
+
+    @Test
+    void testSimpleMultipartFileTransferTo() throws Exception {
+        // Given
+        byte[] content = "Test content".getBytes();
+        
+        // When - Use reflection to create SimpleMultipartFile
+        java.lang.reflect.Constructor<?> constructor = 
+            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+                .getDeclaredConstructor(byte[].class, String.class, String.class);
+        constructor.setAccessible(true);
+        org.springframework.web.multipart.MultipartFile file = 
+            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(content, "test.txt", "text/plain");
+        
+        java.io.File tempFile = java.io.File.createTempFile("test", ".txt");
+        tempFile.deleteOnExit();
+        
+        // When
+        file.transferTo(tempFile);
+        
+        // Then
+        byte[] fileContent = java.nio.file.Files.readAllBytes(tempFile.toPath());
+        assertArrayEquals(content, fileContent);
+    }
 }
