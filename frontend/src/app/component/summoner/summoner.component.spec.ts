@@ -156,13 +156,13 @@ describe('SummonerComponent - Unit Tests', () => {
   describe('onSearch()', () => {
     it('should navigate to summoner route with valid name', () => {
       // Arrange
-      component.searchQuery = 'NewSummoner#EUW';
+      component.searchQuery = 'NewSummoner#NA';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'NewSummoner#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'NewSummoner#NA']);
       expect(component.error).toBeNull();
     });
 
@@ -211,7 +211,7 @@ describe('SummonerComponent - Unit Tests', () => {
 
       // Assert
       expect(mockRouter.navigate).not.toHaveBeenCalled();
-      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)');
+      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#NA)');
     });
   });
 
@@ -252,11 +252,11 @@ describe('SummonerComponent - Unit Tests', () => {
 
     it('should handle summoner not found', () => {
       mockSummonerService.getByName.and.returnValue(throwError(() => ({ status: 404 })));
-      component.searchQuery = 'InvalidSummoner#EUW';
+      component.searchQuery = 'InvalidSummoner#NA';
 
-      component.loadSummoner('InvalidSummoner#EUW');
+      component.loadSummoner('InvalidSummoner#NA');
 
-      expect(component.error).toBe('Summoner "InvalidSummoner#EUW" not found. Make sure to use the format: gameName#tagLine');
+      expect(component.error).toBe('Summoner "InvalidSummoner#NA" not found. Make sure to use the format: gameName#tagLine');
       expect(component.loading).toBeFalse();
     });
   });
@@ -351,15 +351,15 @@ describe('SummonerComponent - Unit Tests', () => {
 
       component.onSearch();
 
-      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)');
+      expect(component.error).toBe('Invalid format. Please use: gameName#tagLine (e.g., Player#NA)');
     });
 
     it('should validate search format with empty parts', () => {
-      component.searchQuery = '#EUW';
+      component.searchQuery = '#NA';
 
       component.onSearch();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', '#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', '#NA']);
     });
 
     it('should validate search format with empty tag', () => {

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewI
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { DashboardService, RankHistoryEntry } from '../../service/dashboard.service';
+import { DashboardService } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
 import { MatchHistory } from '../../dto/match-history.model';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -44,7 +44,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	selectedQueue: number | null = 420; // Default to Solo/Duo
 	
 	// Chart data
-	rankHistory: RankHistoryEntry[] = [];
 	chartLoading = false;
 	chartError: string | null = null;
 
@@ -409,7 +408,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				} else {
 					this.linkedSummoner = null;
 					// Clear any existing chart data
-					this.rankHistory = [];
 					if (this.lpChart) {
 						this.lpChart.destroy();
 						this.lpChart = null;
@@ -457,7 +455,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
-			this.linkError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			this.linkError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
 		
@@ -465,12 +463,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		const name = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
 		
-		// Validate region (only EUW supported for now)
-		if (region !== 'EUW') {
-			this.linkError = 'Currently, only EUW region is supported';
-			return;
-		}
-
 		if (!name) {
 			this.linkError = 'Please enter a valid summoner name';
 			return;
@@ -516,7 +508,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				if (res.success) {
 					this.linkedSummoner = null;
 					// Clear rank history and chart
-					this.rankHistory = [];
 					this.rankedMatches = [];
 					this.allMatches = [];
 					if (this.lpChart) {
@@ -690,7 +681,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
-			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
 		
@@ -698,12 +689,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		const summonerName = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
 		
-		// Validate region (only EUW supported for now)
-		if (region !== 'EUW') {
-			this.addFavoriteError = 'Currently only EUW region is supported';
-			return;
-		}
-
 		if (!summonerName) {
 			this.addFavoriteError = 'Please enter a valid summoner name';
 			return;

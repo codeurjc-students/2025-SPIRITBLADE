@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
     
     // Validate format: nombre#región
     if (!input.includes('#')) {
-      this.searchError = 'Please use format: name#region (e.g., jae9104#EUW)';
+      this.searchError = 'Please use format: name#region (e.g., jae9104#NA1)';
       return;
     }
     
@@ -63,12 +63,6 @@ export class HomeComponent implements OnInit {
     const summonerName = parts[0].trim();
     const region = parts[1].trim().toUpperCase();
     
-    // Validate region (only EUW supported for now)
-    if (region !== 'EUW') {
-      this.searchError = 'Currently only EUW region is supported';
-      return;
-    }
-
     if (!summonerName) {
       this.searchError = 'Please enter a valid summoner name';
       return;

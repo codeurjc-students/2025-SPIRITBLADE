@@ -153,7 +153,7 @@ export class SummonerComponent implements OnInit {
 		
 		// Validate Riot ID format (gameName#tagLine)
 		if (!name.includes('#')) {
-			this.error = 'Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)';
+			this.error = 'Invalid format. Please use: gameName#tagLine (e.g., Player#NA)';
 			return;
 		}
 		

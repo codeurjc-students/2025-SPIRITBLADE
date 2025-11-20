@@ -1,0 +1,23 @@
+// DTOs for dashboard API responses
+
+export interface PersonalStatsDto {
+  username: string;
+  linkedSummoner: string | null;
+  currentRank: string;
+  lp7days: number;
+  mainRole: string;
+  favoriteChampion: string | null;
+}
+
+export interface AiAnalysisResponseDto {
+  analysis: string;
+  generatedAt: string;
+  matchesAnalyzed: number;
+  summonerName: string;
+}
+
+export interface RefreshMatchesResponseDto {
+  success: boolean;
+  message: string;
+  matchesProcessed: number;
+}

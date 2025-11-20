@@ -267,7 +267,11 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should register successfully and auto-login for regular user', (done) => {
       // Arrange
-      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockRegisterResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
       const mockLoginResponse = { 
         status: 'success',
         message: 'Login successful',
@@ -350,7 +354,11 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should handle auto-login failure after successful registration', () => {
       // Arrange
-      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockRegisterResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
       const loginError = { status: 401 };
       
       mockAuthService.register.and.returnValue(of(mockRegisterResponse));
@@ -368,7 +376,11 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should register successfully and auto-login for admin user', (done) => {
       // Arrange
-      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockRegisterResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
       const mockLoginResponse = { 
         status: 'success',
         message: 'Login successful',
@@ -402,7 +414,11 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should handle checkSession error after successful registration and auto-login', (done) => {
       // Arrange
-      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockRegisterResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
       const mockLoginResponse = { 
         status: 'success',
         message: 'Login successful',
@@ -463,7 +479,11 @@ describe('LoginComponent - Unit Tests', () => {
       component.registerForm.get('password')?.updateValueAndValidity();
       component.registerForm.get('confirmPassword')?.updateValueAndValidity();
       
-      const mockRegisterResponse = { id: 1, username: 'newuser' };
+      const mockRegisterResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
       const mockLoginResponse = { 
         status: 'success',
         message: 'Login successful',

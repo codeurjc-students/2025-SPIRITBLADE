@@ -95,7 +95,11 @@ describe('AuthService - Unit Tests', () => {
         email: 'newuser@test.com', 
         password: 'newpass' 
       };
-      const mockResponse = { id: 1, username: 'newuser' };
+      const mockResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
 
       // Act
       service.register(mockPayload).subscribe(response => {

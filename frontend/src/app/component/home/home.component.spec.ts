@@ -17,7 +17,7 @@ describe('HomeComponent - Unit Tests', () => {
   const mockRecentSearches: Summoner[] = [
     { 
       id: '1', 
-      name: 'Player1#EUW', 
+      name: 'Player1#NA', 
       level: 150, 
       profileIconId: 1, 
       profileIconUrl: 'http://example.com/icon1.png',
@@ -29,7 +29,7 @@ describe('HomeComponent - Unit Tests', () => {
     },
     { 
       id: '2', 
-      name: 'Player2#EUW', 
+      name: 'Player2#NA', 
       level: 200, 
       profileIconId: 2, 
       profileIconUrl: 'http://example.com/icon2.png',
@@ -107,9 +107,9 @@ describe('HomeComponent - Unit Tests', () => {
       component.ngOnInit();
 
       // Assert
-      expect(component.recentSearches[0].name).toBe('Player1#EUW');
+      expect(component.recentSearches[0].name).toBe('Player1#NA');
       expect(component.recentSearches[0].tier).toBe('GOLD');
-      expect(component.recentSearches[1].name).toBe('Player2#EUW');
+      expect(component.recentSearches[1].name).toBe('Player2#NA');
       expect(component.recentSearches[1].tier).toBe('PLATINUM');
     });
   });
@@ -117,24 +117,24 @@ describe('HomeComponent - Unit Tests', () => {
   describe('Search Functionality', () => {
     it('should navigate to summoner page with valid search query', () => {
       // Arrange
-      component.searchQuery = 'TestSummoner#EUW';
+      component.searchQuery = 'TestSummoner#NA';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#NA']);
     });
 
     it('should trim whitespace from search query before navigation', () => {
       // Arrange
-      component.searchQuery = '  TestSummoner#EUW  ';
+      component.searchQuery = '  TestSummoner#NA  ';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'TestSummoner#NA']);
     });
 
     it('should not navigate with empty search query', () => {
@@ -161,24 +161,24 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should handle special characters in search query', () => {
       // Arrange
-      component.searchQuery = 'Test@Summoner#EUW';
+      component.searchQuery = 'Test@Summoner#NA';
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Test@Summoner#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Test@Summoner#NA']);
     });
 
     it('should handle long search queries', () => {
       // Arrange
-      component.searchQuery = 'A'.repeat(100) + '#EUW'; // Very long name with region
+      component.searchQuery = 'A'.repeat(100) + '#NA'; // Very long name with region
 
       // Act
       component.onSearch();
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'A'.repeat(100) + '#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'A'.repeat(100) + '#NA']);
     });
   });
 
@@ -191,7 +191,7 @@ describe('HomeComponent - Unit Tests', () => {
       component.searchSummoner(summoner);
 
       // Assert
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Player1#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'Player1#NA']);
     });
 
     it('should handle summoner click with all data fields', () => {
@@ -281,7 +281,7 @@ describe('HomeComponent - Unit Tests', () => {
     it('should handle router navigation errors gracefully', () => {
       // Arrange
       mockRouter.navigate.and.returnValue(Promise.reject('Navigation failed'));
-      component.searchQuery = 'TestSummoner#EUW';
+      component.searchQuery = 'TestSummoner#NA';
 
       // Act & Assert
       expect(() => component.onSearch()).not.toThrow();
@@ -367,7 +367,7 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should allow multiple search operations', () => {
       // Arrange
-      const queries = ['Summoner1#EUW', 'Summoner2#EUW', 'Summoner3#EUW'];
+      const queries = ['Summoner1#NA', 'Summoner2#NA', 'Summoner3#NA'];
 
       // Act & Assert
       queries.forEach(query => {
@@ -401,25 +401,13 @@ describe('HomeComponent - Unit Tests', () => {
       component.onSearch();
 
       // Assert
-      expect(component.searchError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
-    });
-
-    it('should show error when region is not EUW', () => {
-      // Arrange
-      component.searchQuery = 'TestSummoner#NA';
-
-      // Act
-      component.onSearch();
-
-      // Assert
-      expect(component.searchError).toBe('Currently only EUW region is supported');
+      expect(component.searchError).toBe('Please use format: name#region (e.g., jae9104#NA1)');
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
     it('should show error when summoner name is empty after hashtag', () => {
       // Arrange
-      component.searchQuery = '#EUW';
+      component.searchQuery = '#NA';
 
       // Act
       component.onSearch();
@@ -431,7 +419,7 @@ describe('HomeComponent - Unit Tests', () => {
 
     it('should show error when summoner name is only whitespace after hashtag', () => {
       // Arrange
-      component.searchQuery = '   #EUW';
+      component.searchQuery = '   #NA';
 
       // Act
       component.onSearch();
@@ -444,14 +432,14 @@ describe('HomeComponent - Unit Tests', () => {
     it('should clear previous error when search is successful', () => {
       // Arrange
       component.searchError = 'Previous error';
-      component.searchQuery = 'ValidSummoner#EUW';
+      component.searchQuery = 'ValidSummoner#NA';
 
       // Act
       component.onSearch();
 
       // Assert
       expect(component.searchError).toBeNull();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'ValidSummoner#EUW']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/summoner', 'ValidSummoner#NA']);
     });
   });
 });
