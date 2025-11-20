@@ -6,6 +6,7 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.MatchMapper;
 import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.RankHistoryService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -117,7 +118,7 @@ class MatchMapperTest {
     void testToDTOValidEntity() {
         lenient().when(dataDragonService.getChampionIconUrl(anyLong())).thenReturn("http://example.com/champion.png");
         lenient().when(rankHistoryService.getLpForMatch(1L)).thenReturn(Optional.of(1500));
-
+        LocalDateTime timestamp = LocalDateTime.of(2025, 1, 1, 12, 0);
         MatchEntity entity = new MatchEntity();
         entity.setId(1L);
         entity.setMatchId("EUW1_123456789");
@@ -129,7 +130,7 @@ class MatchMapperTest {
         entity.setAssists(15);
         entity.setGameDuration(1800L);
         entity.setQueueId(420);
-        entity.setTimestamp(LocalDateTime.of(2023, 1, 1, 12, 0));
+        entity.setTimestamp(timestamp);
 
         MatchHistoryDTO result = MatchMapper.toDTO(entity, dataDragonService, rankHistoryService);
 
@@ -142,7 +143,7 @@ class MatchMapperTest {
         assertEquals(5, result.getDeaths());
         assertEquals(15, result.getAssists());
         assertEquals(1800L, result.getGameDuration());
-        assertEquals(1672570800L, result.getGameTimestamp()); // 2023-01-01 12:00 UTC
+        assertEquals(timestamp, LocalDateTime.ofEpochSecond(result.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
         assertEquals(Integer.valueOf(420), result.getQueueId());
         assertEquals(Integer.valueOf(1500), result.getLpAtMatch());
     }

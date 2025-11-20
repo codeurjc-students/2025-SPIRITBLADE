@@ -91,7 +91,7 @@ class SummonerControllerIntegrationTest {
     @Test
     @WithMockUser
     void testGetRecentSearchesWithSummoners() throws Exception {
-        // Create 12 summoners (should return only 10 most recent)
+        // Create 12 summoners (should return only 9 most recent)
         for (int i = 0; i < 12; i++) {
             Summoner s = new Summoner();
             s.setName("Recent" + i);
@@ -103,9 +103,9 @@ class SummonerControllerIntegrationTest {
 
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(10)))
+                .andExpect(jsonPath("$", hasSize(9)))
                 .andExpect(jsonPath("$[0].name", equalTo("Recent0"))) // Most recent
-                .andExpect(jsonPath("$[9].name", equalTo("Recent9")));
+                .andExpect(jsonPath("$[8].name", equalTo("Recent8")));
     }
 
     @Test

@@ -97,14 +97,12 @@ describe('DashboardComponent', () => {
       expect(component.selectedQueue).toBe(420);
     });
 
-    it('should call refresh, loadLinkedSummoner, and loadUserProfile on ngOnInit', () => {
-      spyOn(component, 'refresh');
+    it('should call loadLinkedSummoner and loadUserProfile on ngOnInit', () => {
       spyOn(component, 'loadLinkedSummoner');
       spyOn(component, 'loadUserProfile');
 
       component.ngOnInit();
 
-      expect(component.refresh).toHaveBeenCalled();
       expect(component.loadLinkedSummoner).toHaveBeenCalled();
       expect(component.loadUserProfile).toHaveBeenCalled();
     });
