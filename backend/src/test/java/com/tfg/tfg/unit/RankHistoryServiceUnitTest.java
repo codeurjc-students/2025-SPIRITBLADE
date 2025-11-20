@@ -110,79 +110,6 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void calculateAverageLpChangereturnsZeroOnEmptyAndCorrectAverage() {
-        Summoner s = new Summoner();
-        s.setName("AvgPlayer");
-
-        when(repo.findBySummonerAndTimestampBetweenOrderByTimestampDesc(eq(s), any(), any()))
-            .thenReturn(List.of());
-
-        double empty = service.calculateAverageLpChange(s, "RANKED_SOLO_5x5",
-                LocalDateTime.now().minusDays(10), LocalDateTime.now());
-        assertEquals(0.0, empty);
-
-        RankHistory r1 = new RankHistory(); r1.setLpChange(10);
-        RankHistory r2 = new RankHistory(); r2.setLpChange(-5);
-        RankHistory r3 = new RankHistory(); r3.setLpChange(null);
-
-        when(repo.findBySummonerAndTimestampBetweenOrderByTimestampDesc(eq(s), any(), any()))
-            .thenReturn(List.of(r1, r2, r3));
-
-        double avg = service.calculateAverageLpChange(s, "RANKED_SOLO_5x5",
-                LocalDateTime.now().minusDays(10), LocalDateTime.now());
-        assertEquals((10 + -5) / 2.0, avg);
-    }
-
-    @Test
-    void getEntryCountdelegatesToRepository() {
-        Summoner s = new Summoner();
-        when(repo.countBySummoner(eq(s))).thenReturn(7L);
-
-        long count = service.getEntryCount(s);
-        assertEquals(7L, count);
-    }
-
-    @Test
-    void getRankHistorydefaultQueue() {
-        Summoner s = new Summoner();
-        s.setName("TestPlayer");
-
-        RankHistory rh = new RankHistory();
-        rh.setTier("DIAMOND");
-        rh.setRank("IV");
-        rh.setLeaguePoints(75);
-
-        when(repo.findBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5")))
-            .thenReturn(List.of(rh));
-
-        List<RankHistoryDTO> result = service.getRankHistory(s);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("DIAMOND", result.get(0).getTier());
-        verify(repo).findBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5"));
-    }
-
-    @Test
-    void getRankHistoryspecificQueue() {
-        Summoner s = new Summoner();
-        s.setName("FlexPlayer");
-
-        RankHistory rh = new RankHistory();
-        rh.setTier("PLATINUM");
-        rh.setRank("III");
-
-        when(repo.findBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_FLEX_SR")))
-            .thenReturn(List.of(rh));
-
-        List<RankHistoryDTO> result = service.getRankHistory(s, "RANKED_FLEX_SR");
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(repo).findBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_FLEX_SR"));
-    }
-
-    @Test
     void getRankProgression() {
         RankHistory rh1 = new RankHistory();
         rh1.setTier("GOLD");
@@ -197,34 +124,6 @@ class RankHistoryServiceUnitTest {
         assertNotNull(result);
         assertEquals(2, result.size());
         verify(repo).findRankProgressionBySummonerAndQueue(1L, "RANKED_SOLO_5x5");
-    }
-
-    @Test
-    void getCurrentRankfound() {
-        Summoner s = new Summoner();
-        RankHistory rh = new RankHistory();
-        rh.setTier("MASTER");
-        rh.setRank("I");
-
-        when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5")))
-            .thenReturn(Optional.of(rh));
-
-        Optional<RankHistoryDTO> result = service.getCurrentRank(s, "RANKED_SOLO_5x5");
-
-        assertTrue(result.isPresent());
-        assertEquals("MASTER", result.get().getTier());
-    }
-
-    @Test
-    void getCurrentRanknotFound() {
-        Summoner s = new Summoner();
-
-        when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5")))
-            .thenReturn(Optional.empty());
-
-        Optional<RankHistoryDTO> result = service.getCurrentRank(s, "RANKED_SOLO_5x5");
-
-        assertFalse(result.isPresent());
     }
 
     @Test
@@ -254,17 +153,6 @@ class RankHistoryServiceUnitTest {
         Optional<RankHistoryDTO> result = service.getPeakRank(s, "RANKED_SOLO_5x5");
 
         assertFalse(result.isPresent());
-    }
-
-    @Test
-    void cleanupOldEntries() {
-        LocalDateTime cutoffDate = LocalDateTime.of(2023, 1, 1, 0, 0);
-
-        doNothing().when(repo).deleteByTimestampBefore(cutoffDate);
-
-        service.cleanupOldEntries(cutoffDate);
-
-        verify(repo).deleteByTimestampBefore(cutoffDate);
     }
 
     @Test

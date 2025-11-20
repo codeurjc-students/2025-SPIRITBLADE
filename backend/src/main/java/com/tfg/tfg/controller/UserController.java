@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,7 +42,6 @@ public class UserController {
     private static final String MESSAGE_KEY = "message";
     private static final String REGION_KEY = "region";
     private static final String USER_NOT_FOUND_MSG = "User not found";
-    private static final String ROLE_ADMIN = "ADMIN";
 
     private final UserService userService;
     private final RiotService riotService;
@@ -96,33 +94,6 @@ public class UserController {
     }
 
     /**
-     * Get user by ID.
-     * 
-     * @param id User ID
-     * @return User data
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        UserModel user = userService.getUserById(id);
-        return ResponseEntity.ok(UserMapper.toDTO(user));
-    }
-
-    /**
-     * Get user by username.
-     * 
-     * @param name Username
-     * @return User data
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @GetMapping("/name/{name}")
-    public ResponseEntity<UserDTO> getByName(@PathVariable String name) {
-        UserModel user = userService.getUserByName(name);
-        return ResponseEntity.ok(UserMapper.toDTO(user));
-    }
-
-    /**
      * Create new user (Admin only).
      * 
      * @param userDTO User data
@@ -134,100 +105,6 @@ public class UserController {
         // Exceptions are handled by GlobalExceptionHandler
         UserModel createdUser = userService.createUser(userDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toDTO(createdUser));
-    }
-
-    /**
-     * Update user information (Admin only).
-     * Admins cannot modify other admin accounts.
-     * 
-     * @param id User ID
-     * @param userDTO Updated user data
-     * @return Updated user
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        UserModel user = userService.getUserById(id);
-        
-        // Prevent modification of admin users
-        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        UserModel updated = userService.updateUserOrThrow(id, userDTO);
-        return ResponseEntity.ok(UserMapper.toDTO(updated));
-    }
-
-    /**
-     * Change user role (Admin only).
-     * Admins cannot change roles of other admin users.
-     * 
-     * @param id User ID
-     * @param role New role
-     * @return Updated user
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/role")
-    public ResponseEntity<UserDTO> changeRole(@PathVariable Long id, @RequestBody String role) {
-        UserModel user = userService.getUserById(id);
-        
-        // Prevent role changes on admin users
-        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        return userService.changeUserRole(id, java.util.List.of(role))
-            .map(UserMapper::toDTO)
-            .map(ResponseEntity::ok)
-            .orElseThrow(() -> new IllegalStateException("Failed to update user role"));
-    }
-
-    /**
-     * Toggle user active status (Admin only).
-     * Admins cannot toggle status of other admin users.
-     * 
-     * @param id User ID
-     * @return Updated user
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}/toggle-active")
-    public ResponseEntity<UserDTO> toggleActive(@PathVariable Long id) {
-        UserModel user = userService.getUserById(id);
-        
-        // Prevent toggling active status on admin users
-        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        return userService.toggleUserActive(id)
-            .map(UserMapper::toDTO)
-            .map(ResponseEntity::ok)
-            .orElseThrow(() -> new IllegalStateException("Failed to toggle user status"));
-    }
-
-    /**
-     * Delete user (Admin only).
-     * Admins cannot delete other admin users.
-     * 
-     * @param id User ID
-     * @return No content
-     * @throws UserNotFoundException if user doesn't exist
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        UserModel user = userService.getUserById(id);
-        
-        // Prevent deletion of admin users
-        if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        userService.deleteUserOrThrow(id);
-        return ResponseEntity.noContent().build();
     }
 
     /**

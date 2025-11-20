@@ -153,7 +153,7 @@ export class SummonerComponent implements OnInit {
 		
 		// Validate Riot ID format (gameName#tagLine)
 		if (!name.includes('#')) {
-			this.error = 'Invalid format. Please use: gameName#tagLine (e.g., Player#EUW)';
+			this.error = 'Invalid format. Please use: gameName#tagLine (e.g., Player#NA)';
 			return;
 		}
 		
@@ -250,7 +250,7 @@ export class SummonerComponent implements OnInit {
 	 */
 	getMatchTimestamp(match: MatchHistory): string {
 		if (!match.gameTimestamp) return 'Unknown';
-		const date = new Date(match.gameTimestamp);
+		const date = new Date(match.gameTimestamp * 1000); // Convert from seconds to milliseconds
 		return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 	}
 

@@ -39,7 +39,6 @@ class AdminSystemTest {
     
     private String adminToken;
     private String userToken;
-    private Long testUserId;
 
     @BeforeAll
     static void setup() {
@@ -62,8 +61,7 @@ class AdminSystemTest {
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
-        user = userRepository.save(user);
-        testUserId = user.getId();
+        userRepository.save(user);
         
         // Login as admin
         adminToken = given()
@@ -185,46 +183,6 @@ class AdminSystemTest {
     }
 
     @Test
-    void testGetUserByIdAsAdminReturnsUserDetails() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + adminToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/" + testUserId)
-        .then()
-            .statusCode(200)
-            .body("id", notNullValue())
-            .body("name", notNullValue());
-    }
-
-    @Test
-    void testGetUserByIdAsRegularUserReturns403() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + userToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/" + testUserId)
-        .then()
-            .statusCode(anyOf(is(403), is(401)));
-    }
-
-    @Test
-    void testGetUserByNameAsAdminReturnsUserDetails() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + adminToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/name/admin")
-        .then()
-            .statusCode(200)
-            .body("username", equalTo("admin"))
-            .body("roles", notNullValue());
-    }
-
-    @Test
     void testCreateUserAsAdminCreatesNewUser() {
         String uniqueUsername = "testuser" + System.currentTimeMillis();
         
@@ -262,83 +220,6 @@ class AdminSystemTest {
                 """)
         .when()
             .post("/api/v1/users")
-        .then()
-            .statusCode(anyOf(is(403), is(401)));
-    }
-
-    @Test
-    void testUpdateUserRoleAsAdminUpdatesRole() {
-        // Assuming user ID exists
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + adminToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "role": "USER"
-                }
-                """)
-        .when()
-            .put("/api/v1/users/2/role")
-        .then()
-            .statusCode(anyOf(is(200), is(404)));
-    }
-
-    @Test
-    void testToggleUserActiveAsAdminTogglesStatus() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + adminToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .put("/api/v1/users/2/toggle-active")
-        .then()
-            .statusCode(anyOf(is(200), is(404)));
-    }
-
-    @Test
-    void testDeleteUserAsAdminDeletesUser() {
-        // Create a user first
-        String username = "todelete" + System.currentTimeMillis();
-        Integer userId = given()
-            .port(port)
-            .header("Authorization", "Bearer " + adminToken)
-            .contentType(ContentType.JSON)
-            .body(String.format("""
-                {
-                    "username": "%s",
-                    "password": "pass123",
-                    "email": "%s@test.com"
-                }
-                """, username, username))
-        .when()
-            .post("/api/v1/users")
-        .then()
-            .statusCode(anyOf(is(200), is(201)))
-            .extract()
-            .path("id");
-
-        if (userId != null) {
-            // Delete the user
-            given()
-                .port(port)
-                .header("Authorization", "Bearer " + adminToken)
-                .contentType(ContentType.JSON)
-            .when()
-                .delete("/api/v1/users/" + userId)
-            .then()
-                .statusCode(anyOf(is(200), is(204)));
-        }
-    }
-
-    @Test
-    void testDeleteUserAsRegularUserReturns403() {
-        given()
-            .port(port)
-            .header("Authorization", "Bearer " + userToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .delete("/api/v1/users/999")
         .then()
             .statusCode(anyOf(is(403), is(401)));
     }

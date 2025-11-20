@@ -1,6 +1,7 @@
 package com.tfg.tfg.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -10,14 +11,19 @@ import org.springframework.http.ResponseEntity;
 import com.tfg.tfg.exception.RiotApiException;
 import com.tfg.tfg.exception.SummonerNotFoundException;
 import com.tfg.tfg.model.dto.SummonerDTO;
+import com.tfg.tfg.model.dto.MatchDetailDTO;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotAccountDTO;
 import com.tfg.tfg.model.dto.riot.RiotSummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotLeagueEntryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
+import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.mapper.MatchMapper;
+import com.tfg.tfg.model.mapper.RiotMatchMapper;
 import com.tfg.tfg.model.mapper.SummonerMapper;
+import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 
 import org.slf4j.Logger;
@@ -60,13 +66,13 @@ public class RiotService {
     private static final String MATCH_BY_ID_URL = RIOT_REGIONAL_BASE_URL + "/lol/match/v5/matches/{matchId}?api_key={apiKey}";
     
     private final SummonerRepository summonerRepository;
-    private final com.tfg.tfg.repository.MatchEntityRepository matchRepository;
+    private final MatchRepository matchRepository;
     private final DataDragonService dataDragonService;
     private final RankHistoryService rankHistoryService;
     private final RestTemplate restTemplate;
 
     public RiotService(SummonerRepository summonerRepository, 
-                      com.tfg.tfg.repository.MatchEntityRepository matchRepository,
+                      MatchRepository matchRepository,
                       DataDragonService dataDragonService,
                       RankHistoryService rankHistoryService) {
         this.summonerRepository = summonerRepository;
@@ -246,7 +252,7 @@ public class RiotService {
             summoner.setLastSearchedAt(java.time.LocalDateTime.now());
             
             summonerRepository.save(summoner);
-        } catch (org.springframework.dao.DataAccessException dae) {
+        } catch (DataAccessException dae) {
             // Database-related exception: log at warn and return
             logger.warn("Failed to cache summoner data (DB error): {}", dae.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, dae);
@@ -332,7 +338,7 @@ public class RiotService {
             
             RiotMatchDTO match = matchResponse.getBody();
             if (match != null && match.getInfo() != null) {
-                MatchHistoryDTO matchDTO = mapToMatchHistoryDTO(match, puuid);
+                MatchHistoryDTO matchDTO = RiotMatchMapper.toMatchHistoryDTO(match, puuid, dataDragonService);
                 if (matchDTO != null) {
                     matches.add(matchDTO);
                     
@@ -385,7 +391,7 @@ public class RiotService {
             }
             
             // Create and populate MatchEntity
-            com.tfg.tfg.model.entity.MatchEntity matchEntity = new com.tfg.tfg.model.entity.MatchEntity();
+            MatchEntity matchEntity = new MatchEntity();
             matchEntity.setMatchId(matchId);
             matchEntity.setSummoner(summonerOpt.get());
             matchEntity.setTimestamp(java.time.LocalDateTime.ofInstant(
@@ -417,42 +423,6 @@ public class RiotService {
             logger.warn("Failed to save match to database for PUUID {}: {}", puuid, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
-    }
-    
-    /**
-     * Converts cached MatchEntity to MatchHistoryDTO.
-     * 
-     * @param match The cached match entity
-     * @return MatchHistoryDTO with match data
-     */
-    private MatchHistoryDTO convertMatchEntityToDTO(com.tfg.tfg.model.entity.MatchEntity match) {
-        MatchHistoryDTO dto = new MatchHistoryDTO();
-        dto.setMatchId(match.getMatchId());
-        dto.setChampionName(match.getChampionName());
-        dto.setWin(match.isWin());
-        dto.setKills(match.getKills());
-        dto.setDeaths(match.getDeaths());
-        dto.setAssists(match.getAssists());
-        dto.setGameDuration(match.getGameDuration());
-        dto.setGameTimestamp(match.getTimestamp().atZone(java.time.ZoneId.systemDefault())
-            .toInstant().getEpochSecond());
-        dto.setQueueId(match.getQueueId());
-        
-        // Load LP from RankHistory if available
-        rankHistoryService.getLpForMatch(match.getId())
-                .ifPresent(dto::setLpAtMatch);
-        
-        // Enrich with champion icon from DataDragon
-        if (match.getChampionId() != null) {
-            try {
-                dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(match.getChampionId().longValue()));
-            } catch (Exception e) {
-                // Fully handled: log and continue - icon fetch failure is non-critical
-                logger.warn("Could not get champion icon for championId {}: {}", match.getChampionId(), e.getMessage(), e);
-            }
-        }
-        
-        return dto;
     }
     
     /**
@@ -544,7 +514,7 @@ public class RiotService {
             }
             
             Summoner summoner = summonerOpt.get();
-            List<com.tfg.tfg.model.entity.MatchEntity> recentMatches = matchRepository
+            List<MatchEntity> recentMatches = matchRepository
                 .findRecentMatchesBySummoner(summoner, 
                     org.springframework.data.domain.PageRequest.of(0, 1));
             
@@ -604,14 +574,14 @@ public class RiotService {
         }
         
         Summoner summoner = summonerOpt.get();
-        List<com.tfg.tfg.model.entity.MatchEntity> dbMatches = matchRepository
+        List<MatchEntity> dbMatches = matchRepository
             .findRecentMatchesBySummoner(summoner, 
                 org.springframework.data.domain.PageRequest.of(0, start + count));
         
         List<MatchHistoryDTO> cachedMatches = new ArrayList<>();
-        for (com.tfg.tfg.model.entity.MatchEntity match : dbMatches) {
+        for (MatchEntity match : dbMatches) {
             if (cachedMatches.size() >= start + count) break;
-            cachedMatches.add(convertMatchEntityToDTO(match));
+            cachedMatches.add(MatchMapper.toDTO(match, dataDragonService, rankHistoryService));
         }
         
         // Return only the requested page
@@ -708,12 +678,12 @@ public class RiotService {
     private List<MatchHistoryDTO> fetchMatchDetails(String[] matchIds, String puuid) {
         List<MatchHistoryDTO> matches = new ArrayList<>();
         for (String matchId : matchIds) {
-            Optional<com.tfg.tfg.model.entity.MatchEntity> cachedMatch = 
+            Optional<MatchEntity> cachedMatch = 
                 matchRepository.findByMatchId(matchId);
             
             if (cachedMatch.isPresent()) {
                 logger.debug("Match {} found in cache", matchId);
-                matches.add(convertMatchEntityToDTO(cachedMatch.get()));
+                matches.add(MatchMapper.toDTO(cachedMatch.get(), dataDragonService, rankHistoryService));
             } else {
                 logger.debug("Match {} not in cache, fetching from API", matchId);
                 fetchAndAddMatchToHistory(matchId, puuid, matches);
@@ -727,7 +697,7 @@ public class RiotService {
      * @param matchId The match ID to fetch
      * @return MatchDetailDTO with complete match information
      */
-    public com.tfg.tfg.model.dto.MatchDetailDTO getMatchDetails(String matchId) {
+    public MatchDetailDTO getMatchDetails(String matchId) {
         try {
             logger.info("Fetching detailed match information for match ID: {}", matchId);
             
@@ -746,7 +716,7 @@ public class RiotService {
                 return null;
             }
             
-            return mapToMatchDetailDTO(riotMatch);
+            return RiotMatchMapper.toMatchDetailDTO(riotMatch, dataDragonService);
             
         } catch (HttpClientErrorException hce) {
             logger.warn("Riot API error fetching match details for {}: {}", matchId, hce.getMessage());
@@ -756,170 +726,5 @@ public class RiotService {
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             return null;
         }
-    }
-    
-    /**
-     * Maps RiotMatchDTO to MatchDetailDTO with all participants and teams
-     */
-    private com.tfg.tfg.model.dto.MatchDetailDTO mapToMatchDetailDTO(RiotMatchDTO riotMatch) {
-        com.tfg.tfg.model.dto.MatchDetailDTO dto = new com.tfg.tfg.model.dto.MatchDetailDTO();
-        
-        // Basic match info
-        dto.setMatchId(riotMatch.getMetadata() != null ? riotMatch.getMetadata().getMatchId() : null);
-        dto.setGameCreation(riotMatch.getInfo().getGameCreation());
-        dto.setGameDuration(riotMatch.getInfo().getGameDuration());
-        dto.setGameMode(riotMatch.getInfo().getGameMode());
-        dto.setGameType(riotMatch.getInfo().getGameType());
-        dto.setGameVersion(riotMatch.getInfo().getGameVersion());
-        dto.setQueueId(riotMatch.getInfo().getQueueId());
-        
-        // Map all participants
-        List<com.tfg.tfg.model.dto.ParticipantDTO> participants = new ArrayList<>();
-        if (riotMatch.getInfo().getParticipants() != null) {
-            for (RiotMatchDTO.ParticipantDTO riotParticipant : riotMatch.getInfo().getParticipants()) {
-                participants.add(mapToParticipantDTO(riotParticipant));
-            }
-        }
-        dto.setParticipants(participants);
-        
-        // Map teams
-        List<com.tfg.tfg.model.dto.TeamDTO> teams = new ArrayList<>();
-        if (riotMatch.getInfo().getTeams() != null) {
-            for (RiotMatchDTO.TeamDTO riotTeam : riotMatch.getInfo().getTeams()) {
-                teams.add(mapToTeamDTO(riotTeam, participants));
-            }
-        }
-        dto.setTeams(teams);
-        
-        return dto;
-    }
-    
-    /**
-     * Maps Riot ParticipantDTO to our ParticipantDTO
-     */
-    private com.tfg.tfg.model.dto.ParticipantDTO mapToParticipantDTO(RiotMatchDTO.ParticipantDTO riotParticipant) {
-        com.tfg.tfg.model.dto.ParticipantDTO dto = new com.tfg.tfg.model.dto.ParticipantDTO();
-        
-        dto.setSummonerName(riotParticipant.getSummonerName());
-        dto.setRiotIdGameName(riotParticipant.getRiotIdGameName());
-        dto.setRiotIdTagline(riotParticipant.getRiotIdTagline());
-        dto.setChampionName(riotParticipant.getChampionName());
-        dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(
-            riotParticipant.getChampionId() != null ? riotParticipant.getChampionId().longValue() : null
-        ));
-        dto.setKills(riotParticipant.getKills());
-        dto.setDeaths(riotParticipant.getDeaths());
-        dto.setAssists(riotParticipant.getAssists());
-        dto.setLevel(riotParticipant.getChampLevel());
-        dto.setTotalMinionsKilled(riotParticipant.getTotalMinionsKilled());
-        dto.setGoldEarned(riotParticipant.getGoldEarned());
-        dto.setTotalDamageDealtToChampions(riotParticipant.getTotalDamageDealtToChampions());
-        dto.setWin(riotParticipant.getWin());
-        dto.setTeamId(riotParticipant.getTeamId());
-        dto.setTeamPosition(riotParticipant.getTeamPosition());
-        
-        // Items
-        dto.setItem0(riotParticipant.getItem0());
-        dto.setItem1(riotParticipant.getItem1());
-        dto.setItem2(riotParticipant.getItem2());
-        dto.setItem3(riotParticipant.getItem3());
-        dto.setItem4(riotParticipant.getItem4());
-        dto.setItem5(riotParticipant.getItem5());
-        dto.setItem6(riotParticipant.getItem6());
-        
-        return dto;
-    }
-    
-    /**
-     * Maps Riot TeamDTO to our TeamDTO
-     */
-    private com.tfg.tfg.model.dto.TeamDTO mapToTeamDTO(RiotMatchDTO.TeamDTO riotTeam, 
-                                                        List<com.tfg.tfg.model.dto.ParticipantDTO> allParticipants) {
-        com.tfg.tfg.model.dto.TeamDTO dto = new com.tfg.tfg.model.dto.TeamDTO();
-        
-        dto.setTeamId(riotTeam.getTeamId());
-        dto.setWin(riotTeam.getWin());
-        
-        // Filter participants by team
-        dto.setParticipants(allParticipants.stream()
-            .filter(p -> riotTeam.getTeamId().equals(p.getTeamId()))
-            .toList());
-        
-        // Objectives
-        mapTeamObjectives(riotTeam, dto);
-        
-        // Bans
-        mapTeamBans(riotTeam, dto);
-        
-        return dto;
-    }
-    
-    /**
-     * Maps team objectives from Riot API to DTO
-     */
-    private void mapTeamObjectives(RiotMatchDTO.TeamDTO riotTeam, com.tfg.tfg.model.dto.TeamDTO dto) {
-        if (riotTeam.getObjectives() != null) {
-            dto.setBaronKills(getObjectiveKills(riotTeam.getObjectives().getBaron()));
-            dto.setDragonKills(getObjectiveKills(riotTeam.getObjectives().getDragon()));
-            dto.setTowerKills(getObjectiveKills(riotTeam.getObjectives().getTower()));
-            dto.setInhibitorKills(getObjectiveKills(riotTeam.getObjectives().getInhibitor()));
-            dto.setRiftHeraldKills(getObjectiveKills(riotTeam.getObjectives().getRiftHerald()));
-        }
-    }
-    
-    /**
-     * Gets kills from an objective, returns 0 if null
-     */
-    private Integer getObjectiveKills(RiotMatchDTO.ObjectiveDTO objective) {
-        return objective != null ? objective.getKills() : 0;
-    }
-    
-    /**
-     * Maps team bans from Riot API to DTO
-     */
-    private void mapTeamBans(RiotMatchDTO.TeamDTO riotTeam, com.tfg.tfg.model.dto.TeamDTO dto) {
-        if (riotTeam.getBans() != null) {
-            dto.setBans(riotTeam.getBans().stream()
-                .map(ban -> dataDragonService.getChampionNameById(
-                    ban.getChampionId() != null ? ban.getChampionId().longValue() : null))
-                .filter(name -> name != null && !name.isEmpty())
-                .toList());
-        }
-    }
-    
-    /**
-     * Maps RiotMatchDTO to MatchHistoryDTO for a specific player
-     */
-    private MatchHistoryDTO mapToMatchHistoryDTO(RiotMatchDTO riotMatch, String puuid) {
-        if (riotMatch.getInfo() == null || riotMatch.getInfo().getParticipants() == null) {
-            return null;
-        }
-        
-        // Find the participant matching the PUUID
-        RiotMatchDTO.ParticipantDTO participant = riotMatch.getInfo().getParticipants().stream()
-            .filter(p -> puuid.equals(p.getPuuid()))
-            .findFirst()
-            .orElse(null);
-            
-        if (participant == null) {
-            return null;
-        }
-        
-        MatchHistoryDTO dto = new MatchHistoryDTO();
-        dto.setMatchId(riotMatch.getMetadata() != null ? riotMatch.getMetadata().getMatchId() : null);
-        dto.setChampionName(participant.getChampionName());
-        dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(
-            participant.getChampionId() != null ? participant.getChampionId().longValue() : null
-        ));
-        dto.setWin(participant.getWin());
-        dto.setKills(participant.getKills());
-        dto.setDeaths(participant.getDeaths());
-        dto.setAssists(participant.getAssists());
-        dto.setGameDuration(riotMatch.getInfo().getGameDuration());
-        Long gameEndTimestamp = riotMatch.getInfo().getGameEndTimestamp();
-        dto.setGameTimestamp(gameEndTimestamp != null ? gameEndTimestamp / 1000 : null);
-        dto.setQueueId(riotMatch.getInfo().getQueueId());
-        
-        return dto;
     }
 }

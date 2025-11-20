@@ -2,9 +2,6 @@ package com.tfg.tfg.controller;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tfg.tfg.model.dto.SummonerDTO;
+import com.tfg.tfg.model.dto.MatchDetailDTO;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
@@ -31,20 +29,6 @@ public class SummonerController {
     public SummonerController(SummonerService summonerService, RiotService riotService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<SummonerDTO>> getAllSummoners(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        
-        PageRequest pageable = PageRequest.of(page, size, Sort.by("lastSearchedAt").descending());
-        Page<Summoner> summonersPage = summonerService.findAll(pageable);
-        
-        DataDragonService dataDragonService = riotService.getDataDragonService();
-        Page<SummonerDTO> dtos = summonersPage.map(s -> SummonerMapper.toDTO(s, dataDragonService));
-        
-        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/recent")
@@ -93,8 +77,8 @@ public class SummonerController {
     }
     
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<com.tfg.tfg.model.dto.MatchDetailDTO> getMatchDetails(@PathVariable String matchId) {
-        com.tfg.tfg.model.dto.MatchDetailDTO matchDetails = riotService.getMatchDetails(matchId);
+    public ResponseEntity<MatchDetailDTO> getMatchDetails(@PathVariable String matchId) {
+        MatchDetailDTO matchDetails = riotService.getMatchDetails(matchId);
         // If match details is null, throw a domain exception so GlobalExceptionHandler returns 404
         if (matchDetails == null) {
             throw new com.tfg.tfg.exception.MatchNotFoundException("Match details not found for ID: " + matchId);

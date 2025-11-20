@@ -181,22 +181,6 @@ class PngFileValidatorTest {
     }
 
     @Test
-    void testValidatePngFileStringParamsValid() {
-        assertDoesNotThrow(() -> 
-            PngFileValidator.validatePngFile("image/png", "test.png")
-        );
-    }
-
-    @Test
-    void testValidatePngFileStringParamsInvalid() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> PngFileValidator.validatePngFile("image/jpeg", "test.jpg")
-        );
-        assertTrue(exception.getMessage().contains("Only PNG images are allowed"));
-    }
-
-    @Test
     void testGetAllowedContentType() {
         assertEquals("image/png", PngFileValidator.getAllowedContentType());
     }

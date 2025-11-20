@@ -75,6 +75,29 @@ public class FileController {
     }
 
     /**
+     * Delete a file
+     * @param fileId The file identifier
+     * @return Success response
+     */
+    @DeleteMapping("/delete/{fileId}")
+    public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String fileId) {
+        try {
+            storageService.delete(fileId);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put(SUCCESS_KEY, "true");
+            response.put(MESSAGE_KEY, "File deleted successfully");
+            
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put(SUCCESS_KEY, FALSE_VALUE);
+            error.put(ERROR_KEY, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
      * Download/serve a file
      * @param fileId The file identifier (path within storage)
      * @return The file as a stream
@@ -129,29 +152,6 @@ public class FileController {
                     .body(new InputStreamResource(inputStream));
         } catch (IOException e) {
             return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Delete a file
-     * @param fileId The file identifier
-     * @return Success response
-     */
-    @DeleteMapping("/{fileId}")
-    public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String fileId) {
-        try {
-            storageService.delete(fileId);
-            
-            Map<String, String> response = new HashMap<>();
-            response.put(SUCCESS_KEY, "true");
-            response.put(MESSAGE_KEY, "File deleted successfully");
-            
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put(SUCCESS_KEY, FALSE_VALUE);
-            error.put(ERROR_KEY, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

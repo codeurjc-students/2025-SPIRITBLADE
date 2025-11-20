@@ -15,6 +15,7 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.mapper.MatchMapper;
 
 /**
  * Service layer for Dashboard operations.
@@ -29,6 +30,7 @@ public class DashboardService {
     private static final String DEFAULT_TIER = "UNRANKED";
     private static final String DEFAULT_RANK = "I";
     private static final int MIN_LP = 0;
+    private static final String DEFAULT_KDA = "0/0/0";
     
     private final MatchService matchService;
     private final RiotService riotService;
@@ -56,11 +58,13 @@ public class DashboardService {
             stats.put("lp7days", calculateLPGainedLast7Days(summoner));
             stats.put("mainRole", calculateMainRole(summoner));
             stats.put("favoriteChampion", getFavoriteChampion(summoner));
+            stats.put("averageKda", calculateAverageKDA(summoner));
         } else {
             stats.put("currentRank", UNRANKED);
             stats.put("lp7days", 0);
             stats.put("mainRole", UNKNOWN);
             stats.put("favoriteChampion", null);
+            stats.put("averageKda", 0.0);
         }
         
         return stats;
@@ -166,6 +170,51 @@ public class DashboardService {
             logger.debug("Failed to fetch champion masteries for {}: {}", summoner.getName(), e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Calculate average KDA from recent ranked matches (last 7 days)
+     */
+    public String calculateAverageKDA(Summoner summoner) {
+        try {
+            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+            List<MatchEntity> recentMatches = matchService.findRecentMatches(summoner, sevenDaysAgo);
+            
+            if (recentMatches.isEmpty()) {
+                return DEFAULT_KDA;
+            }
+            
+            // Filter only ranked matches (Solo/Duo and Flex)
+            List<MatchEntity> rankedMatches = recentMatches.stream()
+                .filter(match -> {
+                    Integer queueId = match.getQueueId();
+                    return queueId != null && (queueId == 420 || queueId == 440);
+                })
+                .toList();
+            
+            if (rankedMatches.isEmpty()) {
+                return DEFAULT_KDA;
+            }
+            
+            int totalKills = 0;
+            int totalDeaths = 0;
+            int totalAssists = 0;
+            
+            for (MatchEntity match : rankedMatches) {
+                totalKills += match.getKills();
+                totalDeaths += match.getDeaths();
+                totalAssists += match.getAssists();
+            }
+
+            int matchesCount = rankedMatches.size();
+            int avgKills = totalKills / matchesCount;
+            int avgDeaths = totalDeaths / matchesCount;
+            int avgAssists = totalAssists / matchesCount;
+            return avgKills + "/" + avgDeaths + "/" + avgAssists;
+        } catch (Exception e) {
+            logger.warn("Error calculating average KDA for summoner {}: {}", summoner.getName(), e.getMessage());
+            return DEFAULT_KDA;
+        }
     }
 
     /**
@@ -340,7 +389,7 @@ public class DashboardService {
                 // Save matches without LP tracking
                 for (MatchHistoryDTO matchDTO : sortedMatches) {
                     MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
-                    MatchEntity match = buildMatchEntity(existing, matchDTO, summoner);
+                    MatchEntity match = MatchMapper.toEntity(existing, matchDTO, summoner);
                     matchService.save(match);
                 }
                 return;
@@ -377,7 +426,7 @@ public class DashboardService {
                 lpTracker = calculateBackwardsLpChange(lpTracker, won, currentTier, currentDivision);
                 
                 // Create/update match entity
-                MatchEntity match = buildMatchEntity(existing, matchDTO, summoner);
+                MatchEntity match = MatchMapper.toEntity(existing, matchDTO, summoner);
                 
                 lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
                 newMatches.add(match);
@@ -410,31 +459,7 @@ public class DashboardService {
             logger.error("Error saving matches to database: {}", e.getMessage(), e);
         }
     }
-
-    /**
-     * Build match entity from DTO
-     */
-    private MatchEntity buildMatchEntity(MatchEntity existing, MatchHistoryDTO matchDTO, 
-                                        Summoner summoner) {
-        MatchEntity match = existing != null ? existing : new MatchEntity();
-        match.setMatchId(matchDTO.getMatchId());
-        match.setSummoner(summoner);
-        match.setChampionName(matchDTO.getChampionName());
-        match.setWin(matchDTO.getWin());
-        match.setKills(matchDTO.getKills());
-        match.setDeaths(matchDTO.getDeaths());
-        match.setAssists(matchDTO.getAssists());
-        match.setGameDuration(matchDTO.getGameDuration());
-        match.setQueueId(matchDTO.getQueueId());
-        
-        if (matchDTO.getGameTimestamp() != null) {
-            match.setTimestamp(LocalDateTime.ofEpochSecond(
-                matchDTO.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
-        }
-        
-        return match;
-    }
-
+    
     /**
      * Calculate LP change going backwards in time
      */

@@ -95,27 +95,6 @@ public class MinioStorageService {
         return key;
     }
 
-    public String store(InputStream inputStream, String fileName, String contentType, String folder) {
-        // Validate that only PNG images are allowed using centralized validator
-        PngFileValidator.validatePngFile(contentType, fileName);
-        
-        String extension = fileName.contains(".") 
-            ? fileName.substring(fileName.lastIndexOf(".")) 
-            : PngFileValidator.getPngExtension();
-        
-        String uniqueFileName = UUID.randomUUID().toString() + extension;
-        String key = folder != null && !folder.isEmpty() 
-            ? folder + "/" + uniqueFileName 
-            : uniqueFileName;
-
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(PngFileValidator.getAllowedContentType());
-
-        s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, metadata));
-
-        return key;
-    }
-
     public InputStream retrieve(String fileUrl) throws IOException {
         try {
             S3Object s3Object = s3Client.getObject(bucketName, fileUrl);
@@ -130,14 +109,6 @@ public class MinioStorageService {
             s3Client.deleteObject(bucketName, fileUrl);
         } catch (Exception e) {
             throw new IOException("Could not delete file: " + fileUrl, e);
-        }
-    }
-
-    public boolean exists(String fileUrl) {
-        try {
-            return s3Client.doesObjectExist(bucketName, fileUrl);
-        } catch (Exception e) {
-            return false;
         }
     }
 

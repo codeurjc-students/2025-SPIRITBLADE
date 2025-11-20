@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardService, RankHistoryEntry, AiAnalysisResponse } from '../../service/dashboard.service';
+import { DashboardService } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
 import { User } from '../../dto/user.dto';
 import { MatchHistory } from '../../dto/match-history.model';
+import { AiAnalysisResponseDto } from '../../dto/dashboard-responses.dto';
 import { ElementRef } from '@angular/core';
 import { Chart } from 'chart.js';
 
@@ -30,7 +31,15 @@ describe('DashboardComponent', () => {
     ]);
 
     // Default mocks
-    mockDashboardService.getPersonalStats.and.returnValue(of({}));
+    mockDashboardService.getPersonalStats.and.returnValue(of({
+      username: 'testuser',
+      linkedSummoner: 'TestSummoner',
+      currentRank: 'Gold I',
+      lp7days: 25,
+      mainRole: 'ADC',
+      favoriteChampion: 'Jinx',
+      averageKda: '3/2/5'
+    }));
     mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
     mockDashboardService.getRankedMatches.and.returnValue(of([]));
     mockUserService.getProfile.and.returnValue(of({ id: 1, name: 'test', email: 'test@test.com', roles: ['USER'], active: true } as User));
@@ -38,8 +47,8 @@ describe('DashboardComponent', () => {
     mockUserService.linkSummoner.and.returnValue(of({ success: true, message: 'Account linked successfully' }));
     mockUserService.unlinkSummoner.and.returnValue(of({ success: true, message: 'Unlinked' }));
     mockUserService.uploadAvatar.and.returnValue(of({ success: true, message: 'Uploaded', avatarUrl: '/test.png' }));
-    mockUserService.addFavoriteSummoner.and.returnValue(of({}));
-    mockUserService.removeFavoriteSummoner.and.returnValue(of({}));
+    mockUserService.addFavoriteSummoner.and.returnValue(of({ success: true, message: 'Added to favorites' }));
+    mockUserService.removeFavoriteSummoner.and.returnValue(of({ success: true, message: 'Removed from favorites' }));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -85,18 +94,15 @@ describe('DashboardComponent', () => {
       expect(component.error).toBeNull();
       expect(component.linkedSummoner).toBeNull();
       expect(component.avatarUrl).toBeNull();
-      expect(component.rankHistory).toEqual([]);
       expect(component.selectedQueue).toBe(420);
     });
 
-    it('should call refresh, loadLinkedSummoner, and loadUserProfile on ngOnInit', () => {
-      spyOn(component, 'refresh');
+    it('should call loadLinkedSummoner and loadUserProfile on ngOnInit', () => {
       spyOn(component, 'loadLinkedSummoner');
       spyOn(component, 'loadUserProfile');
 
       component.ngOnInit();
 
-      expect(component.refresh).toHaveBeenCalled();
       expect(component.loadLinkedSummoner).toHaveBeenCalled();
       expect(component.loadUserProfile).toHaveBeenCalled();
     });
@@ -113,7 +119,15 @@ describe('DashboardComponent', () => {
 
   describe('refresh()', () => {
     it('should load stats and favorites successfully', () => {
-      const mockStats = { username: 'test' };
+      const mockStats = {
+        username: 'test',
+        linkedSummoner: 'TestSummoner',
+        currentRank: 'Gold I',
+        lp7days: 25,
+        mainRole: 'ADC',
+        favoriteChampion: 'Jinx',
+        averageKda: '3/2/5'
+      };
       const mockFavorites = [{ name: 'fav' }];
       mockDashboardService.getPersonalStats.and.returnValue(of(mockStats));
       mockDashboardService.getFavoritesOverview.and.returnValue(of(mockFavorites));
@@ -147,13 +161,13 @@ describe('DashboardComponent', () => {
 
   describe('Linked Summoner', () => {
     it('should load linked summoner successfully', () => {
-      const mockResponse = { linked: true, summonerName: 'test', region: 'EUW', puuid: 'puuid' };
+      const mockResponse = { linked: true, summonerName: 'test', region: 'NA', puuid: 'puuid' };
       mockUserService.getLinkedSummoner.and.returnValue(of(mockResponse));
       spyOn(component, 'loadRankHistory');
 
       component.loadLinkedSummoner();
 
-      expect(component.linkedSummoner).toEqual({ name: 'test', region: 'EUW', puuid: 'puuid' });
+      expect(component.linkedSummoner).toEqual({ name: 'test', region: 'NA', puuid: 'puuid' });
       expect(component.loadRankHistory).toHaveBeenCalled();
     });
 
@@ -176,7 +190,7 @@ describe('DashboardComponent', () => {
 
   describe('Rank History & Chart', () => {
     beforeEach(() => {
-      component.linkedSummoner = { name: 'test', region: 'EUW' };
+      component.linkedSummoner = { name: 'test', region: 'NA' };
     });
 
     it('should load rank history successfully', () => {
@@ -262,7 +276,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should submit link successfully', () => {
-      component.summonerName = 'test#EUW';
+      component.summonerName = 'test#NA';
       spyOn(component, 'refresh');
       spyOn(component, 'loadLinkedSummoner');
 
@@ -275,7 +289,7 @@ describe('DashboardComponent', () => {
 
     it('should handle link error', () => {
       mockUserService.linkSummoner.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
-      component.summonerName = 'test#EUW';
+      component.summonerName = 'test#NA';
 
       component.submitLinkAccount();
 
@@ -289,11 +303,7 @@ describe('DashboardComponent', () => {
 
       component.summonerName = 'test';
       component.submitLinkAccount();
-      expect(component.linkError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
-
-      component.summonerName = 'test#NA';
-      component.submitLinkAccount();
-      expect(component.linkError).toBe('Currently, only EUW region is supported');
+      expect(component.linkError).toBe('Please use format: name#region (e.g., jae9104#NA)');
     });
 
     it('should unlink account', () => {
@@ -371,18 +381,18 @@ describe('DashboardComponent', () => {
     });
 
     it('should add favorite successfully', () => {
-      component.addFavoriteName = 'test#EUW';
+      component.addFavoriteName = 'test#NA';
       spyOn(component, 'loadFavorites');
 
       component.addFavorite();
 
-      expect(mockUserService.addFavoriteSummoner).toHaveBeenCalledWith('test#EUW');
+      expect(mockUserService.addFavoriteSummoner).toHaveBeenCalledWith('test#NA');
       expect(component.loadFavorites).toHaveBeenCalled();
     });
 
     it('should handle add favorite error', () => {
       mockUserService.addFavoriteSummoner.and.returnValue(throwError(() => ({ error: { message: 'error' } })));
-      component.addFavoriteName = 'test#EUW';
+      component.addFavoriteName = 'test#NA';
 
       component.addFavorite();
 
@@ -396,7 +406,7 @@ describe('DashboardComponent', () => {
 
       component.addFavoriteName = 'test';
       component.addFavorite();
-      expect(component.addFavoriteError).toBe('Please use format: name#region (e.g., jae9104#EUW)');
+      expect(component.addFavoriteError).toBe('Please use format: name#region (e.g., jae9104#NA)');
     });
 
     it('should remove favorite', () => {
@@ -433,7 +443,7 @@ describe('DashboardComponent', () => {
     it('should generate AI analysis successfully', () => {
       component.linkedSummoner = { name: 'test' };
       component.aiMatchCount = 10;
-      const response: AiAnalysisResponse = { analysis: 'analysis', generatedAt: 'now', matchesAnalyzed: 10, summonerName: 'test' };
+      const response: AiAnalysisResponseDto = { analysis: 'analysis', generatedAt: 'now', matchesAnalyzed: 10, summonerName: 'test' };
       mockDashboardService.getAiAnalysis.and.returnValue(of(response));
 
       component.generateAiAnalysis();

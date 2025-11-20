@@ -3,14 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+import { AuthResponseDto, RegisterResponseDto } from '../dto/auth-responses.dto';
+import { UserProfileDto } from '../dto/user-responses.dto';
 
 interface LoginRequest { username: string; password: string }
-interface LoginResponse { 
-  status: string;
-  message: string;
-  accessToken?: string;
-  refreshToken?: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,8 +21,8 @@ export class AuthService {
            (this.currentUser.roles.includes('ADMIN') || this.currentUser.roles.includes('ROLE_ADMIN'));
   }
 
-  login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, payload).pipe(
+  login(payload: LoginRequest): Observable<AuthResponseDto> {
+    return this.http.post<AuthResponseDto>(`${API_URL}/auth/login`, payload).pipe(
       tap((response) => {
         // Store tokens in localStorage
         if (response.accessToken) {
@@ -44,8 +40,8 @@ export class AuthService {
     );
   }
 
-  register(payload: { name: string; email: string; password: string }): Observable<any> {
-    return this.http.post<any>(`${API_URL}/auth/register`, payload).pipe(
+  register(payload: { name: string; email: string; password: string }): Observable<RegisterResponseDto> {
+    return this.http.post<RegisterResponseDto>(`${API_URL}/auth/register`, payload).pipe(
       catchError(err => {
         this.authState.next(false);
         throw err;
@@ -77,10 +73,10 @@ export class AuthService {
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.get<any>(`${API_URL}/auth/me`, { headers }).pipe(
+    return this.http.get<UserProfileDto>(`${API_URL}/auth/me`, { headers }).pipe(
       map((res) => {
         this.authState.next(true);
-        this.currentUser = { username: res.username, roles: res.roles };
+        this.currentUser = { username: res.name, roles: res.roles };
         return true;
       }),
       catchError((err) => {
@@ -91,13 +87,5 @@ export class AuthService {
         return of(false);
       })
     );
-  }
-
-  getCurrentUser() {
-    return this.currentUser;
-  }
-
-  getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
   }
 }

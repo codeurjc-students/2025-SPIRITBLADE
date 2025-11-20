@@ -95,7 +95,11 @@ describe('AuthService - Unit Tests', () => {
         email: 'newuser@test.com', 
         password: 'newpass' 
       };
-      const mockResponse = { id: 1, username: 'newuser' };
+      const mockResponse = {
+        success: true,
+        message: 'Registration successful',
+        user: { id: 1, name: 'newuser', email: 'newuser@test.com' }
+      };
 
       // Act
       service.register(mockPayload).subscribe(response => {
@@ -164,7 +168,6 @@ describe('AuthService - Unit Tests', () => {
 
       // Assert
       expect(service.isAuthenticated()).toBeFalse();
-      expect(service.getCurrentUser()).toBeNull();
     });
   });
 
@@ -183,10 +186,6 @@ describe('AuthService - Unit Tests', () => {
       service.checkSession().subscribe(isValid => {
         expect(isValid).toBeTrue();
         expect(service.isAuthenticated()).toBeTrue();
-        expect(service.getCurrentUser()).toEqual({
-          username: 'testuser',
-          roles: ['USER', 'ADMIN']
-        });
       });
 
       // Assert
@@ -258,29 +257,6 @@ describe('AuthService - Unit Tests', () => {
       req.flush({ token: 'token' });
 
       expect(service.isAuthenticated()).toBeTrue();
-    });
-  });
-
-  describe('getCurrentUser()', () => {
-    it('should return null initially', () => {
-      expect(service.getCurrentUser()).toBeNull();
-    });
-
-    it('should return user after successful session check', () => {
-      const mockResponse = { 
-        username: 'testuser', 
-        roles: ['USER'] 
-      };
-
-      localStorage.setItem('accessToken', 'test-token');
-      service.checkSession().subscribe();
-      const req = httpMock.expectOne(`${API_URL}/auth/me`);
-      req.flush(mockResponse);
-
-      expect(service.getCurrentUser()).toEqual({
-        username: 'testuser',
-        roles: ['USER']
-      });
     });
   });
 });

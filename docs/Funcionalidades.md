@@ -27,7 +27,7 @@ Búsqueda de invocador y vista de su perfil (Elo, nivel, icono, Numero de partid
 | F1.1.1 | Buscar invocadores | ✅ | El usuario introduce un Riot ID (gameName#tagLine) en el campo de búsqueda. El sistema valida el formato, consulta la API de Riot Games y muestra el perfil completo. Si el invocador no existe, se muestra un mensaje de error claro. Se implementa caché para mejorar el rendimiento. |
 | F1.1.2 | Ver perfil de invocador y rango | ✅ | La página de perfil muestra avatar, nivel, Riot ID, rango actual (tier/división/LP), victorias/derrotas, tasa de victorias y partidas totales. Los datos se obtienen de la API de Riot y se cachean localmente con una estrategia de actualización inteligente. |
 | F1.1.3 | Ver estadísticas básicas de campeones | ✅ | Acceso a maestría de campeón: top 3 campeones más jugados con nivel de maestría y puntos (1–7). Muestra icono, nombre, nivel de maestría y puntos totales. Datos provenientes de Champion-Mastery-v4. |
-| F1.1.4 | Búsquedas recientes | ✅ | La página de inicio lista las 10 búsquedas de invocador más recientes realizadas por cualquier usuario, ordenadas por fecha (más recientes primero). Cada elemento enlaza al perfil del invocador. |
+| F1.1.4 | Búsquedas recientes | ✅ | La página de inicio lista las 9 búsquedas de invocador más recientes realizadas por cualquier usuario, ordenadas por fecha (más recientes primero). Cada elemento enlaza al perfil del invocador. |
 
 ---
 

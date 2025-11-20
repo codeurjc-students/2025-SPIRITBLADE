@@ -3,29 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable } from 'rxjs';
 import { MatchHistory } from '../dto/match-history.model';
-
-export interface RankHistoryEntry {
-  date: string;
-  tier: string;
-  rank: string;
-  leaguePoints: number;
-  wins: number;
-  losses: number;
-}
-
-export interface AiAnalysisResponse {
-  analysis: string;
-  generatedAt: string;
-  matchesAnalyzed: number;
-  summonerName: string;
-}
+import { PersonalStatsDto, AiAnalysisResponseDto } from '../dto/dashboard-responses.dto';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
 
-  getPersonalStats(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/me/stats`);
+  getPersonalStats(): Observable<PersonalStatsDto> {
+    return this.http.get<PersonalStatsDto>(`${API_URL}/dashboard/me/stats`);
   }
 
   getFavoritesOverview(): Observable<any> {
@@ -52,8 +37,8 @@ export class DashboardService {
    * Analyzes recent match history using Google Gemini AI
    * @param matchCount Number of recent matches to analyze (default: 20, min: 5, max: 50)
    */
-  getAiAnalysis(matchCount: number = 20): Observable<AiAnalysisResponse> {
-    return this.http.post<AiAnalysisResponse>(
+  getAiAnalysis(matchCount: number = 20): Observable<AiAnalysisResponseDto> {
+    return this.http.post<AiAnalysisResponseDto>(
       `${API_URL}/dashboard/me/ai-analysis?matchCount=${matchCount}`,
       {}
     );

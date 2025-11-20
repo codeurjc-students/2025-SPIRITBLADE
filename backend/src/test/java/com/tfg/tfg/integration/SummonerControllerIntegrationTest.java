@@ -82,75 +82,6 @@ class SummonerControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void testGetAllSummonersEmptyDatabase() throws Exception {
-        mockMvc.perform(get("/api/v1/summoners"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.totalElements", equalTo(0)))
-                .andExpect(jsonPath("$.totalPages", equalTo(0)));
-    }
-
-    @Test
-    @WithMockUser
-    void testGetAllSummonersWithPagination() throws Exception {
-        // Create 25 summoners
-        for (int i = 0; i < 25; i++) {
-            Summoner s = new Summoner();
-            s.setName("Summoner" + i);
-            s.setPuuid("puuid-" + i);
-            s.setTier("GOLD");
-            s.setRank("III");
-            s.setLp(50 + i);
-            s.setLastSearchedAt(LocalDateTime.now().minusDays(i));
-            summonerRepository.save(s);
-        }
-
-        // Page 0 with size 20
-        mockMvc.perform(get("/api/v1/summoners")
-                .param("page", "0")
-                .param("size", "20"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(20)))
-                .andExpect(jsonPath("$.totalElements", equalTo(25)))
-                .andExpect(jsonPath("$.totalPages", equalTo(2)))
-                .andExpect(jsonPath("$.number", equalTo(0)))
-                .andExpect(jsonPath("$.size", equalTo(20)));
-
-        // Page 1 with size 20
-        mockMvc.perform(get("/api/v1/summoners")
-                .param("page", "1")
-                .param("size", "20"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(5)))
-                .andExpect(jsonPath("$.totalElements", equalTo(25)))
-                .andExpect(jsonPath("$.number", equalTo(1)));
-    }
-
-    @Test
-    @WithMockUser
-    void testGetAllSummonersSortedByLastSearchedAt() throws Exception {
-        Summoner oldest = new Summoner();
-        oldest.setName("Oldest");
-        oldest.setPuuid("puuid-old");
-        oldest.setTier("GOLD");
-        oldest.setLastSearchedAt(LocalDateTime.now().minusDays(10));
-        summonerRepository.save(oldest);
-
-        Summoner newest = new Summoner();
-        newest.setName("Newest");
-        newest.setPuuid("puuid-new");
-        newest.setTier("PLATINUM");
-        newest.setLastSearchedAt(LocalDateTime.now());
-        summonerRepository.save(newest);
-
-        mockMvc.perform(get("/api/v1/summoners"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].name", equalTo("Newest")))
-                .andExpect(jsonPath("$.content[1].name", equalTo("Oldest")));
-    }
-
-    @Test
-    @WithMockUser
     void testGetRecentSearchesEmptyDatabase() throws Exception {
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
@@ -160,7 +91,7 @@ class SummonerControllerIntegrationTest {
     @Test
     @WithMockUser
     void testGetRecentSearchesWithSummoners() throws Exception {
-        // Create 12 summoners (should return only 10 most recent)
+        // Create 12 summoners (should return only 9 most recent)
         for (int i = 0; i < 12; i++) {
             Summoner s = new Summoner();
             s.setName("Recent" + i);
@@ -172,9 +103,9 @@ class SummonerControllerIntegrationTest {
 
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(10)))
+                .andExpect(jsonPath("$", hasSize(9)))
                 .andExpect(jsonPath("$[0].name", equalTo("Recent0"))) // Most recent
-                .andExpect(jsonPath("$[9].name", equalTo("Recent9")));
+                .andExpect(jsonPath("$[8].name", equalTo("Recent8")));
     }
 
     @Test

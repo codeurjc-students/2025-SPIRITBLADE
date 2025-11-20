@@ -143,41 +143,6 @@ describe('Frontend Integration Tests', () => {
         }
       });
     });
-
-    it('should fetch summoner champion stats from API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend
-      const summonerId = 'test-summoner-id';
-      
-      summonerService.getChampionStats(summonerId).subscribe({
-        next: (stats) => {
-          expect(Array.isArray(stats)).toBeTrue();
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
-    it('should fetch summoner match history from API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend
-      const summonerId = 'test-summoner-id';
-      
-      summonerService.getMatchHistory(summonerId, 0, 10).subscribe({
-        next: (matches) => {
-          expect(matches).toBeDefined();
-          expect(matches.content).toBeDefined();
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
   });
 
   describe('Dashboard Service Integration', () => {
@@ -230,24 +195,6 @@ describe('Frontend Integration Tests', () => {
       });
     });
 
-    it('should update user profile via API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend and authentication
-      const updateData = { name: 'newusername' };
-      
-      userService.updateProfile(updateData).subscribe({
-        next: (user) => {
-          expect(user).toBeDefined();
-          expect(user.name).toBe('newusername');
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
     it('should manage favorite summoners via API', (done) => {
       // NOTE: Marked as pending (xit) because it requires backend and authentication
       const summonerId = 'test-summoner-id';
@@ -285,39 +232,6 @@ describe('Frontend Integration Tests', () => {
       adminService.getUsers().subscribe({
         next: (users) => {
           expect(Array.isArray(users)).toBeTrue();
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
-    it('should manage user status via admin API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend and admin authentication
-      const userId = 123;
-      
-      adminService.setUserActive(userId, false).subscribe({
-        next: (response) => {
-          expect(response.success).toBeTrue();
-          done();
-        },
-        error: (error) => {
-          // Expected for demo purposes without backend
-          expect(error.status).toBeDefined();
-          done();
-        }
-      });
-    });
-
-    it('should fetch system stats via admin API', (done) => {
-      // NOTE: Marked as pending (xit) because it requires backend and admin authentication
-      adminService.getSystemStats().subscribe({
-        next: (stats) => {
-          expect(stats).toBeDefined();
-          expect(stats.totalUsers).toBeDefined();
           done();
         },
         error: (error) => {

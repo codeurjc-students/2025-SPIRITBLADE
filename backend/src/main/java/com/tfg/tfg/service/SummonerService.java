@@ -41,21 +41,14 @@ public class SummonerService {
     /**
      * Find summoner by name (case insensitive)
      */
-    public Optional<Summoner> findByNameIgnoreCase(String name) {
-        return summonerRepository.findByNameIgnoreCase(name);
+    public Optional<Summoner> findByName(String name) {
+        return summonerRepository.findByName(name);
     }
 
     /**
-     * Find recent searches (last 10 summoners searched)
+     * Find recent searches (last 9 summoners searched)
      */
     public List<Summoner> findRecentSearches() {
-        return summonerRepository.findTop10ByOrderByLastSearchedAtDesc();
-    }
-
-    /**
-     * Save or update summoner
-     */
-    public Summoner save(Summoner summoner) {
-        return summonerRepository.save(summoner);
+        return summonerRepository.findTop9ByOrderByLastSearchedAtDesc();
     }
 }

@@ -1,6 +1,5 @@
 package com.tfg.tfg.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tfg.tfg.model.mapper.SummonerMapper;
-import com.tfg.tfg.model.dto.RankHistoryDTO;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
@@ -18,6 +16,8 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.service.RiotService;
 import com.tfg.tfg.service.SummonerService;
+import com.tfg.tfg.service.AiAnalysisService;
+import com.tfg.tfg.service.DashboardService;
 import com.tfg.tfg.service.MatchService;
 import com.tfg.tfg.service.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,28 +38,27 @@ public class DashboardController {
     private static final String GUEST = "Guest";
     private static final String SUCCESS_KEY = "success";
     private static final String MESSAGE_KEY = "message";
+    private static final String SUMMONER_NOT_FOUND_MSG = "Summoner not found";
+    private static final String USER_NOT_FOUND_MSG = "User not found";
     
     private final SummonerService summonerService;
     private final RiotService riotService;
     private final MatchService matchService;
     private final UserService userService;
-    private final com.tfg.tfg.service.AiAnalysisService aiAnalysisService;
-    private final com.tfg.tfg.service.RankHistoryService rankHistoryService;
-    private final com.tfg.tfg.service.DashboardService dashboardService;
+    private final AiAnalysisService aiAnalysisService;
+    private final DashboardService dashboardService;
 
     public DashboardController(SummonerService summonerService, 
                               RiotService riotService,
                               MatchService matchService,
                               UserService userService,
-                              com.tfg.tfg.service.AiAnalysisService aiAnalysisService,
-                              com.tfg.tfg.service.RankHistoryService rankHistoryService,
-                              com.tfg.tfg.service.DashboardService dashboardService) {
+                              AiAnalysisService aiAnalysisService,
+                              DashboardService dashboardService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
         this.matchService = matchService;
         this.userService = userService;
         this.aiAnalysisService = aiAnalysisService;
-        this.rankHistoryService = rankHistoryService;
         this.dashboardService = dashboardService;
     }
 
@@ -70,7 +69,7 @@ public class DashboardController {
         
         Summoner summoner = null;
         if (linkedSummonerName != null) {
-            summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+            summoner = summonerService.findByName(linkedSummonerName).orElse(null);
         }
 
         // Delegate to service for business logic
@@ -161,11 +160,11 @@ public class DashboardController {
         
         UserModel user = userService.findByName(username).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, USER_NOT_FOUND_MSG));
         }
         
         // First try to find summoner in database
-        Summoner summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
+        Summoner summoner = summonerService.findByName(summonerName).orElse(null);
         
         // If not in database, try to fetch from Riot API
         if (summoner == null) {
@@ -173,17 +172,17 @@ public class DashboardController {
             try {
                 SummonerDTO summonerDTO = riotService.getSummonerByName(summonerName);
                 if (summonerDTO == null) {
-                    return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
+                    return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, SUMMONER_NOT_FOUND_MSG));
                 }
                 
                 // After API call, summoner should be saved to DB, retrieve it
-                summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
+                summoner = summonerService.findByName(summonerName).orElse(null);
                 if (summoner == null) {
                     return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found in database after API fetch"));
                 }
             } catch (Exception e) {
                 logger.error("Error fetching summoner from Riot API: {}", e.getMessage());
-                return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found: " + e.getMessage()));
+                return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY,  SUMMONER_NOT_FOUND_MSG + ": " + e.getMessage()));
             }
         }
         
@@ -213,13 +212,13 @@ public class DashboardController {
         
         UserModel user = userService.findByName(username).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "User not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, USER_NOT_FOUND_MSG));
         }
         
         // Find summoner by name
-        Summoner summoner = summonerService.findByNameIgnoreCase(summonerName).orElse(null);
+        Summoner summoner = summonerService.findByName(summonerName).orElse(null);
         if (summoner == null) {
-            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Summoner not found"));
+            return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, SUMMONER_NOT_FOUND_MSG));
         }
         
         // Remove from favorites
@@ -245,7 +244,7 @@ public class DashboardController {
             return ResponseEntity.ok(List.of());
         }
         
-        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
+        Summoner summoner = summonerService.findByName(linkedSummonerName).orElse(null);
         if (summoner == null || summoner.getPuuid() == null) {
             return ResponseEntity.ok(List.of());
         }
@@ -264,52 +263,6 @@ public class DashboardController {
 
     
     /**
-     * Refresh match history for the linked summoner
-     * Fetches recent ranked matches from Riot API and saves them to database
-     */
-    @PostMapping("/me/refresh-matches")
-    public ResponseEntity<Map<String, Object>> refreshMatches() {
-        String username = resolveUsername();
-        String linkedSummonerName = resolveLinkedSummonerName(username);
-        
-        if (linkedSummonerName == null) {
-            return ResponseEntity.badRequest().body(Map.of(
-                SUCCESS_KEY, false, 
-                MESSAGE_KEY, "No linked summoner account found"
-            ));
-        }
-        
-        Summoner summoner = summonerService.findByNameIgnoreCase(linkedSummonerName).orElse(null);
-        if (summoner == null || summoner.getPuuid() == null) {
-            return ResponseEntity.badRequest().body(Map.of(
-                SUCCESS_KEY, false, 
-                MESSAGE_KEY, "Summoner not found or missing PUUID"
-            ));
-        }
-        
-        try {
-            // Fetch recent matches from Riot API - this will cache them automatically
-            List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = riotService.getMatchHistory(summoner.getPuuid(), 0, 30);
-            
-            // Count how many were actually saved/cached
-            int matchCount = matches != null ? matches.size() : 0;
-            
-            return ResponseEntity.ok(Map.of(
-                SUCCESS_KEY, true,
-                MESSAGE_KEY, "Match history refreshed successfully",
-                "matchesProcessed", matchCount
-            ));
-        } catch (Exception e) {
-            logger.error("Error refreshing matches for summoner {}: {}", linkedSummonerName, e.getMessage());
-            return ResponseEntity.status(500).body(Map.of(
-                SUCCESS_KEY, false,
-                MESSAGE_KEY, "Failed to refresh match history: " + e.getMessage()
-            ));
-        }
-    }
-
-    
-    /**
      * AI-powered performance analysis endpoint.
      * Analyzes player's recent RANKED match history using Google Gemini AI.
      * 
@@ -319,7 +272,7 @@ public class DashboardController {
      * @return AI-generated performance analysis
      */
     @PostMapping("/me/ai-analysis")
-    public ResponseEntity<?> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
+    public ResponseEntity<Object> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
         try {
             // Validate match count
             if (matchCount < 10) {
@@ -346,15 +299,14 @@ public class DashboardController {
             if (user == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                     SUCCESS_KEY, false,
-                    MESSAGE_KEY, "User not found"
+                    MESSAGE_KEY, USER_NOT_FOUND_MSG
                 ));
             }
             
             // RATE LIMITING: Check cooldown (5 minutes)
-            final int COOLDOWN_MINUTES = 5;
             if (user.getLastAiAnalysisRequest() != null) {
                 LocalDateTime now = LocalDateTime.now();
-                LocalDateTime cooldownEnds = user.getLastAiAnalysisRequest().plusMinutes(COOLDOWN_MINUTES);
+                LocalDateTime cooldownEnds = user.getLastAiAnalysisRequest().plusMinutes(5);
                 
                 if (now.isBefore(cooldownEnds)) {
                     long minutesRemaining = java.time.Duration.between(now, cooldownEnds).toMinutes();
@@ -379,7 +331,7 @@ public class DashboardController {
             }
             
             // Get summoner
-            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
+            Summoner summoner = summonerService.findByName(user.getLinkedSummonerName())
                 .orElse(null);
             
             if (summoner == null) {
@@ -441,71 +393,6 @@ public class DashboardController {
             return ResponseEntity.status(500).body(Map.of(
                 SUCCESS_KEY, false,
                 MESSAGE_KEY, "Error generating AI analysis: " + e.getMessage()
-            ));
-        }
-    }
-
-    /**
-     * Get rank progression data (chronologically ordered for charts).
-     * 
-     * @param queueType Optional queue type (default: RANKED_SOLO_5x5)
-     * @return List of rank history entries in chronological order
-     */
-    @GetMapping("/me/rank-progression")
-    public ResponseEntity<?> getMyRankProgression(
-            @RequestParam(defaultValue = "RANKED_SOLO_5x5") String queueType) {
-        
-        try {
-            String username = resolveUsername();
-            
-            if (GUEST.equals(username)) {
-                return ResponseEntity.status(401).body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "Authentication required"
-                ));
-            }
-            
-            UserModel user = userService.findByName(username).orElse(null);
-            
-            if (user == null || user.getLinkedSummonerName() == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "No linked account"
-                ));
-            }
-            
-            Summoner summoner = summonerService.findByNameIgnoreCase(user.getLinkedSummonerName())
-                .orElse(null);
-            
-            if (summoner == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS_KEY, false,
-                    MESSAGE_KEY, "Summoner not found"
-                ));
-            }
-            
-            // Get rank progression (chronologically ordered)
-            List<RankHistoryDTO> progression = rankHistoryService.getRankProgression(summoner.getId(), queueType);
-            
-            // Get peak rank
-            java.util.Optional<RankHistoryDTO> peakRank = rankHistoryService.getPeakRank(summoner, queueType);
-            
-            logger.info("Retrieved rank progression with {} entries for user {}", progression.size(), username);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put(SUCCESS_KEY, true);
-            response.put("progression", progression);
-            response.put("totalEntries", progression.size());
-            response.put("queueType", queueType);
-            peakRank.ifPresent(peak -> response.put("peakRank", peak));
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("Error fetching rank progression: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of(
-                SUCCESS_KEY, false,
-                MESSAGE_KEY, "Error fetching rank progression: " + e.getMessage()
             ));
         }
     }

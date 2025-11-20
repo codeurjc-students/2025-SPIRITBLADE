@@ -2,7 +2,7 @@ import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewI
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { DashboardService, RankHistoryEntry } from '../../service/dashboard.service';
+import { DashboardService } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
 import { MatchHistory } from '../../dto/match-history.model';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -44,7 +44,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	selectedQueue: number | null = 420; // Default to Solo/Duo
 	
 	// Chart data
-	rankHistory: RankHistoryEntry[] = [];
 	chartLoading = false;
 	chartError: string | null = null;
 
@@ -79,6 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.error = null;
 		this.dashboardService.getPersonalStats().subscribe({
 			next: (res) => {
+				console.log('✅ Dashboard stats loaded:', res);
 				this.stats = res;
 				this.loading = false;
 			},
@@ -106,10 +106,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnInit() {
-		this.refresh();
+		// Load linked summoner FIRST
+		// It will trigger loadRankHistory() which will then trigger refresh()
+		// This ensures RankHistory exists before calculating lp7days
 		this.loadLinkedSummoner();
 		this.loadUserProfile();
-		// Don't load rank history on init - it will be loaded after checking linked summoner
 	}
 
 	ngAfterViewInit() {
@@ -143,6 +144,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.chartLoading = false;
 				this.initializeLPChart();
 				console.log('✅ Loaded ranked match history:', matches);
+				// After loading matches (which creates RankHistory), refresh stats
+				// This ensures lp7days calculation has the necessary data
+				this.refresh();
 			},
 			error: (err) => {
 				console.error('Failed to load ranked match history', err);
@@ -230,19 +234,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 			// Calculate the raw LP change
 			let lpChange = currentLP - prevLP;
 			
-			// Detect division changes by checking for large jumps (>50 LP difference)
-			// This happens when someone gets promoted or demoted between divisions
 			if (Math.abs(lpChange) > 50) {
-				// Division change detected
 				if (lpChange < 0) {
-					// Negative large jump: Demotion (e.g., 5 LP -> 95 LP going backwards in time)
-					// or Promotion being undone when going forward
-					// Adjust by adding 100 to make it continuous
 					lpChange += 100;
 				} else {
-					// Positive large jump: Promotion (e.g., 95 LP -> 5 LP going forward)
-					// or Demotion being undone when going backwards
-					// Adjust by subtracting 100 to make it continuous
 					lpChange -= 100;
 				}
 			}
@@ -413,12 +408,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						region: res.region,
 						puuid: res.puuid
 					};
-					// Load rank history only if there's a linked account
+					// IMPORTANT: Load rank history FIRST to populate RankHistory
+					// This ensures calculateLPGainedLast7Days() has data to work with
 					this.loadRankHistory();
 				} else {
 					this.linkedSummoner = null;
 					// Clear any existing chart data
-					this.rankHistory = [];
 					if (this.lpChart) {
 						this.lpChart.destroy();
 						this.lpChart = null;
@@ -466,7 +461,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
-			this.linkError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			this.linkError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
 		
@@ -474,12 +469,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		const name = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
 		
-		// Validate region (only EUW supported for now)
-		if (region !== 'EUW') {
-			this.linkError = 'Currently, only EUW region is supported';
-			return;
-		}
-
 		if (!name) {
 			this.linkError = 'Please enter a valid summoner name';
 			return;
@@ -525,7 +514,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				if (res.success) {
 					this.linkedSummoner = null;
 					// Clear rank history and chart
-					this.rankHistory = [];
 					this.rankedMatches = [];
 					this.allMatches = [];
 					if (this.lpChart) {
@@ -699,7 +687,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
-			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#EUW)';
+			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
 		
@@ -707,12 +695,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		const summonerName = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
 		
-		// Validate region (only EUW supported for now)
-		if (region !== 'EUW') {
-			this.addFavoriteError = 'Currently only EUW region is supported';
-			return;
-		}
-
 		if (!summonerName) {
 			this.addFavoriteError = 'Please enter a valid summoner name';
 			return;
@@ -828,5 +810,49 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.aiAnalysisLoading = false;
 			}
 		});
+	}
+
+	/**
+	 * Get role icon from Community Dragon
+	 */
+	getRoleIcon(role: string): string {
+		if (!role || role === 'Unknown') {
+			return '';
+		}
+
+		const roleMap: { [key: string]: string } = {
+			'Top Lane': 'top',
+			'Jungle': 'jungle',
+			'Mid Lane': 'middle',
+			'Bot Lane': 'bottom',
+			'Support': 'utility'
+		};
+
+		const roleKey = roleMap[role] || 'fill';
+		return `https://raw.communitydragon.org/10.1/plugins/rcp-fe-lol-clash/global/default/icon-position-${roleKey}.png`;
+	}
+
+	/**
+	 * Get champion icon from Data Dragon
+	 */
+	getChampionIcon(championName: string | null): string {
+		if (!championName) {
+			return '';
+		}
+		// Remove spaces and apostrophes for Data Dragon URL format
+		const formattedName = championName.replace(/['\s]/g, '');
+		return `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${formattedName}.png`;
+	}
+
+	getRankIcon(rank: string | null): string {
+		if (!rank) {
+			return '';
+		}
+		const tier = rank.split(' ')[0].toLowerCase();
+		return `https://raw.communitydragon.org/10.1/plugins/rcp-fe-lol-league-tier-names/global/default/assets/images/ranked-mini-regalia/${tier}.png`;
+	}
+
+	hideIcon(event: any) {
+		event.target.style.display = 'none';
 	}
 }

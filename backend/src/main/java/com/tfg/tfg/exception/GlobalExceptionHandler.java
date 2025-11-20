@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,18 +68,6 @@ public class GlobalExceptionHandler {
             request.getDescription(false).replace("uri=", "")
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler({BadCredentialsException.class, InvalidCredentialsException.class})
-    public ResponseEntity<ErrorResponse> handleInvalidCredentials(Exception ex, WebRequest request) {
-        log.warn("Invalid credentials: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            HttpStatus.UNAUTHORIZED.value(),
-            "Invalid Credentials",
-            "The username or password provided is incorrect",
-            request.getDescription(false).replace("uri=", "")
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(AuthenticationException.class)

@@ -57,15 +57,15 @@ class DashboardServiceCoverageTest {
         cached.setTimestamp(LocalDateTime.now());
         cached.setQueueId(420);
 
-        when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(eq(s))).thenReturn(List.of(cached));
+        when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(s)).thenReturn(List.of(cached));
         when(rankHistoryService.getLpForMatch(1L)).thenReturn(Optional.of(30));
 
         // Simulate API returning the same most-recent match id so cache is considered fresh
         MatchHistoryDTO apiLatest = new MatchHistoryDTO();
         apiLatest.setMatchId("m1");
-        when(riotService.getMatchHistory(eq(s.getPuuid()), eq(0), eq(1))).thenReturn(List.of(apiLatest));
+        when(riotService.getMatchHistory(s.getPuuid(), 0, 1)).thenReturn(List.of(apiLatest));
 
-        when(dataDragonService.getChampionIconUrl(eq(103L))).thenReturn("http://img/ahri.png");
+        when(dataDragonService.getChampionIconUrl(103L)).thenReturn("http://img/ahri.png");
 
         var res = dashboardService.getRankedMatchesWithLP(s, null, 0, 1);
 
