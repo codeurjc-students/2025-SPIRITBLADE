@@ -146,12 +146,8 @@ public class UserService {
      * @throws UserNotFoundException if user doesn't exist
      */
     public void deleteUserOrThrow(Long id) throws UserNotFoundException {
-        try {
-            UserModel user = getUserById(id);
-            userRepository.delete(user);
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            throw new UserNotFoundException("User with ID '" + id + "' not found");
-        }
+        UserModel user = getUserById(id);
+        userRepository.delete(user);
     }
 
     public Optional<UserModel> toggleUserActive(Long id) {
