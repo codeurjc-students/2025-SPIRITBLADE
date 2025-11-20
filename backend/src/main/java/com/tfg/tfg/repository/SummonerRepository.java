@@ -21,7 +21,7 @@ public interface SummonerRepository extends JpaRepository<Summoner, Long> {
     Optional<Summoner> findByPuuid(String puuid);
 
     /**
-     *  Find top 10 summoners ordered by last searched date descending
+     *  Find top 9 summoners ordered by last searched date descending
      */
-    List<Summoner> findTop10ByOrderByLastSearchedAtDesc();
+    List<Summoner> findTop9ByOrderByLastSearchedAtDesc();
 }

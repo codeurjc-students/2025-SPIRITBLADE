@@ -272,7 +272,7 @@ public class DashboardController {
      * @return AI-generated performance analysis
      */
     @PostMapping("/me/ai-analysis")
-    public ResponseEntity<?> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
+    public ResponseEntity<Object> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
         try {
             // Validate match count
             if (matchCount < 10) {

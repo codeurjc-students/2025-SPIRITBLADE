@@ -72,11 +72,11 @@ class SummonerServiceUnitTest {
     @Test
     void testFindRecentSearches() {
         List<Summoner> list = List.of(new Summoner());
-        when(summonerRepository.findTop10ByOrderByLastSearchedAtDesc()).thenReturn(list);
+        when(summonerRepository.findTop9ByOrderByLastSearchedAtDesc()).thenReturn(list);
 
         List<Summoner> result = summonerService.findRecentSearches();
 
         assertEquals(list, result);
-        verify(summonerRepository).findTop10ByOrderByLastSearchedAtDesc();
+        verify(summonerRepository).findTop9ByOrderByLastSearchedAtDesc();
     }
 }

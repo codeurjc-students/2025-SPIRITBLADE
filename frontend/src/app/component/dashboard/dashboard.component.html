@@ -95,22 +95,43 @@
 		</div>
 		<div *ngIf="loading">Loading stats...</div>
 		<div *ngIf="error" class="error">{{ error }}</div>
-		<div *ngIf="stats" class="stats-grid">
-			<div class="stat-card">
-				<h3>Current Rank</h3>
-				<p class="stat-number">{{ stats.currentRank || 'Unranked' }}</p>
+		
+		<!-- Quick Info Badges -->
+		<div *ngIf="stats" class="quick-info-badges">
+			<div class="info-badge">
+				<div class="badge-content">
+					<span class="badge-label">Rank</span>
+					<span class="badge-value">{{ stats.currentRank || 'Unranked' }}</span>
+				</div>
+				<img *ngIf="stats.currentRank && stats.currentRank !== 'UNRANKED '" [src]="getRankIcon(stats.currentRank)" alt="Rank" class="badge-icon-img" (error)="hideIcon($event)">
 			</div>
-			<div class="stat-card">
+			<div class="info-badge">
+				<div class="badge-content">
+					<span class="badge-label">Main Role</span>
+					<span class="badge-value">{{ stats.mainRole || 'Unknown' }}</span>
+				</div>
+				<img [src]="getRoleIcon(stats.mainRole)" alt="Role" class="badge-icon-img" (error)="hideIcon($event)">
+			</div>
+			<div class="info-badge">
+				<div class="badge-content">
+					<span class="badge-label">Favorite</span>
+					<span class="badge-value">{{ stats.favoriteChampion || 'N/A' }}</span>
+				</div>
+				<img [src]="getChampionIcon(stats.favoriteChampion)" alt="Champion" class="badge-icon-img champion-icon" *ngIf="stats.favoriteChampion" (error)="hideIcon($event)">
+			</div>
+		</div>
+		
+		<!-- Main Stats Cards -->
+		<div *ngIf="stats" class="main-stats-grid">
+			<div class="stat-card featured">
 				<h3>LP Gained (7 days)</h3>
-				<p class="stat-number">{{ stats.lp7days !== undefined ? stats.lp7days : '0' }}</p>
+				<p class="stat-number" [class.positive]="stats.lp7days > 0" [class.negative]="stats.lp7days < 0">
+					{{ stats.lp7days !== undefined ? (stats.lp7days > 0 ? '+' : '') + stats.lp7days : '0' }}
+				</p>
 			</div>
-			<div class="stat-card">
-				<h3>Main Role</h3>
-				<p class="stat-number">{{ stats.mainRole || 'Unknown' }}</p>
-			</div>
-			<div class="stat-card">
-				<h3>Favorite Champion</h3>
-				<p class="stat-number">{{ stats.favoriteChampion || 'N/A' }}</p>
+			<div class="stat-card featured">
+				<h3>Average KDA (7 days)</h3>
+				<p class="stat-number">{{ stats.averageKda !== undefined ? stats.averageKda : '0/0/0' }}</p>
 			</div>
 		</div>
 		

@@ -7,7 +7,7 @@ import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.RankHistoryService;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 /**
  * Mapper helper to convert between MatchEntity and MatchHistoryDTO
@@ -79,7 +79,7 @@ public final class MatchMapper {
         dto.setAssists(entity.getAssists());
         dto.setGameDuration(entity.getGameDuration());
         dto.setGameTimestamp(entity.getTimestamp() != null ? 
-            entity.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond() : null);
+            entity.getTimestamp().toEpochSecond(ZoneOffset.UTC) : null);
         dto.setQueueId(entity.getQueueId());
 
         // Load LP from RankHistory if available

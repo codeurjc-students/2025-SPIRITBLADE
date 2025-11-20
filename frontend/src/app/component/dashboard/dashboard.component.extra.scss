@@ -206,9 +206,7 @@
 	overflow-y: auto;
 }
 
-/* When the AI analysis has returned a result, make the modal wider to fit long text */
 .ai-modal.ai-has-result {
-	/* use min/max to keep it responsive */
 	width: min(95%, 1100px);
 	max-width: 1100px;
 }

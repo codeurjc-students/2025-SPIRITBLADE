@@ -250,7 +250,7 @@ export class SummonerComponent implements OnInit {
 	 */
 	getMatchTimestamp(match: MatchHistory): string {
 		if (!match.gameTimestamp) return 'Unknown';
-		const date = new Date(match.gameTimestamp);
+		const date = new Date(match.gameTimestamp * 1000); // Convert from seconds to milliseconds
 		return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 	}
 

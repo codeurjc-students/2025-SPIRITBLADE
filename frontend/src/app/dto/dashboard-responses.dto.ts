@@ -7,6 +7,7 @@ export interface PersonalStatsDto {
   lp7days: number;
   mainRole: string;
   favoriteChampion: string | null;
+  averageKda: string;
 }
 
 export interface AiAnalysisResponseDto {

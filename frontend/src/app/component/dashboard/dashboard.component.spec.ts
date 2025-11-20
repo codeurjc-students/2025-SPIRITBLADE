@@ -37,7 +37,8 @@ describe('DashboardComponent', () => {
       currentRank: 'Gold I',
       lp7days: 25,
       mainRole: 'ADC',
-      favoriteChampion: 'Jinx'
+      favoriteChampion: 'Jinx',
+      averageKda: '3/2/5'
     }));
     mockDashboardService.getFavoritesOverview.and.returnValue(of([]));
     mockDashboardService.getRankedMatches.and.returnValue(of([]));
@@ -126,7 +127,8 @@ describe('DashboardComponent', () => {
         currentRank: 'Gold I',
         lp7days: 25,
         mainRole: 'ADC',
-        favoriteChampion: 'Jinx'
+        favoriteChampion: 'Jinx',
+        averageKda: '3/2/5'
       };
       const mockFavorites = [{ name: 'fav' }];
       mockDashboardService.getPersonalStats.and.returnValue(of(mockStats));

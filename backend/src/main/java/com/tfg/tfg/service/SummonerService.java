@@ -46,9 +46,9 @@ public class SummonerService {
     }
 
     /**
-     * Find recent searches (last 10 summoners searched)
+     * Find recent searches (last 9 summoners searched)
      */
     public List<Summoner> findRecentSearches() {
-        return summonerRepository.findTop10ByOrderByLastSearchedAtDesc();
+        return summonerRepository.findTop9ByOrderByLastSearchedAtDesc();
     }
 }

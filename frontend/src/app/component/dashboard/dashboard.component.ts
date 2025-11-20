@@ -78,6 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.error = null;
 		this.dashboardService.getPersonalStats().subscribe({
 			next: (res) => {
+				console.log('✅ Dashboard stats loaded:', res);
 				this.stats = res;
 				this.loading = false;
 			},
@@ -105,10 +106,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnInit() {
-		this.refresh();
+		// Load linked summoner FIRST
+		// It will trigger loadRankHistory() which will then trigger refresh()
+		// This ensures RankHistory exists before calculating lp7days
 		this.loadLinkedSummoner();
 		this.loadUserProfile();
-		// Don't load rank history on init - it will be loaded after checking linked summoner
 	}
 
 	ngAfterViewInit() {
@@ -142,6 +144,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.chartLoading = false;
 				this.initializeLPChart();
 				console.log('✅ Loaded ranked match history:', matches);
+				// After loading matches (which creates RankHistory), refresh stats
+				// This ensures lp7days calculation has the necessary data
+				this.refresh();
 			},
 			error: (err) => {
 				console.error('Failed to load ranked match history', err);
@@ -403,7 +408,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						region: res.region,
 						puuid: res.puuid
 					};
-					// Load rank history only if there's a linked account
+					// IMPORTANT: Load rank history FIRST to populate RankHistory
+					// This ensures calculateLPGainedLast7Days() has data to work with
 					this.loadRankHistory();
 				} else {
 					this.linkedSummoner = null;
@@ -804,5 +810,49 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.aiAnalysisLoading = false;
 			}
 		});
+	}
+
+	/**
+	 * Get role icon from Community Dragon
+	 */
+	getRoleIcon(role: string): string {
+		if (!role || role === 'Unknown') {
+			return '';
+		}
+
+		const roleMap: { [key: string]: string } = {
+			'Top Lane': 'top',
+			'Jungle': 'jungle',
+			'Mid Lane': 'middle',
+			'Bot Lane': 'bottom',
+			'Support': 'utility'
+		};
+
+		const roleKey = roleMap[role] || 'fill';
+		return `https://raw.communitydragon.org/10.1/plugins/rcp-fe-lol-clash/global/default/icon-position-${roleKey}.png`;
+	}
+
+	/**
+	 * Get champion icon from Data Dragon
+	 */
+	getChampionIcon(championName: string | null): string {
+		if (!championName) {
+			return '';
+		}
+		// Remove spaces and apostrophes for Data Dragon URL format
+		const formattedName = championName.replace(/['\s]/g, '');
+		return `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${formattedName}.png`;
+	}
+
+	getRankIcon(rank: string | null): string {
+		if (!rank) {
+			return '';
+		}
+		const tier = rank.split(' ')[0].toLowerCase();
+		return `https://raw.communitydragon.org/10.1/plugins/rcp-fe-lol-league-tier-names/global/default/assets/images/ranked-mini-regalia/${tier}.png`;
+	}
+
+	hideIcon(event: any) {
+		event.target.style.display = 'none';
 	}
 }

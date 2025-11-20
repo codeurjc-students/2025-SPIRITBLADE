@@ -30,6 +30,7 @@ public class DashboardService {
     private static final String DEFAULT_TIER = "UNRANKED";
     private static final String DEFAULT_RANK = "I";
     private static final int MIN_LP = 0;
+    private static final String DEFAULT_KDA = "0/0/0";
     
     private final MatchService matchService;
     private final RiotService riotService;
@@ -57,11 +58,13 @@ public class DashboardService {
             stats.put("lp7days", calculateLPGainedLast7Days(summoner));
             stats.put("mainRole", calculateMainRole(summoner));
             stats.put("favoriteChampion", getFavoriteChampion(summoner));
+            stats.put("averageKda", calculateAverageKDA(summoner));
         } else {
             stats.put("currentRank", UNRANKED);
             stats.put("lp7days", 0);
             stats.put("mainRole", UNKNOWN);
             stats.put("favoriteChampion", null);
+            stats.put("averageKda", 0.0);
         }
         
         return stats;
@@ -167,6 +170,51 @@ public class DashboardService {
             logger.debug("Failed to fetch champion masteries for {}: {}", summoner.getName(), e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Calculate average KDA from recent ranked matches (last 7 days)
+     */
+    public String calculateAverageKDA(Summoner summoner) {
+        try {
+            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+            List<MatchEntity> recentMatches = matchService.findRecentMatches(summoner, sevenDaysAgo);
+            
+            if (recentMatches.isEmpty()) {
+                return DEFAULT_KDA;
+            }
+            
+            // Filter only ranked matches (Solo/Duo and Flex)
+            List<MatchEntity> rankedMatches = recentMatches.stream()
+                .filter(match -> {
+                    Integer queueId = match.getQueueId();
+                    return queueId != null && (queueId == 420 || queueId == 440);
+                })
+                .toList();
+            
+            if (rankedMatches.isEmpty()) {
+                return DEFAULT_KDA;
+            }
+            
+            int totalKills = 0;
+            int totalDeaths = 0;
+            int totalAssists = 0;
+            
+            for (MatchEntity match : rankedMatches) {
+                totalKills += match.getKills();
+                totalDeaths += match.getDeaths();
+                totalAssists += match.getAssists();
+            }
+
+            int matchesCount = rankedMatches.size();
+            int avgKills = totalKills / matchesCount;
+            int avgDeaths = totalDeaths / matchesCount;
+            int avgAssists = totalAssists / matchesCount;
+            return avgKills + "/" + avgDeaths + "/" + avgAssists;
+        } catch (Exception e) {
+            logger.warn("Error calculating average KDA for summoner {}: {}", summoner.getName(), e.getMessage());
+            return DEFAULT_KDA;
+        }
     }
 
     /**
