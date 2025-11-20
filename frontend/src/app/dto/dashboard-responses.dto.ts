@@ -15,9 +15,3 @@ export interface AiAnalysisResponseDto {
   matchesAnalyzed: number;
   summonerName: string;
 }
-
-export interface RefreshMatchesResponseDto {
-  success: boolean;
-  message: string;
-  matchesProcessed: number;
-}

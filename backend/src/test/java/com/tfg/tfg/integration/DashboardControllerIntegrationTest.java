@@ -1,5 +1,6 @@
 package com.tfg.tfg.integration;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
@@ -17,6 +18,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.RankHistory;
@@ -26,9 +28,10 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.RankHistoryRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.AiAnalysisService;
 import com.tfg.tfg.service.RiotService;
 
-import static org.mockito.ArgumentMatchers.*;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 
 /**
@@ -78,6 +81,12 @@ class DashboardControllerIntegrationTest {
     @MockitoBean
     private RiotService riotService;
 
+    @MockitoBean
+    private AiAnalysisService aiAnalysisService;
+
+    @MockitoBean
+    private com.tfg.tfg.service.MatchService matchService;
+
     private UserModel testUser;
     private Summoner testSummoner;
 
@@ -88,6 +97,11 @@ class DashboardControllerIntegrationTest {
         rankHistoryRepository.deleteAll();
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
+
+        // Reset mocks
+        Mockito.reset(matchService);
+        Mockito.reset(riotService);
+        Mockito.reset(aiAnalysisService);
 
         // Create summoner WITH realistic data
         testSummoner = new Summoner();
@@ -181,6 +195,16 @@ class DashboardControllerIntegrationTest {
         mastery.setChampionPoints(250000);
         when(riotService.getTopChampionMasteries(anyString(), anyInt()))
             .thenReturn(List.of(mastery));
+
+        // Default mock for MatchService - return ranked matches from setup for normal tests
+        List<MatchEntity> allMatches = matchRepository.findBySummonerOrderByTimestampDesc(testSummoner);
+        List<MatchEntity> rankedMatches = allMatches.stream()
+            .filter(m -> m.getQueueId() != null && (m.getQueueId() == 420 || m.getQueueId() == 440))
+            .toList();
+        doReturn(rankedMatches).when(matchService).findRecentMatches(any(), any());
+        doReturn(rankedMatches).when(matchService).findRecentMatchesForRoleAnalysis(any(), anyInt());
+        doReturn(rankedMatches).when(matchService).findRankedMatchesBySummonerOrderByTimestampDesc(any());
+        doReturn(rankedMatches).when(matchService).findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(any(), any());
     }
 
     private String getChampionName(int index) {
@@ -405,5 +429,149 @@ class DashboardControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].name", notNullValue()));
+    }
+
+    // ===== AI ANALYSIS TESTS =====
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisSuccess() throws Exception {
+        // Given - User has sufficient ranked matches
+        AiAnalysisResponseDto mockResponse = new AiAnalysisResponseDto();
+        mockResponse.setAnalysis("Great performance! Your win rate is excellent.");
+        when(aiAnalysisService.analyzePerformance(any(), any())).thenReturn(mockResponse);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis")
+                .param("matchCount", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.analysis", equalTo("Great performance! Your win rate is excellent.")));
+
+        // Verify cooldown was set
+        UserModel updatedUser = userRepository.findByName("testplayer").orElseThrow();
+        assertNotNull(updatedUser.getLastAiAnalysisRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisMatchCountTooLow() throws Exception {
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis")
+                .param("matchCount", "5"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("At least 10 matches are required")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisMatchCountCappedAt10() throws Exception {
+        // Given - Request 15 matches, should be capped at 10
+        AiAnalysisResponseDto mockResponse = new AiAnalysisResponseDto();
+        mockResponse.setAnalysis("Analysis with 10 matches");
+        when(aiAnalysisService.analyzePerformance(any(), any())).thenReturn(mockResponse);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis")
+                .param("matchCount", "15"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.analysis", equalTo("Analysis with 10 matches")));
+    }
+
+    @Test
+    void testGenerateAiAnalysisUnauthorized() throws Exception {
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "guestuser", roles = "USER")
+    void testGenerateAiAnalysisGuestUser() throws Exception {
+        // Create guest user (no linked summoner)
+        UserModel guest = new UserModel("guestuser", "pass", "USER");
+        userRepository.save(guest);
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("You must link your League of Legends account first")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisUserNotFound() throws Exception {
+        // Delete the test user
+        userRepository.delete(testUser);
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", equalTo("User not found")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisCooldownActive() throws Exception {
+        // Set cooldown to 2 minutes ago (still active)
+        testUser.setLastAiAnalysisRequest(LocalDateTime.now().minusMinutes(3));
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("You must wait")))
+                .andExpect(jsonPath("$.cooldownEnds", notNullValue()))
+                .andExpect(jsonPath("$.remainingSeconds", notNullValue()));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisNoLinkedSummoner() throws Exception {
+        // Remove linked summoner
+        testUser.setLinkedSummonerName(null);
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("You must link your League of Legends account first")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisLinkedSummonerNotFound() throws Exception {
+        // Change linked summoner to non-existent one
+        testUser.setLinkedSummonerName("NonExistentSummoner");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("The linked summoner account was not found")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisAiServiceNotConfigured() throws Exception {
+        // Mock AI service to throw IllegalStateException
+        when(aiAnalysisService.analyzePerformance(any(), any()))
+            .thenThrow(new IllegalStateException("AI service not configured"));
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("The AI analysis service is currently unavailable")));
+    }
+
+    @Test
+    @WithMockUser(username = "testplayer", roles = "USER")
+    void testGenerateAiAnalysisGenericException() throws Exception {
+        // Mock AI service to throw generic exception
+        when(aiAnalysisService.analyzePerformance(any(), any()))
+            .thenThrow(new RuntimeException("Database connection failed"));
+
+        mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.success", equalTo(false)))
+                .andExpect(jsonPath("$.message", containsString("Error generating AI analysis: Database connection failed")));
     }
 }

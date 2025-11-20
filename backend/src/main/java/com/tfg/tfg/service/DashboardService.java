@@ -15,6 +15,7 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.model.mapper.MatchMapper;
 
 /**
  * Service layer for Dashboard operations.
@@ -340,7 +341,7 @@ public class DashboardService {
                 // Save matches without LP tracking
                 for (MatchHistoryDTO matchDTO : sortedMatches) {
                     MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
-                    MatchEntity match = buildMatchEntity(existing, matchDTO, summoner);
+                    MatchEntity match = MatchMapper.toEntity(existing, matchDTO, summoner);
                     matchService.save(match);
                 }
                 return;
@@ -377,7 +378,7 @@ public class DashboardService {
                 lpTracker = calculateBackwardsLpChange(lpTracker, won, currentTier, currentDivision);
                 
                 // Create/update match entity
-                MatchEntity match = buildMatchEntity(existing, matchDTO, summoner);
+                MatchEntity match = MatchMapper.toEntity(existing, matchDTO, summoner);
                 
                 lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
                 newMatches.add(match);
@@ -410,31 +411,7 @@ public class DashboardService {
             logger.error("Error saving matches to database: {}", e.getMessage(), e);
         }
     }
-
-    /**
-     * Build match entity from DTO
-     */
-    private MatchEntity buildMatchEntity(MatchEntity existing, MatchHistoryDTO matchDTO, 
-                                        Summoner summoner) {
-        MatchEntity match = existing != null ? existing : new MatchEntity();
-        match.setMatchId(matchDTO.getMatchId());
-        match.setSummoner(summoner);
-        match.setChampionName(matchDTO.getChampionName());
-        match.setWin(matchDTO.getWin());
-        match.setKills(matchDTO.getKills());
-        match.setDeaths(matchDTO.getDeaths());
-        match.setAssists(matchDTO.getAssists());
-        match.setGameDuration(matchDTO.getGameDuration());
-        match.setQueueId(matchDTO.getQueueId());
-        
-        if (matchDTO.getGameTimestamp() != null) {
-            match.setTimestamp(LocalDateTime.ofEpochSecond(
-                matchDTO.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
-        }
-        
-        return match;
-    }
-
+    
     /**
      * Calculate LP change going backwards in time
      */

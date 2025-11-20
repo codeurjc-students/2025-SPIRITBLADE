@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { API_URL } from './api.config';
 import { Observable } from 'rxjs';
 import { MatchHistory } from '../dto/match-history.model';
-import { PersonalStatsDto, AiAnalysisResponseDto, RefreshMatchesResponseDto } from '../dto/dashboard-responses.dto';
+import { PersonalStatsDto, AiAnalysisResponseDto } from '../dto/dashboard-responses.dto';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -43,15 +43,4 @@ export class DashboardService {
       {}
     );
   }
-
-  /**
-   * Refresh match history for the linked summoner
-   * Fetches recent ranked matches from Riot API and saves them to database
-   */
-  refreshMatches(): Observable<RefreshMatchesResponseDto> {
-    return this.http.post<RefreshMatchesResponseDto>(`${API_URL}/dashboard/me/refresh-matches`, {});
-  }
 }
-
-// Re-export DTOs for convenience
-export { AiAnalysisResponseDto };

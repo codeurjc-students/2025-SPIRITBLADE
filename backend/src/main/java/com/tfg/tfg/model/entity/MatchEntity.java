@@ -31,7 +31,6 @@ public class MatchEntity {
     private int deaths;
     private int assists;
     
-    // Additional match details for caching
     private String championName;
     private Integer championId;
     private String role;

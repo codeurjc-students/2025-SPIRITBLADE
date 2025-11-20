@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardService, AiAnalysisResponseDto } from '../../service/dashboard.service';
+import { DashboardService } from '../../service/dashboard.service';
 import { UserService } from '../../service/user.service';
 import { User } from '../../dto/user.dto';
 import { MatchHistory } from '../../dto/match-history.model';
+import { AiAnalysisResponseDto } from '../../dto/dashboard-responses.dto';
 import { ElementRef } from '@angular/core';
 import { Chart } from 'chart.js';
 

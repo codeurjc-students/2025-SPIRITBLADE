@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tfg.tfg.model.dto.SummonerDTO;
+import com.tfg.tfg.model.dto.MatchDetailDTO;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
@@ -76,8 +77,8 @@ public class SummonerController {
     }
     
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<com.tfg.tfg.model.dto.MatchDetailDTO> getMatchDetails(@PathVariable String matchId) {
-        com.tfg.tfg.model.dto.MatchDetailDTO matchDetails = riotService.getMatchDetails(matchId);
+    public ResponseEntity<MatchDetailDTO> getMatchDetails(@PathVariable String matchId) {
+        MatchDetailDTO matchDetails = riotService.getMatchDetails(matchId);
         // If match details is null, throw a domain exception so GlobalExceptionHandler returns 404
         if (matchDetails == null) {
             throw new com.tfg.tfg.exception.MatchNotFoundException("Match details not found for ID: " + matchId);
