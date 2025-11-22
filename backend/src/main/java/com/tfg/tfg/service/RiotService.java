@@ -413,7 +413,6 @@ public class RiotService {
             matchEntity.setGoldEarned(participant.getGoldEarned());
             matchEntity.setChampLevel(participant.getChampLevel());
             matchEntity.setSummonerName(participant.getSummonerName());
-            matchEntity.setCachedAt(java.time.LocalDateTime.now());
             
             matchRepository.save(matchEntity);
             logger.debug("Saved match {} to database cache", matchId);

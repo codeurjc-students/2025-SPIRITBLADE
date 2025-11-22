@@ -43,9 +43,6 @@ public class MatchEntity {
     private Integer champLevel;
     private String summonerName;  // Denormalized for quick access
     
-    // Timestamps for cache management
-    private LocalDateTime cachedAt;
-    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "summoner_id")
     private Summoner summoner;
@@ -209,13 +206,5 @@ public class MatchEntity {
 
     public void setSummonerName(String summonerName) {
         this.summonerName = summonerName;
-    }
-
-    public LocalDateTime getCachedAt() {
-        return cachedAt;
-    }
-
-    public void setCachedAt(LocalDateTime cachedAt) {
-        this.cachedAt = cachedAt;
     }
 }

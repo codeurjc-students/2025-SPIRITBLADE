@@ -124,13 +124,4 @@ public class AdminController {
         userService.deleteUserOrThrow(id);
         return ResponseEntity.noContent().build();
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> systemStats() {
-        Map<String, Object> stats = Map.of(
-            "users", userService.countUsers()
-        );
-        return ResponseEntity.ok(stats);
-    }
 }

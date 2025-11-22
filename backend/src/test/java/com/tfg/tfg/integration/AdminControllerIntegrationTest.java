@@ -31,7 +31,6 @@ import com.tfg.tfg.service.storage.MinioStorageService;
 class AdminControllerIntegrationTest {
 
     private static final String API_ADMIN_USERS = "/api/v1/admin/users";
-    private static final String API_ADMIN_STATS = "/api/v1/admin/stats";
 
     @Autowired
     private MockMvc mockMvc;
@@ -156,14 +155,6 @@ class AdminControllerIntegrationTest {
 
         mockMvc.perform(delete(API_ADMIN_USERS + "/" + user.getId()))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void testGetSystemStatsAsAdmin() throws Exception {
-        mockMvc.perform(get(API_ADMIN_STATS))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.users", notNullValue()));
     }
 
     @Test

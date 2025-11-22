@@ -59,13 +59,10 @@ La especificación OpenAPI 3.0 en bruto está disponible en:
 ```powershell
 # Opción 1: Maven (Windows)
 cd backend
-.\mvnw.cmd spring-boot:run
+.\dotenvtosystemargs.ps1
 
 # Opción 2: Docker
 docker-compose up
-
-# Opción 3: Ejecutar JAR
-java -jar backend/target/tfg-0.1.0.jar
 ```
 
 ### Paso 2: Abrir Swagger UI
@@ -163,23 +160,19 @@ Endpoints públicos (sin autenticación):
 
 Endpoints autenticados (JWT requerido):
 - `GET /api/v1/users/me` - Perfil del usuario actual
-- `PUT /api/v1/users/me` - Actualizar perfil de usuario
-- `POST /api/v1/users/me/avatar` - Subir avatar (solo PNG)
 - `GET /api/v1/users/me/favorites` - Obtener summoners favoritos del usuario
 - `POST /api/v1/users/me/favorites/{summonerId}` - Añadir favorito
 - `DELETE /api/v1/users/me/favorites/{summonerId}` - Eliminar favorito
 - `GET /api/v1/summoners/search` - Buscar summoner por Riot ID
 - `GET /api/v1/summoners/{puuid}` - Obtener detalles del summoner
-- `GET /api/v1/summoners/{puuid}/ranked-stats` - Obtener estadísticas ranked
 - `GET /api/v1/summoners/{puuid}/champion-mastery` - Obtener mastery por campeón
-- `GET /api/v1/dashboard/stats` - Estadísticas personales
+- `GET /api/v1/dashboard/me/stats` - Estadísticas personales
 - `GET /api/v1/dashboard/me/favorites` - Análisis de rendimiento
 
 Endpoints de administrador (requiere rol ADMIN):
 - `GET /api/v1/admin/users` - Listar todos los usuarios
 - `PUT /api/v1/admin/users/{id}` - Actualizar usuario (activar/desactivar)
 - `DELETE /api/v1/admin/users/{id}` - Eliminar usuario
-- `GET /api/v1/admin/stats` - Estadísticas del sistema
 
 Para detalles completos, consulta Swagger UI que refleja el código en ejecución.
 
@@ -187,13 +180,7 @@ Para detalles completos, consulta Swagger UI que refleja el código en ejecució
 
 ## Recursos adicionales
 
-### Guías completas
-
-Para documentación detallada de Swagger, ver:
-- [SWAGGER.md](SWAGGER.md) - Guía completa de Swagger con configuración y buenas prácticas
-- [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) - Tutorial de inicio rápido
-
-### Otra documentación
+### Guías complementarias
 
 - [README.md](../README.md) - Página principal del proyecto
 - [Funcionalidades.md](Funcionalidades.md) - Descripción de características con capturas
@@ -220,51 +207,9 @@ Nota: la opción `-k` en curl omite la verificación SSL (necesario para certifi
 
 ---
 
-## Respuestas de error
-
-Todos los errores siguen un formato JSON consistente.
-
-401 Unauthorized (token inválido o expirado):
-```json
-{
-   "timestamp": "2024-01-15T10:30:00",
-   "status": 401,
-   "error": "No autorizado",
-   "message": "Token JWT inválido o expirado"
-}
-```
-
-404 Not Found (el recurso no existe):
-```json
-{
-   "timestamp": "2024-01-15T10:30:00",
-   "status": 404,
-   "error": "No encontrado",
-   "message": "Summoner no encontrado"
-}
-```
-
-429 Too Many Requests (límite de peticiones excedido):
-```json
-{
-   "timestamp": "2024-01-15T10:30:00",
-   "status": 429,
-   "error": "Demasiadas solicitudes",
-   "message": "Límite de peticiones de la API de Riot excedido. Por favor, reintenta después de 60 segundos."
-}
-```
-
-Consulta Swagger UI para los esquemas completos de respuestas de error por endpoint.
-
----
-
 ## Limitación de tasa (Rate Limiting)
 
-Límites aplicados por el backend a la Riot API:
-- Búsqueda de Summoner: 20 peticiones por segundo
-- Historial de partidas: 100 peticiones por 2 minutos
-
-Si excedes los límites recibirás `429 Too Many Requests` con una cabecera `Retry-After`.
+Debido a las limitaciones del proyecto tanto la API de Riot Games como la API de Gemini tienen restricciones de uso. Por lo que el uso excesivo de la API puede provocar bloqueos temporales. Se recomienda usar la API de forma moderada y evitar múltiples solicitudes en un corto período de tiempo. Se tiene contemplado que en un escenario de producción, se usarian versiónes de pago de dichas APIs para evitar estas limitaciones tan restrictivas. Aunque actualmente se han implementado mecanismos de caché de sistema (no en el usuario) y optimización para minimizar el número de llamadas externas.
 
 ---
 
@@ -299,4 +244,4 @@ Contacto: j.andres.2022@alumnos.urjc.es
 
 ---
 
-Última actualización: Noviembre 2025 (v0.1)
+Última actualización: Noviembre 2025 (v1.0)

@@ -57,8 +57,6 @@
 
 ## 📸 Capturas de Pantalla (v1.0)
 
-En la versión 1.0, se han implementado mejoras visuales significativas, incluyendo la corrección de la visualización de iconos en el dashboard al cambiar entre invocadores sin necesidad de recargar la página.
-
 ### Página Principal - Búsqueda v1.0
 <p align="center">
   <img src="https://github.com/user-attachments/assets/new-home-v1" alt="Home Screen v1.0" width="700"/>

@@ -131,27 +131,27 @@ Entregables:
 ---
 
 #### Fase 3: Versión 0.1 — Funcionalidades núcleo  
-Estado: ✅ Completado
+Estado: 📋 Completado
 
 Entregables:
-- ✅ API REST backend con:
+  - API REST backend con:
   - Autenticación JWT
   - Endpoints para usuarios, invocadores, dashboard, admin
   - Integración con la API de Riot
   - Tests de integración
-- ✅ Frontend en Angular con:
+  - Frontend en Angular con:
   - Componentes: Home, Login, Dashboard, Summoner, Admin
   - Servicios y guards
   - Routing y navegación
   - Tests unitarios
-- ✅ Esquema MySQL
-- ✅ Dockerfile optimizado multi-stage
-- ✅ Despliegue con Docker Compose
-- ✅ Workflows CI/CD:
+  - Esquema MySQL
+  - Dockerfile optimizado multi-stage
+  - Despliegue con Docker Compose
+  - Workflows CI/CD:
   - Control de calidad en PRs
   - Publicación automática en DockerHub (dev + releases)
   - Build manual para pruebas
-- ✅ Documentación actualizada
+  - Documentación actualizada
 
 ---
 
@@ -284,21 +284,6 @@ Consideraciones:
 - Límites de tasa: 20 req/s, 100 req/2min (clave de desarrollo)
 - Región: EUW por defecto, configurable
 
----
-
-#### Análisis estático (SonarCloud)
-
-Configuración:
-- Integrado en GitHub Actions
-- Quality Gate personalizado con métricas estrictas
-- Análisis para Java, TypeScript, HTML, CSS
-
-Métricas:
-- Cobertura: ≥55%
-- Bugs: 0 críticos
-- Vulnerabilidades: 0
-- Olores de código: <50
-- Duplicación: <5%
 
 ---
 
