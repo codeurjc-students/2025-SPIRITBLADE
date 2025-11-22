@@ -253,6 +253,7 @@
 						[(ngModel)]="selectedUser.name" 
 						name="username"
 						required
+						readonly
 					/>
 				</div>
 				<div class="form-group">
@@ -263,6 +264,16 @@
 						[(ngModel)]="selectedUser.email" 
 						name="email"
 						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="edit-password">New Password (leave empty to keep current)</label>
+					<input 
+						id="edit-password"
+						type="password" 
+						[(ngModel)]="selectedUser.password" 
+						name="password"
+						placeholder="Enter new password"
 					/>
 				</div>
 				<div class="form-group">

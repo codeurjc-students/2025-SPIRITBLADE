@@ -68,7 +68,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/admin/users`));
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
@@ -92,7 +92,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/admin/users`));
       req.flush(emptyResponse);
     });
 
@@ -106,7 +106,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/admin/users`));
       req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
     });
 
@@ -120,7 +120,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/users`));
+      const req = httpMock.expectOne((request) => request.url.includes(`${API_URL}/admin/users`));
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
     });
   });
@@ -142,7 +142,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/${userId}`);
+      const req = httpMock.expectOne(`${API_URL}/admin/users/${userId}`);
       expect(req.request.method).toBe('DELETE');
       req.flush(mockResponse);
     });
@@ -160,7 +160,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/${nonExistentUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/admin/users/${nonExistentUserId}`);
       req.flush('User not found', { status: 404, statusText: 'Not Found' });
     });
 
@@ -177,7 +177,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/${userId}`);
+      const req = httpMock.expectOne(`${API_URL}/admin/users/${userId}`);
       req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
     });
 
@@ -194,7 +194,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/${ownUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/admin/users/${ownUserId}`);
       req.flush('Cannot delete your own account', { status: 400, statusText: 'Bad Request' });
     });
 
@@ -211,7 +211,7 @@ describe('AdminService - Unit Tests', () => {
       });
 
       // Assert
-      const req = httpMock.expectOne(`${API_URL}/users/${otherAdminUserId}`);
+      const req = httpMock.expectOne(`${API_URL}/admin/users/${otherAdminUserId}`);
       req.flush('Cannot delete other admin accounts', { status: 400, statusText: 'Bad Request' });
     });
   });

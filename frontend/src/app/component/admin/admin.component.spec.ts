@@ -250,7 +250,7 @@ describe('AdminComponent - Unit Tests', () => {
       const user: User = { id: 1, name: 'Test', email: 'test@test.com', roles: ['USER'], active: true };
       component.openEditModal(user);
       expect(component.showEditModal).toBeTrue();
-      expect(component.selectedUser).toEqual(user);
+      expect(component.selectedUser).toEqual({ ...user, password: '' });
     });
 
     it('should close edit modal', () => {

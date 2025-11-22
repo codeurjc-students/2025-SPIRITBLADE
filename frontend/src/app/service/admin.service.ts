@@ -7,7 +7,7 @@ import { User, PagedResponse } from '../dto/user.dto';
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
-  private readonly usersUrl = `${API_URL}/users`;
+  private readonly adminUrl = `${API_URL}/admin`;
 
   /**
    * Get all users from the system with pagination and filters.
@@ -25,34 +25,34 @@ export class AdminService {
       if (filters.search) params.search = filters.search;
     }
     
-    return this.http.get<PagedResponse<User>>(this.usersUrl, { params });
+    return this.http.get<PagedResponse<User>>(`${this.adminUrl}/users`, { params });
   }
 
   /**
    * Create a new user.
    */
   createUser(user: User): Observable<User> {
-    return this.http.post<User>(this.usersUrl, user);
+    return this.http.post<User>(`${this.adminUrl}/users`, user);
   }
 
   /**
    * Update an existing user.
    */
   updateUser(userId: number, user: User): Observable<User> {
-    return this.http.put<User>(`${this.usersUrl}/${userId}`, user);
+    return this.http.put<User>(`${this.adminUrl}/users/${userId}`, user);
   }
 
   /**
    * Toggle user active status.
    */
   toggleUserActive(userId: number): Observable<User> {
-    return this.http.put<User>(`${this.usersUrl}/${userId}/toggle-active`, {});
+    return this.http.put<User>(`${this.adminUrl}/users/${userId}/toggle-active`, {});
   }
 
   /**
    * Delete a user from the system.
    */
   deleteUser(userId: number): Observable<void> {
-    return this.http.delete<void>(`${this.usersUrl}/${userId}`);
+    return this.http.delete<void>(`${this.adminUrl}/users/${userId}`);
   }
 }

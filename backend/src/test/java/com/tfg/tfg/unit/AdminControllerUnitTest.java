@@ -5,13 +5,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -41,20 +46,23 @@ class AdminControllerUnitTest {
         UserModel user2 = new UserModel("user2", "pass2", "ADMIN");
         user2.setId(2L);
         
-        when(userService.findAllUsers()).thenReturn(List.of(user1, user2));
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
+        Page<UserModel> page = new PageImpl<>(List.of(user1, user2), pageable, 2);
+        
+        when(userService.findAll(pageable)).thenReturn(page);
         
         // When
-        ResponseEntity<List<UserDTO>> response = adminController.listUsers();
+        ResponseEntity<Page<UserDTO>> response = adminController.listUsers(0, 20, null, null, null);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(userService).findAllUsers();
+        assertEquals(2, response.getBody().getContent().size());
+        verify(userService).findAll(pageable);
     }
 
     @Test
-    void testSetUserActiveSuccess() {
+    void testToggleUserActiveSuccess() {
         // Given
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
@@ -62,32 +70,33 @@ class AdminControllerUnitTest {
         user.setActive(false);
         
         when(userService.getUserById(userId)).thenReturn(user);
-        when(userService.setUserActiveOrThrow(userId, true)).thenReturn(user);
+        when(userService.toggleUserActive(userId)).thenReturn(Optional.of(user));
         
         // When
-        ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", true));
+        ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         verify(userService).getUserById(userId);
-        verify(userService).setUserActiveOrThrow(userId, true);
+        verify(userService).toggleUserActive(userId);
     }
 
     @Test
-    void testSetUserActiveUserNotFound() {
+    void testToggleUserActiveUserNotFound() {
         // Given
         Long userId = 999L;
         when(userService.getUserById(userId)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
 
         // Act & Assert: controller delegates exception handling to GlobalExceptionHandler; at unit level the exception will be thrown
         assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () ->
-            adminController.setUserActive(userId, Map.of("active", true)));
+            adminController.toggleUserActive(userId));
         verify(userService).getUserById(userId);
-        verify(userService, never()).setUserActiveOrThrow(anyLong(), anyBoolean());
+        verify(userService, never()).toggleUserActive(anyLong());
     }
 
     @Test
-    void testSetUserActiveDeactivateUser() {
+    void testToggleUserActiveDeactivateUser() {
         // Given
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
@@ -95,15 +104,16 @@ class AdminControllerUnitTest {
         user.setActive(true);
         
         when(userService.getUserById(userId)).thenReturn(user);
-        when(userService.setUserActiveOrThrow(userId, false)).thenReturn(user);
+        when(userService.toggleUserActive(userId)).thenReturn(Optional.of(user));
         
         // When
-        ResponseEntity<Void> response = adminController.setUserActive(userId, Map.of("active", false));
+        ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         verify(userService).getUserById(userId);
-        verify(userService).setUserActiveOrThrow(userId, false);
+        verify(userService).toggleUserActive(userId);
     }
 
     @Test
@@ -136,17 +146,47 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testSystemStatsSuccess() {
+    void testUpdateUserSuccess() {
         // Given
-        when(userService.countUsers()).thenReturn(42L);
+        Long userId = 1L;
+        UserModel user = new UserModel("testuser", "pass", "USER");
+        user.setId(userId);
+        
+        UserDTO userDTO = new UserDTO();
+        userDTO.setName("testuser"); // Same name
+        userDTO.setEmail("newemail@test.com");
+        
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(userService.updateUserOrThrow(userId, userDTO)).thenReturn(user);
         
         // When
-        ResponseEntity<Map<String, Object>> response = adminController.systemStats();
+        ResponseEntity<UserDTO> response = adminController.updateUser(userId, userDTO);
         
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(42L, response.getBody().get("users"));
-        verify(userService).countUsers();
+        verify(userService).getUserById(userId);
+        verify(userService).updateUserOrThrow(userId, userDTO);
+    }
+
+    @Test
+    void testUpdateUserUsernameChangeForbidden() {
+        // Given
+        Long userId = 1L;
+        UserModel user = new UserModel("testuser", "pass", "USER");
+        user.setId(userId);
+        
+        UserDTO userDTO = new UserDTO();
+        userDTO.setName("newusername"); // Different name
+        
+        when(userService.getUserById(userId)).thenReturn(user);
+        
+        // When
+        ResponseEntity<UserDTO> response = adminController.updateUser(userId, userDTO);
+        
+        // Then
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(userService).getUserById(userId);
+        verify(userService, never()).updateUserOrThrow(anyLong(), any());
     }
 }

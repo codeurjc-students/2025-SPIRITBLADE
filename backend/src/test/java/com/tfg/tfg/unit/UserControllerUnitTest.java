@@ -11,9 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -45,6 +42,7 @@ class UserControllerUnitTest {
     private UserController controller;
 
     private UserModel testUser;
+    private UserModel testUserInactive;
 
     @BeforeEach
     void setUp() {
@@ -57,81 +55,14 @@ class UserControllerUnitTest {
         testUser.setActive(true);
         testUser.setRols(List.of("ROLE_USER"));
 
+        testUserInactive = new UserModel();
+        testUserInactive.setId(2L);
+        testUserInactive.setName("inactiveuser");
+        testUserInactive.setEmail("inactive@example.com");
+        testUserInactive.setActive(false);
+        testUserInactive.setRols(List.of("ROLE_USER"));
+
         SecurityContextHolder.setContext(securityContext);
-    }
-
-    @Test
-    void testListUsersWithoutFilters() {
-        // Arrange
-        Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userService.findAll(any(Pageable.class))).thenReturn(page);
-
-        // Act
-        ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, null, null);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().getTotalElements());
-        verify(userService).findAll(any(Pageable.class));
-    }
-
-    @Test
-    void testListUsersWithSearchFilter() {
-        // Arrange
-        Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userService.findBySearch(anyString(), any(Pageable.class))).thenReturn(page);
-
-        // Act
-        ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, null, "test");
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        verify(userService).findBySearch(eq("test"), any(Pageable.class));
-    }
-
-    @Test
-    void testListUsersWithRoleAndActiveFilters() {
-        // Arrange
-        Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userService.findByRoleAndActive(anyString(), anyBoolean(), any(Pageable.class)))
-            .thenReturn(page);
-
-        // Act
-        ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, "ROLE_USER", true, null);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userService).findByRoleAndActive(eq("ROLE_USER"), eq(true), any(Pageable.class));
-    }
-
-    @Test
-    void testListUsersWithRoleFilter() {
-        // Arrange
-        Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userService.findByRole(anyString(), any(Pageable.class))).thenReturn(page);
-
-        // Act
-        ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, "ROLE_ADMIN", null, null);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userService).findByRole(eq("ROLE_ADMIN"), any(Pageable.class));
-    }
-
-    @Test
-    void testListUsersWithActiveFilter() {
-        // Arrange
-        Page<UserModel> page = new PageImpl<>(List.of(testUser));
-        when(userService.findByActive(anyBoolean(), any(Pageable.class))).thenReturn(page);
-
-        // Act
-        ResponseEntity<Page<UserDTO>> response = controller.listUsers(0, 20, null, false, null);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(userService).findByActive(eq(false), any(Pageable.class));
     }
 
     @Test
@@ -144,13 +75,15 @@ class UserControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
 
         // Act
-        ResponseEntity<UserDTO> response = controller.getMyProfile();
+        ResponseEntity<Object> response = controller.getMyProfile();
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("testuser", response.getBody().getName());
-        verify(userService).findByName("testuser");
+        assertTrue(response.getBody() instanceof UserDTO);
+        UserDTO userDTO = (UserDTO) response.getBody();
+        assertEquals("testuser", userDTO.getName());
+        verify(userService, times(2)).findByName("testuser");
     }
 
     @Test
@@ -163,10 +96,34 @@ class UserControllerUnitTest {
         when(userService.findByName("nonexistent")).thenReturn(Optional.empty());
 
         // Act
-        ResponseEntity<UserDTO> response = controller.getMyProfile();
+        ResponseEntity<Object> response = controller.getMyProfile();
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(userService, times(2)).findByName("nonexistent");
+    }
+
+    @Test
+    void testGetMyProfileUserDeactivated() {
+        // Arrange
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+            "inactiveuser", null, Collections.emptyList()
+        );
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        when(userService.findByName("inactiveuser")).thenReturn(Optional.of(testUserInactive));
+
+        // Act
+        ResponseEntity<Object> response = controller.getMyProfile();
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(false, body.get("success"));
+        assertEquals("User account is deactivated", body.get("message"));
+        verify(userService).findByName("inactiveuser");
     }
 
     @Test
@@ -186,12 +143,15 @@ class UserControllerUnitTest {
         when(userAvatarService.uploadAvatar("testuser", file)).thenReturn("http://avatar.url");
 
         // Act
-        ResponseEntity<Map<String, Object>> response = controller.uploadAvatar(file);
+        ResponseEntity<Object> response = controller.uploadAvatar(file);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("http://avatar.url", response.getBody().get("avatarUrl"));
+        assertTrue(response.getBody() instanceof Map);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("http://avatar.url", body.get("avatarUrl"));
         verify(userAvatarService).uploadAvatar("testuser", file);
     }
 
@@ -217,5 +177,36 @@ class UserControllerUnitTest {
         });
         
         verify(userAvatarService).uploadAvatar(eq("nonexistent"), any());
+    }
+
+    @Test
+    void testUploadAvatarUserDeactivated() {
+        // Arrange
+        MockMultipartFile file = new MockMultipartFile(
+            "file", 
+            "avatar.png", 
+            "image/png", 
+            "test image content".getBytes()
+        );
+        
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+            "inactiveuser", null, Collections.emptyList()
+        );
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        when(userService.findByName("inactiveuser")).thenReturn(Optional.of(testUserInactive));
+
+        // Act
+        ResponseEntity<Object> response = controller.uploadAvatar(file);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(false, body.get("success"));
+        assertEquals("User account is deactivated", body.get("message"));
+        verify(userService).findByName("inactiveuser");
+        verify(userAvatarService, never()).uploadAvatar(any(), any());
     }
 }
