@@ -10,9 +10,9 @@
 
 ---
 
-## 📋 Versión 0.1 - Funcionalidades Básicas
+## 📋 Versión 1.0 - Funcionalidades Avanzadas
 
-**SPIRITBLADE v0.1** es una aplicación web que permite a los jugadores de League of Legends buscar y visualizar estadísticas de invocadores en tiempo real. La aplicación se conecta a la API oficial de Riot Games para obtener información actualizada sobre perfil, rango, historial de partidas y estadísticas de campeones.
+**SPIRITBLADE v1.0** es una aplicación web que permite a los jugadores de League of Legends buscar y visualizar estadísticas de invocadores en tiempo real. La aplicación se conecta a la API oficial de Riot Games para obtener información actualizada sobre perfil, rango, historial de partidas y estadísticas de campeones.
 
 ### Características principales:
 
@@ -55,22 +55,49 @@
   <img src="https://github.com/user-attachments/assets/381dfdd6-e915-4c34-ba98-b3cf9985855d" alt="Login Screen" width="700"/>
 </p>
 
+## 📸 Capturas de Pantalla (v1.0)
+
+En la versión 1.0, se han implementado mejoras visuales significativas, incluyendo la corrección de la visualización de iconos en el dashboard al cambiar entre invocadores sin necesidad de recargar la página.
+
+### Página Principal - Búsqueda v1.0
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/new-home-v1" alt="Home Screen v1.0" width="700"/>
+</p>
+
+### Perfil de Invocador v1.0
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/new-summoner-v1" alt="Summoner Profile v1.0" width="700"/>
+</p>
+
+### Dashboard de Usuario v1.0
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/new-dashboard-v1" alt="User Dashboard v1.0" width="700"/>
+</p>
+
+### Panel de Administración v1.0
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/new-admin-v1" alt="Admin Panel v1.0" width="700"/>
+</p>
+
+### Login v1.0
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/new-login-v1" alt="Login Screen v1.0" width="700"/>
+</p>
+
 ---
 
 ## 🚧 Desarrollo Continuo
 
-**SPIRITBLADE está en desarrollo activo.** La versión 0.1 representa el primer hito funcional del proyecto, implementando las características básicas de búsqueda y visualización. El desarrollo continúa siguiendo un proceso iterativo e incremental para añadir nuevas funcionalidades en versiones posteriores.
+**SPIRITBLADE está en desarrollo activo.** La versión 1.0 representa el hito actual del proyecto, implementando las características completas de búsqueda y visualización. El desarrollo continúa siguiendo un proceso iterativo e incremental para añadir nuevas funcionalidades en versiones posteriores.
 
 ---
 
 ## 🎥 Video Demostración
 
-> **[🎬 Ver video demostrativo - 1 minuto](link-pendiente)**
+> **[🎬 Ver video demostrativo - 1 minuto](utils/demo/demo1-0.mp4)**
 
 ### Contenido del video (Placeholder):
-- **Usuario anónimo** (00:00-00:25): Búsqueda de invocadores, visualización de perfil, historial de partidas
-- **Usuario registrado** (00:25-00:45): Login, dashboard personal, favoritos
-- **Administrador** (00:45-01:00): Panel de administración, gestión de usuarios
+El video demostrativo mostrará las funcionalidades clave de SPIRITBLADE, incluyendo la búsqueda de invocadores, visualización de perfiles, historial de partidas y uso del panel de administración.
 
 
 ---
