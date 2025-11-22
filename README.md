@@ -59,27 +59,22 @@
 
 ### Página Principal - Búsqueda v1.0
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/new-home-v1" alt="Home Screen v1.0" width="700"/>
+  <img src="utils/images/Principal.JPG" alt="Home Screen v1.0" width="700"/>
 </p>
 
 ### Perfil de Invocador v1.0
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/new-summoner-v1" alt="Summoner Profile v1.0" width="700"/>
+  <img src="utils/images/Summoner.JPG" alt="Summoner Profile v1.0" width="700"/>
 </p>
 
 ### Dashboard de Usuario v1.0
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/new-dashboard-v1" alt="User Dashboard v1.0" width="700"/>
+  <img src="utils/images/Dashboard.JPG" alt="User Dashboard v1.0" width="700"/>
 </p>
 
 ### Panel de Administración v1.0
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/new-admin-v1" alt="Admin Panel v1.0" width="700"/>
-</p>
-
-### Login v1.0
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/new-login-v1" alt="Login Screen v1.0" width="700"/>
+  <img src="utils/images/Admin.JPG" alt="Admin Panel v1.0" width="700"/>
 </p>
 
 ---
