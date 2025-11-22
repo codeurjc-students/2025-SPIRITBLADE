@@ -74,6 +74,21 @@ describe('UserService - Unit Tests', () => {
       const req = httpMock.expectOne(`${API_URL}/users/me`);
       req.flush('Internal server error', { status: 500, statusText: 'Internal Server Error' });
     });
+
+    it('should handle deactivated user account', () => {
+      // Act
+      service.getProfile().subscribe({
+        next: () => fail('should have failed'),
+        error: (error: any) => {
+          expect(error.status).toBe(403);
+          expect(error.error.message).toBe('User account is deactivated');
+        }
+      });
+
+      // Assert
+      const req = httpMock.expectOne(`${API_URL}/users/me`);
+      req.flush({ success: false, message: 'User account is deactivated' }, { status: 403, statusText: 'Forbidden' });
+    });
   });
 
   describe('getUsers()', () => {

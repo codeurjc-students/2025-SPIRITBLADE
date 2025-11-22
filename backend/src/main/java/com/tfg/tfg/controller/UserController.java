@@ -3,13 +3,8 @@ package com.tfg.tfg.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,65 +50,24 @@ public class UserController {
     }
 
     /**
-     * Get all users with optional pagination and filters (Admin only).
+     * Check if the authenticated user is active.
      * 
-     * @param page Page number (default 0)
-     * @param size Page size (default 20)
-     * @param role Filter by role (optional)
-     * @param active Filter by active status (optional)
-     * @param search Search by name or email (optional)
-     * @return Paginated list of users
+     * @param username The username to check
+     * @return ResponseEntity with error if inactive, null if active or not found
      */
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<Page<UserDTO>> listUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) String search) {
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<UserModel> usersPage;
-        
-        // Apply filters using service layer
-        if (search != null && !search.trim().isEmpty()) {
-            usersPage = userService.findBySearch(search, pageable);
-        } else if (role != null && active != null) {
-            usersPage = userService.findByRoleAndActive(role, active, pageable);
-        } else if (role != null) {
-            usersPage = userService.findByRole(role, pageable);
-        } else if (active != null) {
-            usersPage = userService.findByActive(active, pageable);
-        } else {
-            usersPage = userService.findAll(pageable);
+    private ResponseEntity<Object> checkUserActive(String username) {
+        UserModel user = userService.findByName(username).orElse(null);
+        if (user != null && !user.isActive()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put(SUCCESS_KEY, false);
+            error.put(MESSAGE_KEY, "User account is deactivated");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
         }
-        
-        Page<UserDTO> dtoPage = usersPage.map(UserMapper::toDTO);
-        return ResponseEntity.ok(dtoPage);
+        return null;
     }
 
-    /**
-     * Create new user (Admin only).
-     * 
-     * @param userDTO User data
-     * @return Created user
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        // Exceptions are handled by GlobalExceptionHandler
-        UserModel createdUser = userService.createUser(userDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toDTO(createdUser));
-    }
-
-    /**
-     * Get current authenticated user profile.
-     * 
-     * @return Current user data with avatar URL
-     */
     @PutMapping("/me")
-    public ResponseEntity<UserDTO> updateMyProfile(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<Object> updateMyProfile(@RequestBody UserDTO userDTO) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(401).build();
@@ -121,24 +75,36 @@ public class UserController {
 
         String username = auth.getName();
         
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+        
         return userService.updateUserProfile(username, userDTO)
             .map(UserMapper::toDTO)
-            .map(ResponseEntity::ok)
+            .map(dto -> ResponseEntity.ok((Object) dto))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
     
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getMyProfile() {
+    public ResponseEntity<Object> getMyProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             // Fallback: return first user if exists (for development)
             return userService.findFirstUser()
                 .map(UserMapper::toDTO)
-                .map(ResponseEntity::ok)
+                .map(dto -> ResponseEntity.ok((Object) dto))
                 .orElseGet(() -> ResponseEntity.notFound().build());
         }
 
         String username = auth.getName();
+        
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         
         return userService.findByName(username)
             .map(user -> {
@@ -149,7 +115,7 @@ public class UserController {
                 }
                 return dto;
             })
-            .map(ResponseEntity::ok)
+            .map(dto -> ResponseEntity.ok((Object) dto))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -160,13 +126,20 @@ public class UserController {
      * @return Link status
      */
     @PostMapping("/link-summoner")
-    public ResponseEntity<Map<String, Object>> linkSummoner(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Object> linkSummoner(@RequestBody Map<String, String> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = auth.getName();
+        
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+
         String summonerName = request.get("summonerName");
         String region = request.get(REGION_KEY);
 
@@ -223,13 +196,19 @@ public class UserController {
      * @return Unlink status
      */
     @PostMapping("/unlink-summoner")
-    public ResponseEntity<Map<String, Object>> unlinkSummoner() {
+    public ResponseEntity<Object> unlinkSummoner() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = auth.getName();
+        
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         
         try {
             userService.unlinkSummoner(username)
@@ -256,13 +235,19 @@ public class UserController {
      * @return Linked summoner information
      */
     @GetMapping("/linked-summoner")
-    public ResponseEntity<Map<String, Object>> getLinkedSummoner() {
+    public ResponseEntity<Object> getLinkedSummoner() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = auth.getName();
+        
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         
         try {
             UserModel user = userService.findByName(username)
@@ -294,13 +279,19 @@ public class UserController {
      * @return Success response with avatar URL
      */
     @PostMapping("/avatar")
-    public ResponseEntity<Map<String, Object>> uploadAvatar(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Object> uploadAvatar(@RequestParam("file") MultipartFile file) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = auth.getName();
+
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
 
         // Exceptions are handled by GlobalExceptionHandler
         String avatarUrl = userAvatarService.uploadAvatar(username, file);
@@ -319,13 +310,19 @@ public class UserController {
      * @return Success response
      */
     @DeleteMapping("/avatar")
-    public ResponseEntity<Map<String, Object>> deleteAvatar() {
+    public ResponseEntity<Object> deleteAvatar() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = auth.getName();
+
+        // Check if user is active
+        ResponseEntity<Object> activeCheck = checkUserActive(username);
+        if (activeCheck != null) {
+            return activeCheck;
+        }
 
         // Exceptions are handled by GlobalExceptionHandler
         userAvatarService.deleteAvatar(username);

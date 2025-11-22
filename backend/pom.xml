@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.spiritblade</groupId>
     <artifactId>backend</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
     <name>spiritblade</name>
     <description>SPIRITBLADE - League of Legends Stats Backend</description>
     <url/>

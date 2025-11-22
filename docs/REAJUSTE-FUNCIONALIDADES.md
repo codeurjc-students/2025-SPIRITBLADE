@@ -135,7 +135,7 @@ Por otro lado, llegar a los estandares mínimos de cobertura de código con una 
 
 ## Impacto en el proyecto
 
-Actualmente, se ha optado por realizar un sistema de cacheo adicional a nivel de usuario con Redis y Spring Cache, que permite almacenar datos temporalmente y reducir la carga en las APIs externas, mejorando el rendimiento y la experiencia del usuario.
+Actualmente, se ha optado por realizar en versión 1.1 un sistema de cacheo adicional a nivel de usuario con Redis y Spring Cache, que permite almacenar datos temporalmente y reducir la carga en las APIs externas, mejorando el rendimiento y la experiencia del usuario.
 
 ---
 

@@ -136,7 +136,6 @@ El modelo de dominio representa las entidades principales de SPIRITBLADE y sus r
                                    │ goldEarned: Int  │
                                    │ champLevel: Int  │
                                    │ summonerName: S  │
-                                   │ cachedAt: Date   │
                                    └──────────────────┘
                                             ▲
                                             │ 1:1
@@ -217,12 +216,12 @@ El backend sigue una arquitectura por capas con buenas prácticas de Spring Boot
 └─────────┼──────────────────┼──────────────────┼──────────────────┼────────┘
           │                  │                  │                  │
           ▼                  ▼                  ▼                  ▼
-┌───────────────────────────────────────────────────────────────────────────┐
-│                   DATABASE (MySQL 8.0 ONLY)                               │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
-│  │  users   │  │summoners │  │ matches  │  │favorites │  │rank_hist │     │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
-└───────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                   DATABASE (MySQL 8.0 ONLY)                 │ 
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │  users   │  │summoners │  │ matches  │  │rank_hist │     │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
+└─────────────────────────────────────────────────────────────┘
                     │
                     │
                     │
@@ -450,7 +449,7 @@ El proyecto sigue una aproximación de **pirámide de pruebas** con múltiples n
 
 ### Cobertura de tests
 
-Estado actual (v0.1):
+Estado actual (v1.0):
 - **Backend**: 80%> cobertura de líneas (JaCoCo)
 - **Frontend**: 80%> cobertura de líneas (karma-coverage)
 
@@ -458,69 +457,6 @@ Informes de cobertura:
 - Backend: `backend/target/site/jacoco/index.html`
 - Frontend: `frontend/coverage/index.html`
 
----
-
-### Funcionalidades probadas (v0.1)
-
-✅ **Autenticación & Autorización**
-- Login con generación de JWT
-- Validación de token en endpoints protegidos
-- Control por roles (USER vs ADMIN)
-- Mecanismo de refresh de token
-- Seguridad HTTPS-only (puerto 443)
-
-✅ **Gestión de Usuarios**
-- Registro con validación
-- Recuperación y actualización de perfil
-- Encriptación de contraseñas (BCrypt)
-- Subida de foto de perfil (PNG only, MinIO)
-- Validación de avatar en 3 capas
-- Gestión de favoritos (añadir/quitar)
-
-✅ **Operaciones de Summoner**
-- Búsqueda por Riot ID (gameName + tagLine)
-- Obtención de datos desde Riot API
-- Recuperar stats ranked (tier, rank, LP, W/L)
-- Mostrar mastery top 3 de campeones
-- Historial de partidas con estadísticas detalladas
-- Sistema de caché para rendimiento
-
-✅ **Dashboard**
-- Agregación de estadísticas personales
-- Partidas recientes con métricas
-- Gestión de summoners favoritos
-- Analíticas de rendimiento y KDA
-
-✅ **Gestión de ficheros**
-- Integración con MinIO
-- Validación PNG-only (header + extensión + content type)
-- Subida/descarga segura de ficheros
-- Gestión de avatares de usuario
-
-✅ **Panel Admin**
-- Listado de usuarios con filtros
-- Activar/desactivar usuarios
-- Borrado con cascada
-- Estadísticas del sistema
-
-✅ **Integración con APIs externas**
-- Autenticación con Riot Games API
-- Manejo de rate limits (20 req/s, 100 req/2min)
-- Recuperación ante errores (retries, fallbacks)
-- Data Dragon CDN para imágenes
-
-✅ **Documentación API**
-- Swagger UI interactiva
-- OpenAPI 3.0
-- Autenticación JWT en Swagger
-- Documentación completa de endpoints
-
-✅ **Componentes Frontend**
-- Renderizado con linkado de datos correcto
-- Rutas con guards (Auth, Admin)
-- Validación de formularios reactivos
-- Muestra de errores amigables
-- Comunicación HTTPS-only
 
 ---
 
@@ -603,11 +539,7 @@ Ver [Inicio-Proyecto.md](Inicio-Proyecto.md) para descripciones detalladas de fa
 - Seguimiento de tasks, bugs, mejoras
 
 **GitHub Projects (Kanban)**:
-- Backlog, To Do, In Progress, In Review, Done
-
-**Hitos**:
-- v0.1 (Noviembre 2025) - ✅ Completado
-- v1.0 (Diciembre 2025) - 📋 Planificado
+- Backlog, To Do, In Progress, In Review, Done, Discarded
 
 ---
 
@@ -627,7 +559,7 @@ Formato: feat<NumTask>: Descripción breve del commit
 ```
 
 
-Métricas actuales (v0.1):
+Métricas actuales (v1.0):
 - 📊 Comits totales: ~80
 - 🌿 Ramas activas: 1-3 típicamente
 - 🔒 `main` protegida con revisiones obligatorias
@@ -650,7 +582,7 @@ Métricas actuales (v0.1):
 - ✅ Cobertura cumplida
 - ✅ SonarCloud quality gate pasado
 
-6. Revisión de código
+6. Revisión de código por Github Copilot
 
 7. Merge a `main`:
 - Eliminar rama feature
@@ -689,9 +621,9 @@ Versiones de desarrollo usan sufijo `-SNAPSHOT` (ej., `0.2.0-SNAPSHOT`)
 | Versión | Fecha | Descripción | DockerHub |
 |---------|-------|-------------|-----------|
 | **0.1.0** | Octubre 2025 | ✅ Funcionalidad básica: autenticación, búsqueda de summoner, historial, panel admin, despliegue Docker | [spiritblade:0.1.0](https://hub.docker.com/r/jae9104/spiritblade/tags) |
-| **1.0.0** | Diciembre 2025 | 📋 Funcionalidades intermedias y avanzadas (planificado): estadísticas, recomendaciones inteligentes, rankings personalizados | - |
+| **1.0.0** | Diciembre 2025 | ✅ Funcionalidades intermedias y avanzadas (planificado): estadísticas, recomendaciones inteligentes, rankings personalizados | [spiritblade:1.0.0](https://hub.docker.com/r/jae9104/spiritblade/tags) |
 
-Estado actual: v0.1.0 liberado, v1.0.0 en planificación
+Estado actual: v1.0.0 acabado
 
 ---
 
@@ -773,8 +705,9 @@ Todos los releases se publican en DockerHub:
 Repositorio: [`jae9104/2025-spiritblade`](https://hub.docker.com/r/jae9104/spiritblade/tags)
 
 Tags disponibles:
-- `latest` - Último release estable (actualmente 0.1.0)
+- `latest` - Último release estable (actualmente 1.0.0)
 - `0.1.0` - Versión específica
+- `1.0.0` - Versión específica
 - `dev` - Último build de desarrollo desde `main`
 - Tags personalizados para builds manuales
 
@@ -1001,11 +934,11 @@ Importar OpenAPI:
 cd backend
 .\mvnw.cmd clean package -DskipTests
 ```
-Salida: `backend/target/tfg-0.0.1-SNAPSHOT.jar`
+Salida: `backend/target/tfg-1.0.0-SNAPSHOT.jar`
 
 Ejecutar JAR:
 ```bash
-java -jar backend/target/tfg-0.0.1-SNAPSHOT.jar
+java -jar backend/target/tfg-1.0.0-SNAPSHOT.jar
 ```
 
 ---
@@ -1069,4 +1002,4 @@ Ver [Autores.md](Autores.md) para información completa de autoría.
 
 ---
 
-**Última actualización**: Noviembre 2025 (v0.1)
+**Última actualización**: Noviembre 2025 (v1.0)

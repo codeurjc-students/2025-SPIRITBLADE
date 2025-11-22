@@ -105,7 +105,7 @@ class AdminSystemTest {
             .header("Authorization", "Bearer " + adminToken)
             .contentType(ContentType.JSON)
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("content", instanceOf(java.util.List.class))
@@ -119,7 +119,7 @@ class AdminSystemTest {
             .header("Authorization", "Bearer " + userToken)
             .contentType(ContentType.JSON)
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(anyOf(is(403), is(401)));
     }
@@ -133,7 +133,7 @@ class AdminSystemTest {
             .queryParam("page", 0)
             .queryParam("size", 5)
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("size", notNullValue())
@@ -148,7 +148,7 @@ class AdminSystemTest {
             .contentType(ContentType.JSON)
             .queryParam("search", "admin")
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("content", notNullValue());
@@ -162,7 +162,7 @@ class AdminSystemTest {
             .contentType(ContentType.JSON)
             .queryParam("role", "ADMIN")
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("content", notNullValue());
@@ -176,7 +176,7 @@ class AdminSystemTest {
             .contentType(ContentType.JSON)
             .queryParam("active", true)
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("content", notNullValue());
@@ -199,7 +199,7 @@ class AdminSystemTest {
                 }
                 """, uniqueUsername, uniqueUsername))
         .when()
-            .post("/api/v1/users")
+            .post("/api/v1/admin/users")
         .then()
             .statusCode(anyOf(is(200), is(201)))
             .body("username", equalTo(uniqueUsername));
@@ -219,7 +219,7 @@ class AdminSystemTest {
                 }
                 """)
         .when()
-            .post("/api/v1/users")
+            .post("/api/v1/admin/users")
         .then()
             .statusCode(anyOf(is(403), is(401)));
     }
@@ -231,7 +231,7 @@ class AdminSystemTest {
             .header("Authorization", "Bearer " + adminToken)
             .contentType(ContentType.JSON)
         .when()
-            .get("/api/v1/users")
+            .get("/api/v1/admin/users")
         .then()
             .statusCode(200)
             .body("content[0].id", notNullValue())

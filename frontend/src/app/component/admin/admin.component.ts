@@ -172,7 +172,7 @@ export class AdminComponent implements OnInit {
   }
 
   openEditModal(user: User): void {
-    this.selectedUser = { ...user };
+    this.selectedUser = { ...user, password: '' };
     this.showEditModal = true;
   }
 
