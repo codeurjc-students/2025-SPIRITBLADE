@@ -24,28 +24,36 @@ public class DataInitializer {
     private static final String DEFAULT_USER_PASSWORD = "pass";
     private static final String DEFAULT_AVATAR_FILENAME = "default-profile.png";
     private static final String DEFAULT_AVATAR_CONTENT_TYPE = "image/png";
-    
+
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MinioStorageService minioStorageService;
+    private final DataDragonService dataDragonService;
 
     public DataInitializer(UserModelRepository userRepository,
-                          PasswordEncoder passwordEncoder,
-                          MinioStorageService minioStorageService) {
+            PasswordEncoder passwordEncoder,
+            MinioStorageService minioStorageService,
+            DataDragonService dataDragonService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.minioStorageService = minioStorageService;
+        this.dataDragonService = dataDragonService;
     }
 
     @PostConstruct
     public void init() {
         boolean isProduction = isProductionMode();
-        
-        String adminPassword = resolvePassword("ADMIN_DEFAULT_PASSWORD", ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, isProduction);
-        String userPassword = resolvePassword("USER_DEFAULT_PASSWORD", USER_USERNAME, DEFAULT_USER_PASSWORD, isProduction);
-        
+
+        String adminPassword = resolvePassword("ADMIN_DEFAULT_PASSWORD", ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD,
+                isProduction);
+        String userPassword = resolvePassword("USER_DEFAULT_PASSWORD", USER_USERNAME, DEFAULT_USER_PASSWORD,
+                isProduction);
+
         createAdminUserIfNotExists(adminPassword, isProduction);
         createRegularUserIfNotExists(userPassword, isProduction);
+
+        // Load static data
+        dataDragonService.updateChampionDatabase();
     }
 
     private boolean isProductionMode() {
@@ -74,12 +82,14 @@ public class DataInitializer {
             admin = userRepository.save(admin);
 
             // Upload default avatar to storage (MinIO) and set avatarUrl
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
+            try (java.io.InputStream is = getClass().getClassLoader()
+                    .getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
                 if (is == null) {
                     logger.warn("Default avatar resource not found: {}", DEFAULT_AVATAR_FILENAME);
                 } else {
                     byte[] bytes = is.readAllBytes();
-                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME, DEFAULT_AVATAR_CONTENT_TYPE);
+                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME,
+                            DEFAULT_AVATAR_CONTENT_TYPE);
                     String key = minioStorageService.store(multipartFile, "avatars");
                     String publicUrl = minioStorageService.getPublicUrl(key);
                     admin.setAvatarUrl(publicUrl);
@@ -101,12 +111,14 @@ public class DataInitializer {
             user = userRepository.save(user);
 
             // Upload default avatar to storage (MinIO) and set avatarUrl
-            try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
+            try (java.io.InputStream is = getClass().getClassLoader()
+                    .getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
                 if (is == null) {
                     logger.warn("Default avatar resource not found: {}", DEFAULT_AVATAR_FILENAME);
                 } else {
                     byte[] bytes = is.readAllBytes();
-                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME, DEFAULT_AVATAR_CONTENT_TYPE);
+                    MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME,
+                            DEFAULT_AVATAR_CONTENT_TYPE);
                     String key = minioStorageService.store(multipartFile, "avatars");
                     String publicUrl = minioStorageService.getPublicUrl(key);
                     user.setAvatarUrl(publicUrl);
@@ -128,7 +140,6 @@ public class DataInitializer {
         }
     }
 
-    
     private String generateSecurePassword(String prefix) {
         // Generate a more secure password for development
         return prefix + "Secure" + System.currentTimeMillis() % 10000 + "!";
@@ -150,25 +161,39 @@ public class DataInitializer {
         }
 
         @Override
-        public String getName() { return fileName; }
+        public String getName() {
+            return fileName;
+        }
 
         @Override
-        public String getOriginalFilename() { return getName(); }
+        public String getOriginalFilename() {
+            return getName();
+        }
 
         @Override
-        public String getContentType() { return contentType; }
+        public String getContentType() {
+            return contentType;
+        }
 
         @Override
-        public boolean isEmpty() { return content.length == 0; }
+        public boolean isEmpty() {
+            return content.length == 0;
+        }
 
         @Override
-        public long getSize() { return content.length; }
+        public long getSize() {
+            return content.length;
+        }
 
         @Override
-        public byte[] getBytes() { return content; }
+        public byte[] getBytes() {
+            return content;
+        }
 
         @Override
-        public java.io.InputStream getInputStream() { return new java.io.ByteArrayInputStream(content); }
+        public java.io.InputStream getInputStream() {
+            return new java.io.ByteArrayInputStream(content);
+        }
 
         @Override
         public void transferTo(java.io.File dest) throws java.io.IOException, java.lang.IllegalStateException {
