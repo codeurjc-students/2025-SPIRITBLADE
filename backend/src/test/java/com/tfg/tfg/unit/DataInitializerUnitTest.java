@@ -19,6 +19,7 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataInitializer;
+import com.tfg.tfg.service.DataDragonService;
 import com.tfg.tfg.service.storage.MinioStorageService;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,15 +40,18 @@ class DataInitializerUnitTest {
     @Mock
     private MatchRepository matchRepository;
 
+    @Mock
+    private DataDragonService dataDragonService;
+
     private DataInitializer dataInitializer;
 
     @BeforeEach
     void setUp() {
         dataInitializer = new DataInitializer(
-            userRepository, 
-            passwordEncoder,
-            minioStorageService
-        );
+                userRepository,
+                passwordEncoder,
+                minioStorageService,
+                dataDragonService);
     }
 
     @Test
@@ -56,7 +60,7 @@ class DataInitializerUnitTest {
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
         when(userRepository.findByName("user")).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        
+
         // Mock save to return user with ID set (simulating DB behavior)
         when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
             UserModel user = invocation.getArgument(0);
@@ -72,30 +76,32 @@ class DataInitializerUnitTest {
 
         // Then - Should save both users twice each (double-save pattern for image path)
         verify(userRepository, times(4)).save(any(UserModel.class));
-        
+
         ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
         verify(userRepository, atLeast(2)).save(captor.capture());
-        
+
         var savedUsers = captor.getAllValues();
-        
+
         // Verify admin user (final save has image path)
         UserModel admin = savedUsers.stream()
-            .filter(u -> "admin".equals(u.getName()))
-            .findFirst()
-            .orElseThrow();
+                .filter(u -> "admin".equals(u.getName()))
+                .findFirst()
+                .orElseThrow();
         assertEquals("admin", admin.getName());
         assertEquals("admin@example.com", admin.getEmail());
         assertTrue(admin.getRols().contains("ADMIN"));
-        
+
         // Verify regular user (final save has image path)
         UserModel user = savedUsers.stream()
-            .filter(u -> "user".equals(u.getName()))
-            .findFirst()
-            .orElseThrow();
+                .filter(u -> "user".equals(u.getName()))
+                .findFirst()
+                .orElseThrow();
         assertEquals("user", user.getName());
         assertEquals("user@example.com", user.getEmail());
         assertTrue(user.getRols().contains("USER"));
         assertTrue(user.isActive());
+
+        verify(dataDragonService).updateChampionDatabase();
     }
 
     @Test
@@ -106,7 +112,7 @@ class DataInitializerUnitTest {
         when(userRepository.findByName("admin")).thenReturn(Optional.of(existingAdmin));
         when(userRepository.findByName("user")).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        
+
         // Mock save to return user with ID set (simulating DB behavior)
         when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
             UserModel user = invocation.getArgument(0);
@@ -121,10 +127,10 @@ class DataInitializerUnitTest {
 
         // Then - Should only create user (not admin), with double-save
         verify(userRepository, times(2)).save(any(UserModel.class));
-        
+
         ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
         verify(userRepository, atLeastOnce()).save(captor.capture());
-        
+
         // All saves should be for "user", not "admin"
         captor.getAllValues().forEach(savedUser -> {
             assertEquals("user", savedUser.getName());
@@ -140,7 +146,7 @@ class DataInitializerUnitTest {
         when(userRepository.findByName("admin")).thenReturn(Optional.empty());
         when(userRepository.findByName("user")).thenReturn(Optional.of(existingUser));
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        
+
         // Mock save to return user with ID set (simulating DB behavior)
         when(userRepository.save(any(UserModel.class))).thenAnswer(invocation -> {
             UserModel user = invocation.getArgument(0);
@@ -155,10 +161,10 @@ class DataInitializerUnitTest {
 
         // Then - Should only create admin (not user), with double-save
         verify(userRepository, times(2)).save(any(UserModel.class));
-        
+
         ArgumentCaptor<UserModel> captor = ArgumentCaptor.forClass(UserModel.class);
         verify(userRepository, atLeastOnce()).save(captor.capture());
-        
+
         // All saves should be for "admin", not "user"
         captor.getAllValues().forEach(savedUser -> {
             assertEquals("admin", savedUser.getName());
@@ -185,9 +191,8 @@ class DataInitializerUnitTest {
     void testGenerateSecurePassword() throws Exception {
         // Given - Using reflection to test private method
         java.lang.reflect.Method method = DataInitializer.class.getDeclaredMethod(
-            "generateSecurePassword", 
-            String.class
-        );
+                "generateSecurePassword",
+                String.class);
         method.setAccessible(true);
 
         // When
@@ -204,7 +209,7 @@ class DataInitializerUnitTest {
     @Test
     void testConstructor() {
         // Given & When - Constructor is called in setUp()
-        
+
         // Then - DataInitializer should be initialized
         assertNotNull(dataInitializer);
     }
@@ -213,15 +218,15 @@ class DataInitializerUnitTest {
     void testSimpleMultipartFileWithNullContent() throws Exception {
         // Given
         byte[] nullContent = null;
-        
+
         // When - Use reflection to create SimpleMultipartFile
-        java.lang.reflect.Constructor<?> constructor = 
-            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+        java.lang.reflect.Constructor<?> constructor = Class
+                .forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
                 .getDeclaredConstructor(byte[].class, String.class, String.class);
         constructor.setAccessible(true);
-        org.springframework.web.multipart.MultipartFile file = 
-            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(nullContent, "test.txt", "text/plain");
-        
+        org.springframework.web.multipart.MultipartFile file = (org.springframework.web.multipart.MultipartFile) constructor
+                .newInstance(nullContent, "test.txt", "text/plain");
+
         // Then
         assertEquals("test.txt", file.getName());
         assertEquals("test.txt", file.getOriginalFilename());
@@ -236,15 +241,15 @@ class DataInitializerUnitTest {
     void testSimpleMultipartFileWithContent() throws Exception {
         // Given
         byte[] content = "Hello World".getBytes();
-        
+
         // When - Use reflection to create SimpleMultipartFile
-        java.lang.reflect.Constructor<?> constructor = 
-            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+        java.lang.reflect.Constructor<?> constructor = Class
+                .forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
                 .getDeclaredConstructor(byte[].class, String.class, String.class);
         constructor.setAccessible(true);
-        org.springframework.web.multipart.MultipartFile file = 
-            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(content, "hello.txt", "text/plain");
-        
+        org.springframework.web.multipart.MultipartFile file = (org.springframework.web.multipart.MultipartFile) constructor
+                .newInstance(content, "hello.txt", "text/plain");
+
         // Then
         assertEquals("hello.txt", file.getName());
         assertEquals("hello.txt", file.getOriginalFilename());
@@ -252,7 +257,7 @@ class DataInitializerUnitTest {
         assertFalse(file.isEmpty());
         assertEquals(11, file.getSize());
         assertArrayEquals(content, file.getBytes());
-        
+
         // Test InputStream
         try (java.io.InputStream is = file.getInputStream()) {
             byte[] readContent = is.readAllBytes();
@@ -264,21 +269,21 @@ class DataInitializerUnitTest {
     void testSimpleMultipartFileTransferTo() throws Exception {
         // Given
         byte[] content = "Test content".getBytes();
-        
+
         // When - Use reflection to create SimpleMultipartFile
-        java.lang.reflect.Constructor<?> constructor = 
-            Class.forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
+        java.lang.reflect.Constructor<?> constructor = Class
+                .forName("com.tfg.tfg.service.DataInitializer$SimpleMultipartFile")
                 .getDeclaredConstructor(byte[].class, String.class, String.class);
         constructor.setAccessible(true);
-        org.springframework.web.multipart.MultipartFile file = 
-            (org.springframework.web.multipart.MultipartFile) constructor.newInstance(content, "test.txt", "text/plain");
-        
+        org.springframework.web.multipart.MultipartFile file = (org.springframework.web.multipart.MultipartFile) constructor
+                .newInstance(content, "test.txt", "text/plain");
+
         java.io.File tempFile = java.io.File.createTempFile("test", ".txt");
         tempFile.deleteOnExit();
-        
+
         // When
         file.transferTo(tempFile);
-        
+
         // Then
         byte[] fileContent = java.nio.file.Files.readAllBytes(tempFile.toPath());
         assertArrayEquals(content, fileContent);

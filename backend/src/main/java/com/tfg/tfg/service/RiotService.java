@@ -111,7 +111,10 @@ public class RiotService {
                 logger.warn("Invalid Riot ID format: {}. Expected format: gameName#tagLine", riotId);
                 // Try to find in database by name (fallback for old data)
                 Optional<Summoner> found = summonerRepository.findByName(riotId);
-                return found.map(this::mapSummonerEntityToDTO).orElse(null);
+                if (found.isPresent()) {
+                    return mapSummonerEntityToDTO(found.get());
+                }
+                throw new SummonerNotFoundException("Invalid Riot ID format '" + riotId + "'. Expected format: gameName#tagLine");
             }
 
             String gameName = parts[0];
@@ -130,7 +133,7 @@ public class RiotService {
             RiotAccountDTO account = accountResponse.getBody();
             if (account == null || account.getPuuid() == null) {
                 logger.warn("Account not found for Riot ID: {}", riotId);
-                return null;
+                throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
             }
 
             String puuid = account.getPuuid();
@@ -146,7 +149,7 @@ public class RiotService {
 
             RiotSummonerDTO riotSummoner = summonerResponse.getBody();
             if (riotSummoner == null) {
-                return null;
+                throw new SummonerNotFoundException("Summoner data not found for '" + riotId + "'");
             }
 
             // Step 3: Get rank information by PUUID
@@ -199,6 +202,9 @@ public class RiotService {
             // Summoner not found in Riot API
             logger.warn("Summoner not found in Riot API: {}", riotId);
             throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
+        } catch (SummonerNotFoundException e) {
+            // Re-throw SummonerNotFoundException without wrapping
+            throw e;
         } catch (HttpClientErrorException e) { // NOSONAR - Exception is logged and rethrown with context
             // Handled: Log with context, try database fallback, then rethrow with specific
             // context
