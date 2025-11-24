@@ -30,14 +30,16 @@ describe('SummonerService - Unit Tests', () => {
       // Arrange
       const mockSummoner: Summoner = {
         id: '1',
-        name: 'TestSummoner',
+        name: 'TestSummoner#EUW',
+        riotId: 'TestSummoner#EUW',
         level: 100,
         profileIconId: 123,
+        profileIconUrl: 'http://example.com/icon.png',
         tier: 'GOLD',
         rank: 'II',
         lp: 85
       };
-      const summonerName = 'TestSummoner';
+      const summonerName = 'TestSummoner#EUW';
 
       // Act
       service.getByName(summonerName).subscribe(summoner => {
@@ -52,7 +54,7 @@ describe('SummonerService - Unit Tests', () => {
 
     it('should handle summoner name with special characters', () => {
       // Arrange
-      const summonerName = 'Test Summoner@#$';
+      const summonerName = 'Test Summoner#TAG';
       const encodedName = encodeURIComponent(summonerName);
 
       // Act
