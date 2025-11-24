@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.tfg.model.entity.Champion;
 import com.tfg.tfg.repository.ChampionRepository;
 import com.tfg.tfg.service.DataDragonService;

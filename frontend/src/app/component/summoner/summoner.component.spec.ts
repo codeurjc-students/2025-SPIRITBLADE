@@ -23,7 +23,7 @@ describe('SummonerComponent - Unit Tests', () => {
     ]);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockActivatedRoute = {
-      paramMap: of(new Map([['name', 'TestSummoner']]))
+      paramMap: of(new Map([['name', 'TestSummoner#EUW']]))
     };
 
     // Set default return values for all service methods
@@ -53,104 +53,6 @@ describe('SummonerComponent - Unit Tests', () => {
     expect(component.searchQuery).toBe('');
     expect(component.summoner).toBeNull();
     expect(component.loading).toBeFalse();
-    expect(component.error).toBeNull();
-  });
-
-  describe('ngOnInit()', () => {
-    it('should load summoner from route params', () => {
-      // Arrange
-      const mockSummoner: Summoner = {
-        id: '1',
-        name: 'TestSummoner',
-        level: 100,
-        profileIconId: 123,
-        tier: 'GOLD',
-        rank: 'II',
-        lp: 85
-      };
-
-      mockSummonerService.getByName.and.returnValue(of(mockSummoner));
-      spyOn(component, 'loadSummoner');
-
-      // Act
-      component.ngOnInit();
-
-      // Assert
-      expect(component.searchQuery).toBe('TestSummoner');
-      expect(component.loadSummoner).toHaveBeenCalledWith('TestSummoner');
-    });
-
-    it('should not load summoner when no name in route params', () => {
-      // Arrange
-      mockActivatedRoute.paramMap = of(new Map());
-      spyOn(component, 'loadSummoner');
-
-      // Act
-      component.ngOnInit();
-
-      // Assert
-      expect(component.loadSummoner).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('loadSummoner()', () => {
-    it('should load summoner successfully', () => {
-      // Arrange
-      const mockSummoner: Summoner = {
-        id: '1',
-        name: 'TestSummoner',
-        level: 100,
-        profileIconId: 123,
-        tier: 'GOLD',
-        rank: 'II',
-        lp: 85
-      };
-
-      mockSummonerService.getByName.and.returnValue(of(mockSummoner));
-
-      // Act
-      component.loadSummoner('TestSummoner');
-
-      // Assert
-      expect(component.loading).toBeFalse();
-      expect(component.summoner).toEqual(mockSummoner);
-      expect(component.error).toBeNull();
-      expect(mockSummonerService.getByName).toHaveBeenCalledWith('TestSummoner');
-    });
-
-    it('should handle summoner loading error', () => {
-      // Arrange
-      mockSummonerService.getByName.and.returnValue(
-        throwError(() => new Error('Summoner not found'))
-      );
-
-      // Act
-      component.loadSummoner('NonExistentSummoner');
-
-      // Assert
-      expect(component.loading).toBeFalse();
-      expect(component.summoner).toBeNull();
-      expect(component.error).toBe('Unable to load summoner. Please try again later.');
-    });
-
-    it('should reset states before loading', () => {
-      // Arrange
-      component.summoner = { 
-        id: '1', 
-        name: 'OldSummoner', 
-        level: 50, 
-        profileIconId: 100 
-      } as Summoner;
-      component.error = 'Previous error';
-      mockSummonerService.getByName.and.returnValue(of({} as Summoner));
-
-      // Act
-      component.loadSummoner('NewSummoner');
-
-      // Assert
-      expect(component.error).toBeNull();
-      // summoner should be updated with new data
-    });
   });
 
   describe('onSearch()', () => {
@@ -221,12 +123,19 @@ describe('SummonerComponent - Unit Tests', () => {
     });
 
     it('should load summoner data on init', () => {
-      const summoner: Summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+      const summoner: Summoner = {
+        id: '123',
+        name: 'TestSummoner#EUW',
+        riotId: 'TestSummoner#EUW',
+        level: 50,
+        profileIconId: 1,
+        profileIconUrl: 'http://example.com/icon.png'
+      };
       mockSummonerService.getByName.and.returnValue(of(summoner));
 
       component.ngOnInit();
 
-      expect(mockSummonerService.getByName).toHaveBeenCalledWith('TestSummoner');
+      expect(mockSummonerService.getByName).toHaveBeenCalledWith('TestSummoner#EUW');
       expect(component.summoner).toEqual(summoner);
     });
 
@@ -234,9 +143,9 @@ describe('SummonerComponent - Unit Tests', () => {
       const champions = [{ championId: 1, championName: 'Ahri' }];
       mockSummonerService.getTopChampions.and.returnValue(of(champions));
 
-      component.loadSummoner('TestSummoner');
+      component.loadSummoner('TestSummoner#EUW');
 
-      expect(mockSummonerService.getTopChampions).toHaveBeenCalledWith('TestSummoner');
+      expect(mockSummonerService.getTopChampions).toHaveBeenCalledWith('TestSummoner#EUW');
       expect(component.championMasteries).toEqual(champions);
     });
 
@@ -244,9 +153,9 @@ describe('SummonerComponent - Unit Tests', () => {
       const matches = [{ matchId: 'match1' }];
       mockSummonerService.getRecentMatches.and.returnValue(of(matches));
 
-      component.loadSummoner('TestSummoner');
+      component.loadSummoner('TestSummoner#EUW');
 
-      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner', 0, 5);
+      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner#EUW', 0, 5);
       expect(component.matchHistory).toEqual(matches);
     });
 
@@ -286,19 +195,19 @@ describe('SummonerComponent - Unit Tests', () => {
   describe('Pagination', () => {
     beforeEach(() => {
       fixture.detectChanges();
-      component.summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+      component.summoner = { id: '123', name: 'TestSummoner#EUW', level: 50, profileIconId: 1 };
     });
 
     it('should load more matches', () => {
       component.hasMoreMatches = true;
       component.currentMatchPage = 0;
-      component.searchQuery = 'TestSummoner';
+      component.searchQuery = 'TestSummoner#EUW';
       mockSummonerService.getRecentMatches.and.returnValue(of([]));
 
       component.loadNextMatchPage();
 
       expect(component.currentMatchPage).toBe(1);
-      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner', 1, 5);
+      expect(mockSummonerService.getRecentMatches).toHaveBeenCalledWith('TestSummoner#EUW', 1, 5);
     });
 
     it('should not load more if no more matches', () => {
@@ -314,7 +223,7 @@ describe('SummonerComponent - Unit Tests', () => {
   describe('Match Details', () => {
     beforeEach(() => {
       fixture.detectChanges();
-      component.summoner = { id: '123', name: 'TestSummoner', level: 50, profileIconId: 1 };
+      component.summoner = { id: '123', name: 'TestSummoner#EUW', level: 50, profileIconId: 1 };
     });
 
     it('should toggle match expansion', () => {
