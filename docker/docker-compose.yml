@@ -47,6 +47,23 @@ services:
       retries: 3
       start_period: 20s
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: spiritblade-redis-prod
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   # SPIRITBLADE Application
   app:
     env_file:
@@ -62,12 +79,18 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # Database Configuration
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+      
+      # Redis Configuration
+      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_PORT: "6379"
       
       # Server Configuration
       SERVER_PORT: "443"

@@ -42,6 +42,21 @@ services:
       timeout: 20s
       retries: 3
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: spiritblade-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mysql_data:
     driver: local
