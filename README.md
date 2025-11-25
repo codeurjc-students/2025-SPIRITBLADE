@@ -161,6 +161,7 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 | **Frontend** | Angular 17, TypeScript, SCSS |
 | **Backend** | Spring Boot 3.4.3, Java 21 |
 | **Base de Datos** | MySQL 8.0 |
+| **Caché** | Redis, Spring Cache |
 | **Seguridad** | Spring Security, JWT |
 | **Despliegue** | Docker, Docker Compose |
 | **CI/CD** | GitHub Actions |

@@ -14,6 +14,8 @@
 
 SPIRITBLADE expone una **API REST** construida con Spring Boot que ofrece análisis de datos de League of Legends y gestión de usuarios.
 
+**Caché Redis**: SPIRITBLADE implementa caché distribuida con Redis para optimizar el rendimiento. Los datos de campeones, summoners, maestrías y partidas se almacenan en caché con TTLs específicos (desde 10 minutos hasta 24 horas), reduciendo significativamente las llamadas a APIs externas y mejorando los tiempos de respuesta.
+
 **URL base**:
 - **HTTPS**: `https://localhost` (puerto 443)
 

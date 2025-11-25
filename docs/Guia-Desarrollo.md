@@ -25,7 +25,7 @@ La aplicación está compuesta por tres componentes principales:
 | Aspecto | Descripción |
 |--------|-------------|
 | **Tipo** | Aplicación web SPA con API REST |
-| **Tecnologías** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL 8.0, JWT, MinIO |
+| **Tecnologías** | Java 21, Spring Boot 3.4.3, Angular 17, MySQL 8.0, JWT, MinIO, Redis, Spring Cache |
 | **Seguridad** | Solo HTTPS (puerto 443), SSL/TLS, autenticación JWT, control de acceso por roles |
 | **Almacenamiento** | MinIO (compatibilidad S3) |
 | **Documentación** | Swagger UI / OpenAPI 3.0 interactiva |
@@ -163,6 +163,74 @@ Relaciones clave:
 
 ---
 
+### Entidad Champion (JPA)
+
+La entidad `Champion` representa los campeones estáticos de League of Legends y está persistida en la tabla **champions** en MySQL. Campos principales:
+- `id` (Long): Identificador interno.
+- `key` (String): Clave única del campeón.
+- `name` (String): Nombre del campeón.
+- `imageUrl` (String): URL de la imagen del campeón.
+
+Los datos se precargan al iniciar la aplicación mediante `DataInitializer.updateChampionDatabase()`.
+
+### Caché Redis
+
+Se ha configurado **Redis** como caché distribuida usando **Spring Cache**. Configuración en `CacheConfig` con TTLs:
+- `champions` – 24 h
+- `summoners` – 10 min
+- `masteries` – 1 h
+- `matches` – 24 h
+
+Los métodos de los servicios (`DataDragonService`, `RiotService`) están anotados con `@Cacheable` para aprovechar la caché y reducir llamadas externas.
+
+#### ¿Cómo funciona Redis en SPIRITBLADE?
+
+**Redis** es un almacén de datos en memoria (in-memory data store) de tipo clave-valor que actúa como caché distribuida. En SPIRITBLADE, se usa para almacenar temporalmente los resultados de llamadas costosas a APIs externas (Riot API, Data Dragon).
+
+**Flujo de operación**:
+
+1. **Primera petición**: Cuando un usuario solicita datos (ej: stats de un summoner):
+   - El servicio verifica si los datos existen en Redis usando una clave única (ej: `summoners::EUW1#UserName`)
+   - Si NO existe (cache miss), se llama a la API externa de Riot
+   - La respuesta se serializa a JSON usando `GenericJackson2JsonRedisSerializer`
+   - Se almacena en Redis con la clave y el TTL configurado
+   - Se devuelve la respuesta al cliente
+
+2. **Peticiones subsecuentes**: 
+   - El servicio consulta Redis primero
+   - Si existe (cache hit) y no ha expirado, se devuelve directamente desde Redis
+   - **NO** se llama a la API de Riot → Mejora drástica en rendimiento y reduce cuota de API
+
+3. **Expiración (TTL)**:
+   - Cada tipo de dato tiene un TTL (Time-To-Live) específico
+   - Datos estáticos (`champions`): 24h - cambian raramente
+   - Datos dinámicos (`summoners`): 10min - pueden cambiar con frecuencia (subida de nivel, rank)
+   - Al expirar, la siguiente petición refresca los datos
+
+**Configuración técnica**:
+
+```java
+// Ejemplo de método cacheado
+@Cacheable(value = "summoners", key = "#riotId")
+public Summoner getSummonerByRiotId(String riotId) {
+    // Solo se ejecuta si no está en caché
+    return riotApiClient.fetchSummoner(riotId);
+}
+```
+
+**Ventajas**:
+- ⚡ **Reducción de latencia**: Respuestas en ~5ms vs ~200ms de API externa
+- 🔄 **Menor carga en APIs externas**: Evita límites de rate limiting
+- 💰 **Ahorro de cuota**: Las llamadas a Riot API son limitadas
+- 📈 **Escalabilidad**: Redis puede compartirse entre múltiples instancias del backend
+
+**Serialización y tipos polimórficos**:
+
+Spring Cache utiliza `GenericJackson2JsonRedisSerializer` con un `ObjectMapper` configurado para:
+- Manejar tipos polimórficos (clases heredadas, interfaces)
+- Ignorar propiedades desconocidas en deserialización
+- Almacenar metadatos de tipo para reconstruir objetos Java correctamente
+
 ### API REST
 
 Revisar [API.md](API.md) para detalles completos de endpoints y ejemplos de uso.
@@ -212,16 +280,23 @@ El backend sigue una arquitectura por capas con buenas prácticas de Spring Boot
 │  │   User       │  │   Summoner   │  │    Match     │  │ RankHistory  │   │
 │  │ Repository   │  │  Repository  │  │  Repository  │  │  Repository  │   │
 │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘   │
+│  ┌──────────────┐                                                          │
+│  │   Champion   │                                                          │
+│  │ Repository   │                                                          │
+│  └──────────────┘                                                          │
 │         │                  │                  │                  │        │
 └─────────┼──────────────────┼──────────────────┼──────────────────┼────────┘
           │                  │                  │                  │
           ▼                  ▼                  ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   DATABASE (MySQL 8.0 ONLY)                 │ 
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
-│  │  users   │  │summoners │  │ matches  │  │rank_hist │     │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                   DATABASE (MySQL 8.0 ONLY)                         │ 
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │  users   │  │summoners │  │ matches  │  │rank_hist │             │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
+│  ┌──────────┐                                                        │
+│  │champions │                                                        │
+│  └──────────┘                                                        │
+└─────────────────────────────────────────────────────────────────────┘
                     │
                     │
                     │

@@ -140,8 +140,8 @@ Gestión de usuarios (habilitar, deshabilitar, eliminar, editar), Filtros de bú
 
 | ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| FT.10 | Caché Sistema | ✅ | El sistema se asegura de que los datos esten al dia para evitar llamadas innecesarias a las APIs externas. |
-| FT.11 | Caché distribuida | 💤 | Redis con Spring Cache para respuestas de API y sesiones, reduciendo carga en BD y APIs externas. Pensado para v1.1. |
+| FT.10 | Caché de sistema | ✅ | El sistema se asegura de que los datos estén al día para evitar llamadas innecesarias a las APIs externas. Los datos de campeones se almacenan en base de datos y se precargan al iniciar la aplicación. |
+| FT.11 | Caché distribuida con Redis | ✅ | Redis con Spring Cache implementado para respuestas de API (summoners: 10min, masteries: 1h, matches: 24h, champions: 24h), reduciendo significativamente la carga en BD y APIs externas. Mejora el rendimiento y la experiencia del usuario. |
 
 ---
 
