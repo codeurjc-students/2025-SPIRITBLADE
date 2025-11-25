@@ -18,6 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import com.tfg.tfg.exception.SummonerNotFoundException;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotAccountDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
@@ -141,11 +142,13 @@ class RiotServiceUnitTest {
         // Given - Riot ID without # separator
         String invalidRiotId = "TestPlayer";
         
-        // When
-        SummonerDTO result = riotService.getSummonerByName(invalidRiotId);
+        // When & Then - Should throw SummonerNotFoundException when not found in database
+        SummonerNotFoundException exception = assertThrows(
+            SummonerNotFoundException.class,
+            () -> riotService.getSummonerByName(invalidRiotId)
+        );
         
-        // Then - Should return null (fallback to database lookup)
-        assertNull(result);
+        assertTrue(exception.getMessage().contains("Invalid Riot ID format"));
         verify(summonerRepository).findByName(invalidRiotId);
     }
 

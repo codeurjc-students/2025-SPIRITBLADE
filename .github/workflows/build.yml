@@ -111,6 +111,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     
     steps:
       - name: 📥 Checkout repository
@@ -194,6 +204,8 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
           SPRING_JPA_SHOW_SQL: true
           SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
@@ -230,6 +242,8 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
           SPRING_JPA_SHOW_SQL: true
           SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
@@ -322,6 +336,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     
     steps:
       - name: 📥 Checkout repository
@@ -388,6 +412,8 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
           SPRING_JPA_SHOW_SQL: true
           SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin123
