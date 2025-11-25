@@ -23,29 +23,32 @@ import com.tfg.tfg.model.entity.Summoner;
  */
 @Service
 public class AiAnalysisService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AiAnalysisService.class);
-    
+
     @Value("${google.ai.api.key:}")
     private String geminiApiKey;
-    
+
     private final WebClient webClient;
     private final Gson gson;
     private final RankHistoryService rankHistoryService;
-    
+
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-    
+    private static final String UNKNOWN = "Unknown";
+    private static final String PARTS = "parts";
+    private static final String CANDIDATES = "candidates";
+
     public AiAnalysisService(RankHistoryService rankHistoryService) {
         this.webClient = WebClient.builder().build();
         this.gson = new Gson();
         this.rankHistoryService = rankHistoryService;
     }
-    
+
     /**
      * Generates AI-powered analysis of player performance based on match history.
      * 
      * @param summoner The summoner to analyze
-     * @param matches List of recent matches
+     * @param matches  List of recent matches
      * @return DTO containing the AI analysis
      * @throws IOException if API call fails
      */
@@ -57,32 +60,30 @@ public class AiAnalysisService {
         if (geminiApiKey == null || geminiApiKey.isEmpty()) {
             throw new IllegalStateException("Google AI API key not configured");
         }
-        
+
         if (matches == null || matches.isEmpty()) {
             return new AiAnalysisResponseDto(
-                "**Insufficient Match Data**\n\nThere are not enough matches to generate a meaningful analysis. Please play at least 5 ranked matches and try again.\n\n*Analysis requires a minimum match history to provide accurate insights.*",
-                LocalDateTime.now(),
-                0,
-                summoner.getName()
-            );
+                    "**Insufficient Match Data**\n\nThere are not enough matches to generate a meaningful analysis. Please play at least 5 ranked matches and try again.\n\n*Analysis requires a minimum match history to provide accurate insights.*",
+                    LocalDateTime.now(),
+                    0,
+                    summoner.getName());
         }
-        
+
         logger.info("Generating AI analysis for summoner: {} with {} matches", summoner.getName(), matches.size());
-        
-    // Build statistics summary
+
+        // Build statistics summary
         String statsPrompt = buildStatsPrompt(summoner, matches);
-        
+
         // Call Gemini API
         String analysis = callGeminiApi(statsPrompt);
-        
+
         return new AiAnalysisResponseDto(
-            analysis,
-            LocalDateTime.now(),
-            matches.size(),
-            summoner.getName()
-        );
+                analysis,
+                LocalDateTime.now(),
+                matches.size(),
+                summoner.getName());
     }
-    
+
     /**
      * Builds a detailed prompt with complete match data for the AI.
      */
@@ -91,28 +92,86 @@ public class AiAnalysisService {
         long wins = matches.stream().filter(MatchEntity::isWin).count();
         long losses = totalMatches - wins;
         double winRate = (wins * 100.0) / totalMatches;
-        
-    // Build detailed match history with ALL available data from each match
-    // Guard against excessively large payloads by truncating to a reasonable max
-    final int MAX_MATCH_DETAILS = 50;
-    int detailLimit = Math.min(matches.size(), MAX_MATCH_DETAILS);
+
+        // Build detailed match history with ALL available data from each match
+        // Guard against excessively large payloads by truncating to a reasonable max
+        final int MAX_MATCH_DETAILS = 50;
+        int detailLimit = Math.min(matches.size(), MAX_MATCH_DETAILS);
         StringBuilder matchDetails = new StringBuilder();
         for (int i = 0; i < detailLimit; i++) {
-            MatchEntity match = matches.get(i);
-            double kda = match.getDeaths() > 0 
-                ? (double)(match.getKills() + match.getAssists()) / match.getDeaths() 
+            matchDetails.append(formatMatchDetails(matches.get(i), i + 1));
+        }
+
+        return String.format(
+                """
+                        You are SPIRITBLADE, Shen's mystical blade and expert League of Legends analyst. Analyze the performance of player "%s" based on the following detailed data from their last %d matches:
+
+                        OVERALL SUMMARY:
+                        - Total Matches: %d
+                        - Wins: %d (%.1f%%)
+                        - Losses: %d (%.1f%%)
+
+                        DETAILED MATCH-BY-MATCH HISTORY:
+                        %s
+
+                        Based on this complete match history data, provide a comprehensive analysis in English that includes:
+
+                        1. **Performance Overview**: Overall assessment of the player's current form and recent trends
+                        2. **Key Strengths**: What the player excels at (be specific with data from individual matches)
+                        3. **Critical Weaknesses**: Areas that need immediate attention (cite specific match examples)
+                        4. **Strategic Recommendations**: Concrete tactical advice to improve gameplay based on observed patterns
+                        5. **Champion Pool Analysis**: Evaluate their champion choices and suggest improvements
+                        6. **Pattern Recognition**: Identify trends across matches (consistency, adaptation, tilting patterns, champion comfort)
+                        7. **Role & Lane Performance**: How well they perform in different positions
+
+                        Be specific, constructive, and motivating. Reference actual match data to support your conclusions.
+                        Use Markdown formatting with headers, bullet points, and bold text for emphasis.
+                        It's important that the information presented to the end user is somewhat brief and valuable.
+                        """,
+                summoner.getName(),
+                totalMatches,
+                totalMatches,
+                wins,
+                winRate,
+                losses,
+                (losses * 100.0) / totalMatches,
+                matchDetails.toString());
+    }
+
+    /**
+     * Helper method to get queue type name from queue ID
+     */
+    private String getQueueTypeName(Integer queueId) {
+        if (queueId == null)
+            return UNKNOWN;
+        return switch (queueId) {
+            case 420 -> "Ranked Solo/Duo";
+            case 440 -> "Ranked Flex";
+            case 400 -> "Normal Draft";
+            case 430 -> "Normal Blind";
+            case 450 -> "ARAM";
+            default -> "Queue " + queueId;
+        };
+    }
+
+    /**
+     * Helper method to format match details
+     */
+    private String formatMatchDetails(MatchEntity match, int index) {
+        double kda = match.getDeaths() > 0
+                ? (double) (match.getKills() + match.getAssists()) / match.getDeaths()
                 : (match.getKills() + match.getAssists());
-            
-            long durationMinutes = match.getGameDuration() != null ? match.getGameDuration() / 60 : 0;
-            
-            // Get rank info from RankHistory
-            String rankInfo = rankHistoryService.getRankForMatch(match.getId())
-                    .map(rh -> String.format("%s %s (%d LP)", 
-                            rh.getTier(), rh.getRank(), rh.getLeaguePoints()))
-                    .orElse("Unranked");
-            
-            matchDetails.append(String.format("""
-                
+
+        long durationMinutes = match.getGameDuration() != null ? match.getGameDuration() / 60 : 0;
+
+        // Get rank info from RankHistory
+        String rankInfo = rankHistoryService.getRankForMatch(match.getId())
+                .map(rh -> String.format("%s %s (%d LP)",
+                        rh.getTier(), rh.getRank(), rh.getLeaguePoints()))
+                .orElse("Unranked");
+
+        return String.format("""
+
                 MATCH %d:
                 - Result: %s
                 - Champion: %s (Level %d)
@@ -125,12 +184,12 @@ public class AiAnalysisService {
                 - Rank at Match: %s
                 - Date: %s
                 """,
-                i + 1,
+                index,
                 match.isWin() ? "VICTORY ✓" : "DEFEAT ✗",
-                match.getChampionName() != null ? match.getChampionName() : "Unknown",
+                match.getChampionName() != null ? match.getChampionName() : UNKNOWN,
                 match.getChampLevel() != null ? match.getChampLevel() : 0,
-                match.getRole() != null ? match.getRole() : "Unknown",
-                match.getLane() != null ? match.getLane() : "Unknown",
+                match.getRole() != null ? match.getRole() : UNKNOWN,
+                match.getLane() != null ? match.getLane() : UNKNOWN,
                 match.getKills(),
                 match.getDeaths(),
                 match.getAssists(),
@@ -140,165 +199,122 @@ public class AiAnalysisService {
                 match.getGoldEarned() != null ? String.format("%,d gold", match.getGoldEarned()) : "N/A",
                 match.getTotalDamageDealt() != null ? String.format("%,d damage", match.getTotalDamageDealt()) : "N/A",
                 rankInfo,
-                match.getTimestamp() != null ? match.getTimestamp().toString() : "Unknown"
-            ));
-        }
-        
-        return String.format("""
-            You are SPIRITBLADE, Shen's mystical blade and expert League of Legends analyst. Analyze the performance of player "%s" based on the following detailed data from their last %d matches:
-            
-            OVERALL SUMMARY:
-            - Total Matches: %d
-            - Wins: %d (%.1f%%)
-            - Losses: %d (%.1f%%)
-            
-            DETAILED MATCH-BY-MATCH HISTORY:
-            %s
-            
-            Based on this complete match history data, provide a comprehensive analysis in English that includes:
-            
-            1. **Performance Overview**: Overall assessment of the player's current form and recent trends
-            2. **Key Strengths**: What the player excels at (be specific with data from individual matches)
-            3. **Critical Weaknesses**: Areas that need immediate attention (cite specific match examples)
-            4. **Strategic Recommendations**: Concrete tactical advice to improve gameplay based on observed patterns
-            5. **Champion Pool Analysis**: Evaluate their champion choices and suggest improvements
-            6. **Pattern Recognition**: Identify trends across matches (consistency, adaptation, tilting patterns, champion comfort)
-            7. **Role & Lane Performance**: How well they perform in different positions
-            
-            Be specific, constructive, and motivating. Reference actual match data to support your conclusions. 
-            Use Markdown formatting with headers, bullet points, and bold text for emphasis.
-            It's important that the information presented to the end user is somewhat brief and valuable.
-            """,
-            summoner.getName(),
-            totalMatches,
-            totalMatches,
-            wins,
-            winRate,
-            losses,
-            (losses * 100.0) / totalMatches,
-                matchDetails.toString()
-        );
+                match.getTimestamp() != null ? match.getTimestamp().toString() : UNKNOWN);
     }
-    
-    /**
-     * Helper method to get queue type name from queue ID
-     */
-    private String getQueueTypeName(Integer queueId) {
-        if (queueId == null) return "Unknown";
-        return switch (queueId) {
-            case 420 -> "Ranked Solo/Duo";
-            case 440 -> "Ranked Flex";
-            case 400 -> "Normal Draft";
-            case 430 -> "Normal Blind";
-            case 450 -> "ARAM";
-            default -> "Queue " + queueId;
-        };
-    }
-    
+
     /**
      * Helper method to format rank string
-    /**
+     * /**
      * Makes API call to Google Gemini.
      */
     private String callGeminiApi(String prompt) throws IOException {
         try {
-            JsonObject requestBody = new JsonObject();
-            
-            com.google.gson.JsonArray contentsArray = new com.google.gson.JsonArray();
-            JsonObject contentItem = new JsonObject();
-            
-            com.google.gson.JsonArray partsArray = new com.google.gson.JsonArray();
-            JsonObject partItem = new JsonObject();
-            partItem.addProperty("text", prompt);
-            partsArray.add(partItem);
-            
-            contentItem.add("parts", partsArray);
-            contentsArray.add(contentItem);
-            
-            requestBody.add("contents", contentsArray);
-            
-            // Add generation config to ensure we get a response
-            JsonObject generationConfig = new JsonObject();
-            generationConfig.addProperty("temperature", 0.7);
-            generationConfig.addProperty("topK", 40);
-            generationConfig.addProperty("topP", 0.95);
-            generationConfig.addProperty("maxOutputTokens", 2048);
-            requestBody.add("generationConfig", generationConfig);
-            
-            // Add safety settings to be more permissive (game analysis should not be blocked)
-            com.google.gson.JsonArray safetySettings = new com.google.gson.JsonArray();
-            for (String category : new String[]{"HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH", 
-                                                  "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT"}) {
-                JsonObject setting = new JsonObject();
-                setting.addProperty("category", category);
-                setting.addProperty("threshold", "BLOCK_ONLY_HIGH");
-                safetySettings.add(setting);
-            }
-            requestBody.add("safetySettings", safetySettings);
-            
-            String requestJson = gson.toJson(requestBody);
+            String requestJson = buildGeminiRequest(prompt);
             logger.debug("Sending request to Gemini API (request body size: {} chars)", requestJson.length());
 
             String response = webClient.post()
-                .uri(GEMINI_API_URL + "?key=" + geminiApiKey)
-                .header("Content-Type", "application/json")
-                .bodyValue(requestJson)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-            
+                    .uri(GEMINI_API_URL + "?key=" + geminiApiKey)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(requestJson)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
             if (response == null) {
                 throw new IOException("Empty response from Gemini API");
             }
-            
-            // Parse response
-            JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
-            
-            // Log the full response for debugging at DEBUG level (avoid info with large payloads)
-            logger.debug("Gemini API response: {}", response);
-            
-            // Check for error in response
-            if (jsonResponse.has("error")) {
-                JsonObject error = jsonResponse.getAsJsonObject("error");
-                String errorMessage = error.has("message") ? error.get("message").getAsString() : "Unknown error";
-                throw new IOException("Gemini API error: " + errorMessage);
-            }
-            
-            // Extract the generated text
-            if (jsonResponse.has("candidates") && jsonResponse.getAsJsonArray("candidates") != null) {
-                var candidates = jsonResponse.getAsJsonArray("candidates");
-                if (candidates.size() > 0) {
-                    var candidate = candidates.get(0).getAsJsonObject();
-                    
-                    // Check finish reason
-                    if (candidate.has("finishReason")) {
-                        String finishReason = candidate.get("finishReason").getAsString();
-                        if (!"STOP".equals(finishReason) && !"MAX_TOKENS".equals(finishReason)) {
-                            logger.warn("Unexpected finish reason from Gemini: {}", finishReason);
-                            throw new IOException("Content generation stopped unexpectedly: " + finishReason);
-                        }
-                    }
-                    
-                    if (candidate.has("content")) {
-                        var content = candidate.getAsJsonObject("content");
-                        if (content.has("parts") && content.getAsJsonArray("parts") != null) {
-                            var parts = content.getAsJsonArray("parts");
-                            if (parts.size() > 0 && parts.get(0).getAsJsonObject().has("text")) {
-                                return parts.get(0).getAsJsonObject().get("text").getAsString();
-                            }
-                        }
-                        // Content exists but no parts - likely blocked or empty
-                        logger.warn("Gemini returned content without parts. Full response: {}", response);
-                        throw new IOException("Gemini returned empty content. This may be due to safety filters or content restrictions.");
-                    }
-                }
-            }
-            
-            throw new IOException("Unexpected response format from Gemini API. Response: " + response);
-            
+
+            return parseGeminiResponse(response);
+
         } catch (Exception e) {
             logger.error("Error calling Gemini API: {}", e.getMessage(), e);
             throw new IOException("Failed to generate AI analysis: " + e.getMessage(), e);
         }
+    }
+
+    private String buildGeminiRequest(String prompt) {
+        JsonObject requestBody = new JsonObject();
+
+        com.google.gson.JsonArray contentsArray = new com.google.gson.JsonArray();
+        JsonObject contentItem = new JsonObject();
+
+        com.google.gson.JsonArray partsArray = new com.google.gson.JsonArray();
+        JsonObject partItem = new JsonObject();
+        partItem.addProperty("text", prompt);
+        partsArray.add(partItem);
+
+        contentItem.add(PARTS, partsArray);
+        contentsArray.add(contentItem);
+
+        requestBody.add("contents", contentsArray);
+
+        // Add generation config
+        JsonObject generationConfig = new JsonObject();
+        generationConfig.addProperty("temperature", 0.7);
+        generationConfig.addProperty("topK", 40);
+        generationConfig.addProperty("topP", 0.95);
+        generationConfig.addProperty("maxOutputTokens", 2048);
+        requestBody.add("generationConfig", generationConfig);
+
+        // Add safety settings
+        com.google.gson.JsonArray safetySettings = new com.google.gson.JsonArray();
+        for (String category : new String[] { "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT" }) {
+            JsonObject setting = new JsonObject();
+            setting.addProperty("category", category);
+            setting.addProperty("threshold", "BLOCK_ONLY_HIGH");
+            safetySettings.add(setting);
+        }
+        requestBody.add("safetySettings", safetySettings);
+
+        return gson.toJson(requestBody);
+    }
+
+    private String parseGeminiResponse(String response) throws IOException {
+        // Parse response
+        JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+
+        // Log the full response for debugging at DEBUG level
+        logger.debug("Gemini API response: {}", response);
+
+        // Check for error in response
+        if (jsonResponse.has("error")) {
+            JsonObject error = jsonResponse.getAsJsonObject("error");
+            String errorMessage = error.has("message") ? error.get("message").getAsString() : "Unknown error";
+            throw new IOException("Gemini API error: " + errorMessage);
+        }
+
+        // Extract the generated text
+        if (jsonResponse.has(CANDIDATES) && jsonResponse.getAsJsonArray(CANDIDATES) != null) {
+            var candidates = jsonResponse.getAsJsonArray(CANDIDATES);
+            if (candidates.size() > 0) {
+                var candidate = candidates.get(0).getAsJsonObject();
+
+                // Check finish reason
+                if (candidate.has("finishReason")) {
+                    String finishReason = candidate.get("finishReason").getAsString();
+                    if (!"STOP".equals(finishReason) && !"MAX_TOKENS".equals(finishReason)) {
+                        logger.warn("Unexpected finish reason from Gemini: {}", finishReason);
+                        throw new IOException("Content generation stopped unexpectedly: " + finishReason);
+                    }
+                }
+
+                if (candidate.has("content")) {
+                    var content = candidate.getAsJsonObject("content");
+                    if (content.has(PARTS) && content.getAsJsonArray(PARTS) != null) {
+                        var parts = content.getAsJsonArray(PARTS);
+                        if (parts.size() > 0 && parts.get(0).getAsJsonObject().has("text")) {
+                            return parts.get(0).getAsJsonObject().get("text").getAsString();
+                        }
+                    }
+                    // Content exists but no parts - likely blocked or empty
+                    logger.warn("Gemini returned content without parts. Full response: {}", response);
+                    throw new IOException(
+                            "Gemini returned empty content. This may be due to safety filters or content restrictions.");
+                }
+            }
+        }
+
+        throw new IOException("Unexpected response format from Gemini API. Response: " + response);
     }
 }

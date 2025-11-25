@@ -12,8 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.tfg.model.entity.Champion;
 import com.tfg.tfg.repository.ChampionRepository;
 
-import java.util.Optional;
-
 /**
  * Service to interact with Riot's Data Dragon static data API
  * Data Dragon provides champion names, images, and other static game data

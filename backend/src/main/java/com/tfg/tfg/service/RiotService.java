@@ -106,92 +106,21 @@ public class RiotService {
     public SummonerDTO getSummonerByName(String riotId) {
         try {
             // Parse Riot ID (gameName#tagLine)
-            String[] parts = riotId.split("#");
-            if (parts.length != 2) {
-                logger.warn("Invalid Riot ID format: {}. Expected format: gameName#tagLine", riotId);
-                // Try to find in database by name (fallback for old data)
-                Optional<Summoner> found = summonerRepository.findByName(riotId);
-                if (found.isPresent()) {
-                    return mapSummonerEntityToDTO(found.get());
-                }
-                throw new SummonerNotFoundException("Invalid Riot ID format '" + riotId + "'. Expected format: gameName#tagLine");
-            }
-
+            String[] parts = parseRiotId(riotId);
             String gameName = parts[0];
             String tagLine = parts[1];
 
             // Step 1: Get PUUID from Account API
-            ResponseEntity<RiotAccountDTO> accountResponse = restTemplate.exchange(
-                    ACCOUNT_BY_RIOT_ID_URL,
-                    HttpMethod.GET,
-                    null,
-                    RiotAccountDTO.class,
-                    gameName,
-                    tagLine,
-                    apiKey);
-
-            RiotAccountDTO account = accountResponse.getBody();
-            if (account == null || account.getPuuid() == null) {
-                logger.warn("Account not found for Riot ID: {}", riotId);
-                throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
-            }
-
-            String puuid = account.getPuuid();
+            String puuid = fetchPuuidByRiotId(riotId, gameName, tagLine);
 
             // Step 2: Get summoner data by PUUID
-            ResponseEntity<RiotSummonerDTO> summonerResponse = restTemplate.exchange(
-                    SUMMONER_BY_PUUID_URL,
-                    HttpMethod.GET,
-                    null,
-                    RiotSummonerDTO.class,
-                    puuid,
-                    apiKey);
-
-            RiotSummonerDTO riotSummoner = summonerResponse.getBody();
-            if (riotSummoner == null) {
-                throw new SummonerNotFoundException("Summoner data not found for '" + riotId + "'");
-            }
+            RiotSummonerDTO riotSummoner = fetchSummonerByPuuid(riotId, puuid);
 
             // Step 3: Get rank information by PUUID
-            ResponseEntity<RiotLeagueEntryDTO[]> leagueResponse = restTemplate.exchange(
-                    LEAGUE_BY_PUUID_URL,
-                    HttpMethod.GET,
-                    null,
-                    RiotLeagueEntryDTO[].class,
-                    puuid,
-                    apiKey);
-
-            // Find RANKED_SOLO_5x5 entry
-            RiotLeagueEntryDTO rankedEntry = null;
-            if (leagueResponse.getBody() != null) {
-                rankedEntry = Arrays.stream(leagueResponse.getBody())
-                        .filter(entry -> "RANKED_SOLO_5x5".equals(entry.getQueueType()))
-                        .findFirst()
-                        .orElse(null);
-            }
+            RiotLeagueEntryDTO rankedEntry = fetchRankedEntry(puuid);
 
             // Map to SummonerDTO
-            SummonerDTO dto = new SummonerDTO();
-            dto.setRiotId(riotSummoner.getId());
-            dto.setPuuid(puuid);
-            dto.setName(riotId); // Store full Riot ID (gameName#tagLine)
-            dto.setLevel(riotSummoner.getSummonerLevel());
-            dto.setProfileIconId(riotSummoner.getProfileIconId());
-            dto.setProfileIconUrl(dataDragonService.getProfileIconUrl(riotSummoner.getProfileIconId()));
-
-            if (rankedEntry != null) {
-                dto.setTier(rankedEntry.getTier());
-                dto.setRank(rankedEntry.getRank());
-                dto.setLp(rankedEntry.getLeaguePoints());
-                dto.setWins(rankedEntry.getWins());
-                dto.setLosses(rankedEntry.getLosses());
-            } else {
-                dto.setTier("UNRANKED");
-                dto.setRank("");
-                dto.setLp(0);
-                dto.setWins(0);
-                dto.setLosses(0);
-            }
+            SummonerDTO dto = mapToSummonerDTO(riotSummoner, puuid, riotId, rankedEntry);
 
             // Save to database for caching
             saveSummonerToDatabase(dto);
@@ -203,7 +132,12 @@ public class RiotService {
             logger.warn("Summoner not found in Riot API: {}", riotId);
             throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
         } catch (SummonerNotFoundException e) {
-            // Re-throw SummonerNotFoundException without wrapping
+            // Try database fallback before giving up
+            Optional<Summoner> found = summonerRepository.findByName(riotId);
+            if (found.isPresent()) {
+                logger.info("Returning cached data for summoner (fallback): {}", riotId);
+                return mapSummonerEntityToDTO(found.get());
+            }
             throw e;
         } catch (HttpClientErrorException e) { // NOSONAR - Exception is logged and rethrown with context
             // Handled: Log with context, try database fallback, then rethrow with specific
@@ -229,6 +163,94 @@ public class RiotService {
             }
             throw new RiotApiException("Unexpected error while fetching summoner data: " + e.getMessage(), 500);
         }
+    }
+
+    private String[] parseRiotId(String riotId) {
+        String[] parts = riotId.split("#");
+        if (parts.length != 2) {
+            logger.warn("Invalid Riot ID format. Expected format: gameName#tagLine");
+            throw new SummonerNotFoundException(
+                    "Invalid Riot ID format '" + riotId + "'. Expected format: gameName#tagLine");
+        }
+        return parts;
+    }
+
+    private String fetchPuuidByRiotId(String riotId, String gameName, String tagLine) {
+        ResponseEntity<RiotAccountDTO> accountResponse = restTemplate.exchange(
+                ACCOUNT_BY_RIOT_ID_URL,
+                HttpMethod.GET,
+                null,
+                RiotAccountDTO.class,
+                gameName,
+                tagLine,
+                apiKey);
+
+        RiotAccountDTO account = accountResponse.getBody();
+        if (account == null || account.getPuuid() == null) {
+            logger.warn("Account not found for Riot ID");
+            throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
+        }
+        return account.getPuuid();
+    }
+
+    private RiotSummonerDTO fetchSummonerByPuuid(String riotId, String puuid) {
+        ResponseEntity<RiotSummonerDTO> summonerResponse = restTemplate.exchange(
+                SUMMONER_BY_PUUID_URL,
+                HttpMethod.GET,
+                null,
+                RiotSummonerDTO.class,
+                puuid,
+                apiKey);
+
+        RiotSummonerDTO riotSummoner = summonerResponse.getBody();
+        if (riotSummoner == null) {
+            throw new SummonerNotFoundException("Summoner data not found for '" + riotId + "'");
+        }
+        return riotSummoner;
+    }
+
+    private RiotLeagueEntryDTO fetchRankedEntry(String puuid) {
+        ResponseEntity<RiotLeagueEntryDTO[]> leagueResponse = restTemplate.exchange(
+                LEAGUE_BY_PUUID_URL,
+                HttpMethod.GET,
+                null,
+                RiotLeagueEntryDTO[].class,
+                puuid,
+                apiKey);
+
+        if (leagueResponse.getBody() != null) {
+            return Arrays.stream(leagueResponse.getBody())
+                    .filter(entry -> "RANKED_SOLO_5x5".equals(entry.getQueueType()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
+    }
+
+    private SummonerDTO mapToSummonerDTO(RiotSummonerDTO riotSummoner, String puuid, String riotId,
+            RiotLeagueEntryDTO rankedEntry) {
+        SummonerDTO dto = new SummonerDTO();
+        dto.setRiotId(riotSummoner.getId());
+        dto.setPuuid(puuid);
+        dto.setName(riotId); // Store full Riot ID (gameName#tagLine)
+        dto.setLevel(riotSummoner.getSummonerLevel());
+        dto.setProfileIconId(riotSummoner.getProfileIconId());
+        dto.setProfileIconUrl(dataDragonService.getProfileIconUrl(riotSummoner.getProfileIconId()));
+
+        if (rankedEntry != null) {
+            dto.setTier(rankedEntry.getTier());
+            dto.setRank(rankedEntry.getRank());
+            dto.setLp(rankedEntry.getLeaguePoints());
+            dto.setWins(rankedEntry.getWins());
+            dto.setLosses(rankedEntry.getLosses());
+        } else {
+            dto.setTier("UNRANKED");
+            dto.setRank("");
+            dto.setLp(0);
+            dto.setWins(0);
+            dto.setLosses(0);
+        }
+        return dto;
     }
 
     /**
@@ -719,7 +741,7 @@ public class RiotService {
     @Cacheable(value = "matches", key = "#matchId")
     public MatchDetailDTO getMatchDetails(String matchId) {
         try {
-            logger.info("Fetching detailed match information for match ID: {}", matchId);
+            logger.info("Fetching detailed match information");
 
             ResponseEntity<RiotMatchDTO> matchResponse = restTemplate.exchange(
                     MATCH_BY_ID_URL,
@@ -731,7 +753,7 @@ public class RiotService {
 
             RiotMatchDTO riotMatch = matchResponse.getBody();
             if (riotMatch == null || riotMatch.getInfo() == null) {
-                logger.warn("No match data found for match ID: {}", matchId);
+                logger.warn("No match data found for match ID");
                 return null;
             }
 
