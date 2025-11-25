@@ -2,7 +2,8 @@ package com.tfg.tfg.model.dto.riot;
 
 /**
  * DTO for Riot API Champion Mastery response
- * API: /lol/champion-mastery/v4/champion-masteries/by-puuid/{encryptedPUUID}/top
+ * API:
+ * /lol/champion-mastery/v4/champion-masteries/by-puuid/{encryptedPUUID}/top
  */
 public class RiotChampionMasteryDTO {
     private String puuid;
@@ -14,12 +15,17 @@ public class RiotChampionMasteryDTO {
     private Integer championPointsUntilNextLevel;
     private Boolean chestGranted;
     private Integer tokensEarned;
-    
+
     // Fields added by our service (not from Riot API)
     private String championName;
     private String championIconUrl;
 
-    public RiotChampionMasteryDTO() {}
+    /**
+     * Empty constructor for serialization/deserialization
+     */
+    public RiotChampionMasteryDTO() {
+      // Empty constructor
+    }
 
     // Getters and Setters
     public String getPuuid() {

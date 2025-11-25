@@ -168,7 +168,7 @@ public class DashboardController {
         
         // If not in database, try to fetch from Riot API
         if (summoner == null) {
-            logger.info("Summoner {} not in database, fetching from Riot API", summonerName);
+            logger.info("Summoner not in database, fetching from Riot API");
             try {
                 SummonerDTO summonerDTO = riotService.getSummonerByName(summonerName);
                 if (summonerDTO == null) {
@@ -253,10 +253,10 @@ public class DashboardController {
             // Delegate to service for business logic
             List<com.tfg.tfg.model.dto.MatchHistoryDTO> rankedMatches = 
                 dashboardService.getRankedMatchesWithLP(summoner, queueId, page, size);
-            logger.info("Returning {} ranked matches for user {}", rankedMatches.size(), username);
+            logger.info("Returning {} ranked matches", rankedMatches.size());
             return ResponseEntity.ok(rankedMatches);
         } catch (Exception e) {
-            logger.error("Error fetching ranked matches for user {}: {}", username, e.getMessage());
+            logger.error("Error fetching ranked matches: {}", e.getMessage());
             return ResponseEntity.status(500).body(List.of());
         }
     }
@@ -370,8 +370,8 @@ public class DashboardController {
                 ));
             }
             
-            logger.info("Generating AI analysis for user {} ({} ranked matches out of {} total)", 
-                username, rankedMatches.size(), allMatches.size());
+            logger.info("Generating AI analysis ({} ranked matches out of {} total)", 
+                rankedMatches.size(), allMatches.size());
             
             // Update cooldown timestamp BEFORE calling AI service (prevent parallel requests)
             user.setLastAiAnalysisRequest(LocalDateTime.now());
