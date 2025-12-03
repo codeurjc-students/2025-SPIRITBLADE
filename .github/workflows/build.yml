@@ -442,7 +442,9 @@ jobs:
             -Dsonar.organization=codeurjc-students \
             -Dsonar.projectName=2025-SPIRITBLADE \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.timeout=300
 
   # ============================================
   # FINAL MERGE VALIDATION
