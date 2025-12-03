@@ -1,4 +1,4 @@
-# Guía de Desarrollo — SPIRITBLADE
+﻿# Guía de Desarrollo — SPIRITBLADE
 
 ## Índice
 - [Introducción](#introducción)
@@ -175,11 +175,21 @@ Los datos se precargan al iniciar la aplicación mediante `DataInitializer.updat
 
 ### Caché Redis
 
-Se ha configurado **Redis** como caché distribuida usando **Spring Cache**. Configuración en `CacheConfig` con TTLs:
-- `champions` – 24 h
-- `summoners` – 10 min
-- `masteries` – 1 h
-- `matches` – 24 h
+Se ha configurado **Redis** como caché distribuida usando **Spring Cache**. Configuración en `CacheConfig` con TTLs optimizados según la frecuencia de cambio de cada tipo de dato:
+
+| Cache | TTL | Justificación |
+|-------|-----|---------------|
+| `champions` | 24 h | Datos **estáticos** de Data Dragon que solo cambian con parches (cada ~2 semanas). TTL largo reduce llamadas innecesarias sin afectar frescura. |
+| `summoners` | 10 min | Datos **semi-dinámicos**: nivel, rango y LP cambian con frecuencia durante sesiones de juego activas. 10 min balancea frescura con reducción de llamadas API. |
+| `masteries` | 1 h | Datos **poco volátiles**: maestría de campeones aumenta gradualmente. 1 hora es suficiente para mantener datos razonablemente actualizados sin sobrecargar la API. |
+| `matches` | 24 h | Datos **inmutables**: partidas finalizadas nunca cambian. TTL largo (24h) maximiza hits de caché, esencial para historial de partidas. |
+
+**Criterios de selección de endpoints cacheados**:
+- ✅ **Alta frecuencia de acceso**: Endpoints consultados repetidamente (ej: stats de summoner, detalles de partidas)
+- ✅ **Costosos en tiempo**: Llamadas a APIs externas con gran tráfico de datos (Riot API, Data Dragon)
+- ✅ **Rate-limited**: Riot API impone límites estrictos (20 req/s, 100 req/2min). La caché evita consumir cuota innecesariamente
+- ❌ **Datos personales sensibles**: Endpoints de autenticación/perfil NO se cachean por seguridad
+- ❌ **Operaciones de escritura**: Solo operaciones de lectura (GET) son cacheables
 
 Los métodos de los servicios (`DataDragonService`, `RiotService`) están anotados con `@Cacheable` para aprovechar la caché y reducir llamadas externas.
 
