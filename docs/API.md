@@ -162,13 +162,14 @@ Endpoints públicos (sin autenticación):
 
 Endpoints autenticados (JWT requerido):
 - `GET /api/v1/users/me` - Perfil del usuario actual
+- `PUT /api/v1/users/me` - **[v1.2.0]** Actualizar perfil del usuario (nombre, email, contraseña)
 - `GET /api/v1/users/me/favorites` - Obtener summoners favoritos del usuario
 - `POST /api/v1/users/me/favorites/{summonerId}` - Añadir favorito
 - `DELETE /api/v1/users/me/favorites/{summonerId}` - Eliminar favorito
 - `GET /api/v1/summoners/search` - Buscar summoner por Riot ID
 - `GET /api/v1/summoners/{puuid}` - Obtener detalles del summoner
 - `GET /api/v1/summoners/{puuid}/champion-mastery` - Obtener mastery por campeón
-- `GET /api/v1/dashboard/me/stats` - Estadísticas personales
+- `GET /api/v1/dashboard/me/stats` - **[v1.2.0]** Estadísticas personales (incluye Average Vision Score)
 - `GET /api/v1/dashboard/me/favorites` - Análisis de rendimiento
 
 Endpoints de administrador (requiere rol ADMIN):
