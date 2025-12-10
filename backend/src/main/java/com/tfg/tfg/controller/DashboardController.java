@@ -81,9 +81,11 @@ public class DashboardController {
         result.put("linkedSummoner", linkedSummonerName);
 
         // Add email for profile editing
-        userService.findByName(username).ifPresent(user -> {
-            result.put("email", user.getEmail());
-        });
+        if (!GUEST.equals(username)) {
+            userService.findByName(username).ifPresent(user -> {
+                result.put("email", user.getEmail());
+            });
+        }
 
         return ResponseEntity.ok(result);
     }
