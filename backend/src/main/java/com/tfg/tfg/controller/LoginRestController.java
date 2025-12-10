@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 @Tag(name = "Authentication", description = "Authentication management endpoints")
 @RestController
@@ -93,7 +94,7 @@ public class LoginRestController {
 		)
 	})
 	@PostMapping("/register")
-	public ResponseEntity<Map<String, String>> register(@RequestBody UserDTO userDTO) {
+	public ResponseEntity<Map<String, String>> register(@Valid @RequestBody UserDTO userDTO) {
 
 		userService.createUser(userDTO);
 

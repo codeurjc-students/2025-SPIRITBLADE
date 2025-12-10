@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Data
@@ -16,7 +18,11 @@ public class UserDTO {
     private String name;
     
     private String image;
+
+    @Email(message = "Email should be valid")
     private String email;
+
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
     private List<String> roles;
     private boolean active;

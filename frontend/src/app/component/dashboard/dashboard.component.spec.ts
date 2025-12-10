@@ -27,7 +27,7 @@ describe('DashboardComponent', () => {
     ]);
     mockUserService = jasmine.createSpyObj('UserService', [
       'getProfile', 'getLinkedSummoner', 'linkSummoner', 'unlinkSummoner',
-      'uploadAvatar', 'addFavoriteSummoner', 'removeFavoriteSummoner'
+      'uploadAvatar', 'addFavoriteSummoner', 'removeFavoriteSummoner', 'updateProfile'
     ]);
 
     // Default mocks
@@ -473,6 +473,77 @@ describe('DashboardComponent', () => {
       component.aiMatchCount = 5;
       component.generateAiAnalysis();
       expect(component.aiAnalysisError).toBe('The number of matches must be 10');
+    });
+  });
+
+  describe('Profile Management', () => {
+    it('should open profile modal with current email', () => {
+      component.stats = { email: 'current@test.com' };
+      component.openProfileModal();
+      expect(component.showProfileModal).toBeTrue();
+      expect(component.profileForm.email).toBe('current@test.com');
+      expect(component.profileForm.password).toBe('');
+    });
+
+    it('should close profile modal', () => {
+      component.showProfileModal = true;
+      component.closeProfileModal();
+      expect(component.showProfileModal).toBeFalse();
+    });
+
+    it('should validate email format', () => {
+      component.profileForm.email = 'invalid-email';
+      component.updateProfile();
+      expect(component.profileError).toBe('Please enter a valid email address');
+      expect(mockUserService.updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('should validate password length', () => {
+      component.profileForm.email = 'valid@test.com';
+      component.profileForm.password = '12345';
+      component.updateProfile();
+      expect(component.profileError).toBe('Password must be at least 6 characters long');
+      expect(mockUserService.updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('should validate password mismatch', () => {
+      component.profileForm.email = 'valid@test.com';
+      component.profileForm.password = 'password123';
+      component.profileForm.confirmPassword = 'password456';
+      component.updateProfile();
+      expect(component.profileError).toBe('Passwords do not match');
+      expect(mockUserService.updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('should update profile successfully', fakeAsync(() => {
+      component.profileForm.email = 'new@test.com';
+      component.profileForm.password = 'newpassword';
+      component.profileForm.confirmPassword = 'newpassword';
+      
+      mockUserService.updateProfile.and.returnValue(of({ id: 1, name: 'test', email: 'new@test.com' } as User));
+      spyOn(component, 'refresh');
+
+      component.updateProfile();
+
+      expect(mockUserService.updateProfile).toHaveBeenCalledWith({
+        email: 'new@test.com',
+        password: 'newpassword'
+      });
+      expect(component.profileSuccess).toBe('Profile updated successfully');
+      expect(component.refresh).toHaveBeenCalled();
+
+      tick(1500);
+      expect(component.showProfileModal).toBeFalse();
+    }));
+
+    it('should handle profile update error', () => {
+      component.profileForm.email = 'new@test.com';
+      mockUserService.updateProfile.and.returnValue(throwError(() => ({ error: { message: 'Update failed' } })));
+
+      component.updateProfile();
+
+      expect(component.profileError).toBe('Update failed');
+      expect(component.profileLoading).toBeFalse();
     });
   });
 });

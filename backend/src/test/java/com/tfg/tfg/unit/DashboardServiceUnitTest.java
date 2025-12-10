@@ -130,4 +130,60 @@ class DashboardServiceUnitTest {
         int val2 = (Integer) res2;
         assertEquals(0, val2);
     }
+
+    @Test
+    void testCalculateAverageVisionScore() {
+        Summoner s = new Summoner();
+        s.setName("visionTest");
+        
+        // No matches
+        when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of());
+        assertEquals(0.0, dashboardService.calculateAverageVisionScore(s));
+        
+        // Matches with vision score
+        MatchEntity m1 = new MatchEntity(); m1.setQueueId(420); m1.setVisionScore(20);
+        MatchEntity m2 = new MatchEntity(); m2.setQueueId(440); m2.setVisionScore(30);
+        MatchEntity m3 = new MatchEntity(); m3.setQueueId(450); m3.setVisionScore(100); // Ignored (ARAM)
+        
+        when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m1, m2, m3));
+        assertEquals(25.0, dashboardService.calculateAverageVisionScore(s));
+    }
+
+    @Test
+    void testCalculateAverageKDA() {
+        Summoner s = new Summoner();
+        s.setName("kdaTest");
+        
+        // No matches
+        when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of());
+        assertEquals("0/0/0", dashboardService.calculateAverageKDA(s));
+        
+        // Matches with KDA
+        MatchEntity m1 = new MatchEntity(); m1.setQueueId(420); m1.setKills(5); m1.setDeaths(2); m1.setAssists(10);
+        MatchEntity m2 = new MatchEntity(); m2.setQueueId(440); m2.setKills(10); m2.setDeaths(4); m2.setAssists(5);
+        
+        when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m1, m2));
+        // Total: 15/6/15 -> Avg: 7/3/7 (integer division)
+        assertEquals("7/3/7", dashboardService.calculateAverageKDA(s));
+    }
+
+    @Test
+    void testGetRankedMatchesWithLP_Cached() {
+        Summoner s = new Summoner();
+        s.setName("ranked");
+        s.setPuuid("puuid");
+        
+        MatchEntity m = new MatchEntity();
+        m.setMatchId("M1");
+        m.setTimestamp(LocalDateTime.now());
+        
+        when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(s)).thenReturn(List.of(m));
+        // Mock checkIfCacheNeedsUpdate logic (via riotService)
+        // If I mock riotService.getMatchHistory to return empty or same match ID, it won't update
+        when(riotService.getMatchHistory(eq("puuid"), eq(0), eq(1))).thenReturn(List.of());
+        
+        List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = dashboardService.getRankedMatchesWithLP(s, null, 0, 1);
+        assertEquals(1, result.size());
+        assertEquals("M1", result.get(0).getMatchId());
+    }
 }
