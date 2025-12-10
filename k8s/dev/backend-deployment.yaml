@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: spiritblade-backend:latest # Local image
+        imagePullPolicy: Never # Use local image
+        ports:
+        - containerPort: 443
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: mysql-root-password
+        - name: SPRING_DATA_REDIS_HOST
+          value: "redis"
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        - name: MINIO_ENDPOINT
+          value: "http://minio:9000"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: minio-access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: minio-secret-key
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: jwt-secret
+        - name: RIOT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: riot-api-key
+        - name: GOOGLE_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: google-ai-api-key
+        - name: SSL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: ssl-password
+        - name: SERVER_PORT
+          value: "443"
+        - name: SERVER_SSL_ENABLED
+          value: "true"
+        - name: SERVER_SSL_KEY_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: ssl-password
+        livenessProbe:
+          exec:
+            command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 443
+    targetPort: 443
+  type: ClusterIP
