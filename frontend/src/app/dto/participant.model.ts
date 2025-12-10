@@ -11,6 +11,7 @@ export interface ParticipantDTO {
   totalMinionsKilled?: number;
   goldEarned?: number;
   totalDamageDealtToChampions?: number;
+  visionScore?: number;
   win?: boolean;
   teamId?: number;
   teamPosition?: string;

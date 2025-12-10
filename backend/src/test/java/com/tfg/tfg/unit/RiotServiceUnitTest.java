@@ -782,4 +782,361 @@ class RiotServiceUnitTest {
             fail("Should not throw exception: " + e.getMessage());
         }
     }
+
+    @Test
+    void testGetMatchHistoryCacheStale() {
+        // Given
+        String puuid = "test-puuid";
+        Summoner summoner = new Summoner();
+        summoner.setPuuid(puuid);
+        
+        MatchEntity oldMatch = new MatchEntity();
+        oldMatch.setMatchId("EUW1_OLD");
+        
+        when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.of(summoner));
+        when(matchRepository.findRecentMatchesBySummoner(any(), any())).thenReturn(List.of(oldMatch));
+        
+        // Mock the API call for freshness check - different match ID (cache is stale)
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(String[].class),
+            eq(puuid),
+            eq(0),
+            eq(1),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_NEW"}));
+        
+        // Mock the full match list call
+        when(restTemplate.exchange(
+            contains("/lol/match/v5/matches/by-puuid/"),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(String[].class),
+            eq(puuid),
+            eq(0),
+            eq(5),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_NEW"}));
+        
+        // Mock match not in cache
+        when(matchRepository.findByMatchId("EUW1_NEW")).thenReturn(Optional.empty());
+        
+        // Mock match details
+        RiotMatchDTO riotMatch = new RiotMatchDTO();
+        RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
+        metadata.setMatchId("EUW1_NEW");
+        riotMatch.setMetadata(metadata);
+        
+        RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
+        info.setGameCreation(1640995200000L);
+        info.setGameDuration(1800L);
+        info.setGameMode("CLASSIC");
+        info.setQueueId(420);
+        
+        RiotMatchDTO.ParticipantDTO participant = new RiotMatchDTO.ParticipantDTO();
+        participant.setPuuid(puuid);
+        participant.setWin(true);
+        participant.setKills(10);
+        participant.setDeaths(5);
+        participant.setAssists(15);
+        participant.setChampionName("Ahri");
+        participant.setChampionId(103);
+        participant.setTeamPosition("MIDDLE");
+        
+        info.setParticipants(List.of(participant));
+        riotMatch.setInfo(info);
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotMatchDTO.class),
+            anyString(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(riotMatch));
+        
+        // When
+        var result = riotService.getMatchHistory(puuid, 0, 5);
+        
+        // Then - Should fetch new matches from API
+        assertNotNull(result);
+    }
+
+    @Test
+    void testFetchAndAddMatchToHistoryHttpException() {
+        // Given
+        String matchId = "EUW1_ERROR";
+        String puuid = "test-puuid";
+        List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = new java.util.ArrayList<>();
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotMatchDTO.class),
+            eq(matchId),
+            anyString()
+        )).thenThrow(new org.springframework.web.client.HttpClientErrorException(org.springframework.http.HttpStatus.NOT_FOUND));
+        
+        // When - Use reflection to invoke private method
+        try {
+            java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
+                "fetchAndAddMatchToHistory",
+                String.class,
+                String.class,
+                List.class
+            );
+            method.setAccessible(true);
+            method.invoke(riotService, matchId, puuid, matches);
+            
+            // Then - Should log warning and not add to matches
+            assertTrue(matches.isEmpty());
+        } catch (Exception e) {
+            fail("Should handle exception gracefully: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testGetSummonerByNameSaveToDatabaseException() {
+        // Given
+        String riotId = "TestPlayer#EUW";
+        String puuid = "test-puuid-123";
+        
+        RiotAccountDTO accountDTO = new RiotAccountDTO(puuid, "TestPlayer", "EUW");
+        RiotSummonerDTO summonerDTO = new RiotSummonerDTO();
+        summonerDTO.setId("summoner-id");
+        summonerDTO.setPuuid(puuid);
+        summonerDTO.setName("TestPlayer");
+        summonerDTO.setSummonerLevel(100);
+        summonerDTO.setProfileIconId(1);
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotAccountDTO.class),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(accountDTO));
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotSummonerDTO.class),
+            anyString(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(summonerDTO));
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotLeagueEntryDTO[].class),
+            anyString(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(new RiotLeagueEntryDTO[]{}));
+        
+        when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
+        when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.empty());
+        when(summonerRepository.save(any(Summoner.class))).thenThrow(new RuntimeException("DB Save Error"));
+        
+        // When - Should still return DTO even if save fails
+        SummonerDTO result = riotService.getSummonerByName(riotId);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(riotId, result.getName());
+    }
+
+    @Test
+    void testGetTopChampionMasteriesEmptyResponse() {
+        // Given
+        String puuid = "test-puuid";
+        
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotChampionMasteryDTO[].class),
+            anyString(),
+            anyInt(),
+            anyString()
+        )).thenReturn(ResponseEntity.ok(new RiotChampionMasteryDTO[]{}));
+        
+        // When
+        List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 5);
+        
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetSummonerByNameWithRankedData() {
+        // Given
+        String riotId = "Player#EUW";
+        String puuid = "puuid-with-rank";
+        
+        RiotAccountDTO accountDTO = new RiotAccountDTO(puuid, "Player", "EUW");
+        RiotSummonerDTO summonerDTO = new RiotSummonerDTO();
+        summonerDTO.setId("summ-id");
+        summonerDTO.setPuuid(puuid);
+        summonerDTO.setName("Player");
+        summonerDTO.setSummonerLevel(150);
+        summonerDTO.setProfileIconId(5);
+        
+        RiotLeagueEntryDTO rankedEntry = new RiotLeagueEntryDTO();
+        rankedEntry.setQueueType("RANKED_SOLO_5x5");
+        rankedEntry.setTier("DIAMOND");
+        rankedEntry.setRank("III");
+        rankedEntry.setLeaguePoints(75);
+        rankedEntry.setWins(200);
+        rankedEntry.setLosses(180);
+        
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotAccountDTO.class), eq("Player"), eq("EUW"), anyString()))
+            .thenReturn(ResponseEntity.ok(accountDTO));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotSummonerDTO.class), eq(puuid), anyString()))
+            .thenReturn(ResponseEntity.ok(summonerDTO));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotLeagueEntryDTO[].class), eq(puuid), anyString()))
+            .thenReturn(ResponseEntity.ok(new RiotLeagueEntryDTO[]{rankedEntry}));
+        when(dataDragonService.getProfileIconUrl(5)).thenReturn("http://icon.png");
+        
+        // When
+        SummonerDTO result = riotService.getSummonerByName(riotId);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals("Player#EUW", result.getName());
+        assertEquals("DIAMOND", result.getTier());
+        assertEquals("III", result.getRank());
+        assertEquals(75, result.getLp());
+        assertEquals(200, result.getWins());
+        assertEquals(180, result.getLosses());
+    }
+
+    @Test
+    void testGetSummonerByNameUnranked() {
+        // Given
+        String riotId = "Unranked#NA";
+        String puuid = "puuid-unranked";
+        
+        RiotAccountDTO accountDTO = new RiotAccountDTO(puuid, "Unranked", "NA");
+        RiotSummonerDTO summonerDTO = new RiotSummonerDTO();
+        summonerDTO.setId("summ-unrank");
+        summonerDTO.setPuuid(puuid);
+        summonerDTO.setName("Unranked");
+        summonerDTO.setSummonerLevel(30);
+        summonerDTO.setProfileIconId(1);
+        
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotAccountDTO.class), eq("Unranked"), eq("NA"), anyString()))
+            .thenReturn(ResponseEntity.ok(accountDTO));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotSummonerDTO.class), eq(puuid), anyString()))
+            .thenReturn(ResponseEntity.ok(summonerDTO));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotLeagueEntryDTO[].class), eq(puuid), anyString()))
+            .thenReturn(ResponseEntity.ok(new RiotLeagueEntryDTO[]{}));
+        when(dataDragonService.getProfileIconUrl(1)).thenReturn("http://icon.png");
+        
+        // When
+        SummonerDTO result = riotService.getSummonerByName(riotId);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals("Unranked#NA", result.getName());
+        assertEquals("UNRANKED", result.getTier());
+        assertEquals("", result.getRank());
+        assertEquals(0, result.getLp());
+        assertEquals(0, result.getWins());
+        assertEquals(0, result.getLosses());
+    }
+
+    @Test
+    void testGetMatchDetailsWithCompleteData() {
+        // Given
+        String matchId = "EUW1_COMPLETE";
+        
+        RiotMatchDTO riotMatch = new RiotMatchDTO();
+        RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
+        metadata.setMatchId(matchId);
+        riotMatch.setMetadata(metadata);
+        
+        RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
+        info.setGameCreation(1640000000000L);
+        info.setGameDuration(2400L);
+        info.setGameMode("CLASSIC");
+        info.setQueueId(420);
+        
+        RiotMatchDTO.ParticipantDTO p1 = new RiotMatchDTO.ParticipantDTO();
+        p1.setPuuid("player1");
+        p1.setWin(true);
+        p1.setKills(10);
+        p1.setDeaths(3);
+        p1.setAssists(15);
+        p1.setChampionName("Ahri");
+        p1.setChampionId(103);
+        p1.setTeamPosition("MIDDLE");
+        p1.setSummonerName("Pro Mid");
+        
+        RiotMatchDTO.TeamDTO team1 = new RiotMatchDTO.TeamDTO();
+        team1.setTeamId(100);
+        team1.setWin(true);
+        
+        info.setParticipants(List.of(p1));
+        info.setTeams(List.of(team1));
+        riotMatch.setInfo(info);
+        
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
+            .thenReturn(ResponseEntity.ok(riotMatch));
+        when(dataDragonService.getChampionIconUrl(103L)).thenReturn("http://champion.png");
+        
+        // When
+        var result = riotService.getMatchDetails(matchId);
+        
+        // Then
+        assertNotNull(result);
+        assertEquals(matchId, result.getMatchId());
+        assertEquals(420, result.getQueueId());
+        assertNotNull(result.getParticipants());
+        assertFalse(result.getParticipants().isEmpty());
+    }
+
+    @Test
+    void testGetMatchDetailsHttpError() {
+        // Given
+        String matchId = "EUW1_ERROR";
+        
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
+            .thenThrow(new org.springframework.web.client.HttpClientErrorException(
+                org.springframework.http.HttpStatus.NOT_FOUND, "Match not found"));
+        
+        // When
+        var result = riotService.getMatchDetails(matchId);
+        
+        // Then
+        assertNull(result);
+    }
+
+    @Test
+    void testGetMatchDetailsNullInfo() {
+        // Given
+        String matchId = "EUW1_NULL_INFO";
+        
+        RiotMatchDTO riotMatch = new RiotMatchDTO();
+        RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
+        metadata.setMatchId(matchId);
+        riotMatch.setMetadata(metadata);
+        riotMatch.setInfo(null); // Null info
+        
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
+            .thenReturn(ResponseEntity.ok(riotMatch));
+        
+        // When
+        var result = riotService.getMatchDetails(matchId);
+        
+        // Then
+        assertNull(result);
+    }
 }

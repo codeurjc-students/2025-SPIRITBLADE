@@ -168,4 +168,23 @@ class UserDTOUnitTest {
         assertTrue(userDTO.getRoles().contains("ADMIN"));
         assertTrue(userDTO.isActive());
     }
+
+    @Test
+    void testValidation() {
+        jakarta.validation.Validator validator = jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator();
+        
+        // Valid user
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("123456");
+        assertTrue(validator.validate(userDTO).isEmpty());
+        
+        // Invalid email
+        userDTO.setEmail("invalid-email");
+        assertFalse(validator.validate(userDTO).isEmpty());
+        
+        // Invalid password (too short)
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("12345");
+        assertFalse(validator.validate(userDTO).isEmpty());
+    }
 }

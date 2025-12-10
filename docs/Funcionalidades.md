@@ -41,7 +41,7 @@ Acceso a un panel de control (dashboard), Enlazar tu summoner de lol con tu cuen
 | F1.2.1 | Panel de control | ✅ | Dashboard con información de perfil, estadísticas básicas y acciones rápidas. |
 | F1.2.2 | Enlazar cuenta de LoL | ✅ | Vincular cuenta de League of Legends usando Riot ID para análisis automático. |
 | F1.2.3 | Gestión de foto de perfil | ✅ | Subir y gestionar avatar de usuario (PNG only, MinIO). |
-| F1.2.4 | Editar información personal | ✅ | Actualizar nombre, email y contraseña. Validación de email y fortaleza de contraseña. |
+| F1.2.4 | Editar información personal | ✅ v1.2.0 | Actualizar nombre, email y contraseña mediante modal de edición de perfil. Validación de email y fortaleza de contraseña. Cambios aplicados inmediatamente con confirmación visual. |
 | F1.2.5 | Inicio de sesión y registro | ✅ | Registro con email y contraseña, inicio de sesión con JWT. Validación y manejo de errores. |
 
 ---
@@ -56,7 +56,7 @@ Winrate del invocador, usando datos detallados de partidas, Detalles completos d
 | ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
 | F2.1.1 | Estadísticas agregadas de invocadores | ✅ | Motor de agregación que combina datos de múltiples invocadores buscados: tasa de victorias media por campeón, KDA medio por rol, tasas de selección de campeones populares. Dashboard público con gráficos. |
-| F2.1.2 | Detalles completos de cada partida | ✅ | Historial de partidas con detalles: fecha, modo, duración, resultado, KDA, campeones, roles. Datos obtenidos de Match-v5. |
+| F2.1.2 | Detalles completos de cada partida | ✅ v1.2.0 | Historial de partidas con detalles: fecha, modo, duración, resultado, KDA, campeones, roles y **Vision Score por participante** (puntuación de visión individual en cada partida). Datos obtenidos de Match-v5. |
 
 ---
 
@@ -67,7 +67,7 @@ Estadisticas sobre el summoner vinculado (Rango actual, LP ganado, rol principal
 
 | ID | Función | Estado | Descripción |
 |----|---------|--------|-------------|
-| F2.2.1 | Estadísticas del summoner vinculado | ✅ | Mostrar rango actual, LP ganado en los últimos 7 días, rol principal basado en historial, campeón favorito por maestría. |
+| F2.2.1 | Estadísticas del summoner vinculado | ✅ v1.2.0 | Mostrar rango actual, LP ganado en los últimos 7 días, rol principal basado en historial, campeón favorito por maestría y **Average Vision Score** (promedio de puntuación de visión en partidas clasificatorias). |
 | F2.2.2 | Sistema de favoritos | ✅ | Marcar summoners como favoritos para seguimiento rápido. Lista en el dashboard con acceso directo a perfiles. |
 | F2.2.3 | Análisis por IA | ✅ | Integración con Gemini AI para análisis avanzado de rendimiento del summoner vinculado. Recomendaciones personalizadas. |
 

@@ -13,6 +13,7 @@ public class ParticipantDTO {
     private Integer totalMinionsKilled;
     private Integer goldEarned;
     private Integer totalDamageDealtToChampions;
+    private Integer visionScore;
     private Boolean win;
     private Integer teamId;
     private String teamPosition; // TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY
@@ -126,6 +127,14 @@ public class ParticipantDTO {
 
     public void setTotalDamageDealtToChampions(Integer totalDamageDealtToChampions) {
         this.totalDamageDealtToChampions = totalDamageDealtToChampions;
+    }
+
+    public Integer getVisionScore() {
+        return visionScore;
+    }
+
+    public void setVisionScore(Integer visionScore) {
+        this.visionScore = visionScore;
     }
 
     public Boolean getWin() {

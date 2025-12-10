@@ -589,3 +589,48 @@
 	margin: 0;
 	font-style: italic;
 }
+
+/* Welcome Header & Edit Profile Button */
+.welcome-header {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 0.5rem;
+
+	h1 {
+		margin: 0;
+		font-size: 2rem;
+		background: linear-gradient(to right, #fff, #ccc);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+}
+
+.edit-profile-btn {
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid var(--surface-border);
+	color: var(--text-secondary);
+	cursor: pointer;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s ease;
+	padding: 0;
+
+	&:hover {
+		color: var(--primary);
+		border-color: var(--primary);
+		background: rgba(124, 58, 237, 0.1);
+		transform: rotate(90deg);
+		box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+	}
+
+	svg {
+		width: 18px;
+		height: 18px;
+	}
+}

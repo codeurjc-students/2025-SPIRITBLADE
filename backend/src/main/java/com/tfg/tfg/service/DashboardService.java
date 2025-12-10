@@ -60,6 +60,7 @@ public class DashboardService {
             stats.put("mainRole", calculateMainRole(summoner));
             stats.put("favoriteChampion", getFavoriteChampion(summoner));
             stats.put("averageKda", calculateAverageKDA(summoner));
+            stats.put("avgVisionScore", calculateAverageVisionScore(summoner));
         } else {
             stats.put("currentRank", UNRANKED);
             stats.put("lp7days", 0);
@@ -170,6 +171,53 @@ public class DashboardService {
             logger.debug("Failed to fetch champion masteries for {}: {}", summoner.getName(), e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Calculate average Vision Score from recent ranked matches (last 7 days)
+     */
+    public Double calculateAverageVisionScore(Summoner summoner) {
+        try {
+            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+            List<MatchEntity> recentMatches = matchService.findRecentMatches(summoner, sevenDaysAgo);
+
+            if (recentMatches.isEmpty()) {
+                return 0.0;
+            }
+
+            // Filter only ranked matches (Solo/Duo and Flex)
+            List<MatchEntity> rankedMatches = recentMatches.stream()
+                    .filter(match -> {
+                        Integer queueId = match.getQueueId();
+                        return queueId != null && (queueId == 420 || queueId == 440);
+                    })
+                    .toList();
+
+            if (rankedMatches.isEmpty()) {
+                return 0.0;
+            }
+
+            double totalVision = 0;
+            int count = 0;
+
+            for (MatchEntity match : rankedMatches) {
+                if (match.getVisionScore() != null) {
+                    totalVision += match.getVisionScore();
+                    count++;
+                }
+            }
+
+            if (count == 0)
+                return 0.0;
+
+            // Round to 1 decimal place
+            double avg = totalVision / count;
+            return Math.round(avg * 10.0) / 10.0;
+        } catch (Exception e) {
+            logger.warn("Error calculating average Vision Score for summoner {}: {}", summoner.getName(),
+                    e.getMessage());
+            return 0.0;
+        }
     }
 
     /**
