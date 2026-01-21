@@ -7,14 +7,14 @@ metadata:
     app: backend
     environment: prod
 spec:
-  replicas: 1 # High Availability for Prod
+  replicas: 2 # High Availability for Prod
   selector:
     matchLabels:
-      app: spiritblade-core
+      app: backend
   template:
     metadata:
       labels:
-        app: spiritblade-core
+        app: backend
     spec:
       containers:
       - name: app
@@ -22,6 +22,13 @@ spec:
         image: jae9104/spiritblade:latest
         ports:
         - containerPort: 443
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1500m"
         env:
         - name: SPRING_DATASOURCE_URL
           # Connects to the Internal IP of the MySQL Compute Instance
@@ -96,7 +103,7 @@ metadata:
   name: backend
   namespace: prod
   labels:
-    app: spiritblade-core
+    app: backend
     environment: prod
 spec:
   selector:
