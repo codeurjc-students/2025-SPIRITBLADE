@@ -1,5 +1,5 @@
 # Archivos de Secrets con valores reales
-secrets-real.yaml
+secrets.yaml
 *-secrets-real.yaml
 *-secrets-prod.yaml
 
