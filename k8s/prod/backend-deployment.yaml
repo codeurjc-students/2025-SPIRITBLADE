@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: prod
+  labels:
+    app: backend
+    environment: prod
+spec:
+  replicas: 1 # High Availability for Prod
+  selector:
+    matchLabels:
+      app: spiritblade-core
+  template:
+    metadata:
+      labels:
+        app: spiritblade-core
+    spec:
+      containers:
+      - name: app
+        # Multi-arch image supporting linux/amd64 and linux/arm64
+        image: jae9104/spiritblade:latest
+        ports:
+        - containerPort: 443
+        env:
+        - name: SPRING_DATASOURCE_URL
+          # Connects to the Internal IP of the MySQL Compute Instance
+          value: "jdbc:mysql://10.0.20.56:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: mysql-root-password
+        - name: SPRING_DATA_REDIS_HOST
+          value: "redis-master" # Points to Redis Service
+        - name: SPRING_DATA_REDIS_PORT
+          value: "6379"
+        # OCI Object Storage S3 Compatibility
+        - name: MINIO_ENDPOINT
+          value: "https://axqwnu0emm0s.compat.objectstorage.eu-madrid-1.oraclecloud.com"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: oci-storage-access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: oci-storage-secret-key
+        - name: MINIO_BUCKET_NAME
+          value: "spiritblade-bucket"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: jwt-secret
+        - name: RIOT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: riot-api-key
+        - name: GOOGLE_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: google-ai-api-key
+        - name: SSL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: ssl-password
+        resources:
+          requests:
+            memory: "1Gi" # Generous limits because OCI Ampere is huge
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          exec:
+            command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: prod
+  labels:
+    app: spiritblade-core
+    environment: prod
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: https
+  type: ClusterIP
+  type: ClusterIP

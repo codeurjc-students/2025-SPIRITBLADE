@@ -162,10 +162,62 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 | **Backend** | Spring Boot 3.4.3, Java 21 |
 | **Base de Datos** | MySQL 8.0 |
 | **Caché** | Redis, Spring Cache |
+| **Almacenamiento** | MinIO (desarrollo), Oracle Object Storage (producción) |
 | **Seguridad** | Spring Security, JWT |
-| **Despliegue** | Docker, Docker Compose |
+| **Orquestación** | Kubernetes (OKE), Docker, Docker Compose |
+| **Infraestructura** | Terraform, Oracle Cloud Infrastructure |
 | **CI/CD** | GitHub Actions |
 | **Control de Calidad** | JUnit 5, Jasmine/Karma, SonarCloud |
+
+---
+
+## ☁️ Despliegue en Kubernetes
+
+SPIRITBLADE está preparado para desplegarse tanto en entornos de desarrollo local como en producción en Oracle Cloud.
+
+### Despliegue Rápido - Desarrollo (5 minutos)
+
+```bash
+cd k8s/dev
+.\deploy.ps1  # Windows
+# o
+./deploy.sh   # Linux/Mac
+```
+
+### Despliegue en Producción - Oracle Cloud (30 minutos)
+
+```bash
+# 1. Configurar infraestructura
+cd iac/terraform
+terraform init
+terraform apply
+
+# 2. Desplegar aplicación
+cd ../../k8s/prod
+kubectl apply -f namespace.yaml
+kubectl apply -f secrets.yaml
+kubectl apply -f .
+```
+
+**Documentación completa**:
+- 📖 [Guía Rápida de Despliegue](k8s/QUICK-START.md)
+- 📖 [Guía Completa de Kubernetes](k8s/README.md)
+- 📖 [Configuración de Terraform](iac/terraform/README.md)
+- 📖 [Checklist de Verificación](k8s/CHECKLIST.md)
+
+### Arquitectura en Oracle Cloud
+
+```
+Oracle Cloud Infrastructure (Free Tier)
+├── OKE Cluster (Kubernetes)
+│   ├── Backend (2 pods)
+│   ├── Frontend (2 pods + LoadBalancer)
+│   └── Redis (StatefulSet)
+├── MySQL (Compute Instance ARM)
+└── Object Storage (S3-compatible)
+```
+
+**Costos**: $0/mes usando Oracle Cloud Free Tier 🎉
 
 ---
 
