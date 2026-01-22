@@ -1,0 +1,45 @@
+# Manual workflow to build and push images with :latest tag
+name: Build Latest K8S
+
+on:
+  workflow_dispatch:  # Ejecutar manualmente desde GitHub Actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build and push backend (multi-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: jae9104/spiritblade-backend:latest
+
+      - name: 🏗️ Build and push frontend (multi-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.frontend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: jae9104/spiritblade-frontend:latest
+
+      - name: ✅ Summary
+        run: |
+          echo "✅ Images published:"
+          echo "- jae9104/spiritblade-backend:latest (linux/amd64, linux/arm64)"
+          echo "- jae9104/spiritblade-frontend:latest (linux/amd64, linux/arm64)"
