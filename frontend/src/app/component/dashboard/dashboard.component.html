@@ -4,14 +4,8 @@
 			<div class="user-avatar">
 				<div class="avatar-placeholder" [class.has-avatar]="avatarUrl">
 					<!-- Avatar Image -->
-					<img 
-						*ngIf="avatarUrl" 
-						[src]="avatarUrl" 
-						alt="User Avatar" 
-						class="avatar-image"
-						(load)="onAvatarLoad()"
-						(error)="onAvatarError($event)"
-					/>
+					<img *ngIf="avatarUrl" [src]="avatarUrl" alt="User Avatar" class="avatar-image"
+						(load)="onAvatarLoad()" (error)="onAvatarError($event)" />
 					<div *ngIf="!avatarUrl" class="default-avatar-icon">👤</div>
 					<div *ngIf="avatarUploading" class="avatar-loading">
 						<span>Uploading...</span>
@@ -23,13 +17,23 @@
 				<div *ngIf="avatarError" class="avatar-error">{{ avatarError }}</div>
 			</div>
 			<div class="user-info">
-				<h1>Welcome, {{ stats?.username || 'Guest' }}</h1>
-				
+				<div class="welcome-header">
+					<h1>Welcome, {{ stats?.username || 'Guest' }}</h1>
+					<button class="edit-profile-btn" (click)="openProfileModal()" title="Edit Profile">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+							<circle cx="12" cy="12" r="3"></circle>
+						</svg>
+					</button>
+				</div>
+
 				<!-- Show linked account info or link button -->
 				<div *ngIf="linkedSummonerLoading" class="loading-text">Loading account info...</div>
 				<div *ngIf="!linkedSummonerLoading && linkedSummoner" class="linked-account-info">
 					<p class="linked-label">Linked Account:</p>
-					<a [routerLink]="['/summoner', linkedSummoner.name]"><p class="linked-summoner">{{ linkedSummoner.name }} ({{ linkedSummoner.region }})</p></a>
+					<a [routerLink]="['/summoner', linkedSummoner.name]">
+						<p class="linked-summoner">{{ linkedSummoner.name }} ({{ linkedSummoner.region }})</p>
+					</a>
 					<button class="unlink-btn" (click)="unlinkAccount()">Unlink Account</button>
 				</div>
 				<div *ngIf="!linkedSummonerLoading && !linkedSummoner">
@@ -55,29 +59,24 @@
 	</section>
 
 	<!-- Add Favorite Modal -->
-	<div class="modal-overlay" *ngIf="showAddFavoriteModal" (click)="closeAddFavoriteModal()" (keydown.escape)="closeAddFavoriteModal()">
+	<div class="modal-overlay" *ngIf="showAddFavoriteModal" (click)="closeAddFavoriteModal()"
+		(keydown.escape)="closeAddFavoriteModal()">
 		<div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
 			<h3>Add Favorite Summoner</h3>
 			<div class="form-group">
 				<label for="favoriteName">Summoner:</label>
-				<input 
-					type="text" 
-					id="favoriteName" 
-					[(ngModel)]="addFavoriteName" 
-					[disabled]="addFavoriteLoading">
+				<input type="text" id="favoriteName" [(ngModel)]="addFavoriteName" [disabled]="addFavoriteLoading">
 				<small style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
 					Enter the summoner name followed by #region (e.g., Player#EUW1)
 				</small>
 			</div>
 			<div class="error" *ngIf="addFavoriteError">{{ addFavoriteError }}</div>
 			<div class="modal-actions">
-				<button 
-					class="btn-primary" 
-					(click)="addFavorite()" 
-					[disabled]="addFavoriteLoading || !addFavoriteName">
+				<button class="btn-primary" (click)="addFavorite()" [disabled]="addFavoriteLoading || !addFavoriteName">
 					{{ addFavoriteLoading ? 'Adding...' : 'Add Favorite' }}
 				</button>
-				<button class="btn-secondary" (click)="closeAddFavoriteModal()" [disabled]="addFavoriteLoading">Cancel</button>
+				<button class="btn-secondary" (click)="closeAddFavoriteModal()"
+					[disabled]="addFavoriteLoading">Cancel</button>
 			</div>
 		</div>
 	</div>
@@ -85,17 +84,14 @@
 	<section class="personal-stats">
 		<div class="stats-header">
 			<h2>Your Performance</h2>
-			<button 
-				*ngIf="linkedSummoner" 
-				class="ai-analysis-btn" 
-				(click)="openAiAnalysisModal()"
+			<button *ngIf="linkedSummoner" class="ai-analysis-btn" (click)="openAiAnalysisModal()"
 				title="Get AI-powered performance analysis">
 				Analyze with AI
 			</button>
 		</div>
 		<div *ngIf="loading">Loading stats...</div>
 		<div *ngIf="error" class="error">{{ error }}</div>
-		
+
 		<!-- Quick Info Badges -->
 		<div *ngIf="stats" class="quick-info-badges">
 			<div class="info-badge">
@@ -103,7 +99,8 @@
 					<span class="badge-label">Rank</span>
 					<span class="badge-value">{{ stats.currentRank || 'Unranked' }}</span>
 				</div>
-				<img *ngIf="stats.currentRank && stats.currentRank !== 'UNRANKED '" [src]="getRankIcon(stats.currentRank)" alt="Rank" class="badge-icon-img" (error)="hideIcon($event)">
+				<img *ngIf="stats.currentRank && stats.currentRank !== 'UNRANKED '"
+					[src]="getRankIcon(stats.currentRank)" alt="Rank" class="badge-icon-img" (error)="hideIcon($event)">
 			</div>
 			<div class="info-badge">
 				<div class="badge-content">
@@ -117,10 +114,11 @@
 					<span class="badge-label">Favorite</span>
 					<span class="badge-value">{{ stats.favoriteChampion || 'N/A' }}</span>
 				</div>
-				<img [src]="getChampionIcon(stats.favoriteChampion)" alt="Champion" class="badge-icon-img champion-icon" *ngIf="stats.favoriteChampion" (error)="hideIcon($event)">
+				<img [src]="getChampionIcon(stats.favoriteChampion)" alt="Champion" class="badge-icon-img champion-icon"
+					*ngIf="stats.favoriteChampion" (error)="hideIcon($event)">
 			</div>
 		</div>
-		
+
 		<!-- Main Stats Cards -->
 		<div *ngIf="stats" class="main-stats-grid">
 			<div class="stat-card featured">
@@ -133,24 +131,22 @@
 				<h3>Average KDA (7 days)</h3>
 				<p class="stat-number">{{ stats.averageKda !== undefined ? stats.averageKda : '0/0/0' }}</p>
 			</div>
+			<div class="stat-card featured">
+				<h3>Avg Vision Score (7 days)</h3>
+				<p class="stat-number">{{ stats.avgVisionScore !== undefined ? stats.avgVisionScore : '0' }}</p>
+			</div>
 		</div>
-		
+
 		<!-- LP Progression Chart - Only shown when account is linked -->
 		<div class="chart-container" *ngIf="linkedSummoner">
 			<div class="chart-header">
 				<h3>Match History & Win Rate Progression</h3>
 				<div class="queue-toggle">
-					<button 
-						class="toggle-btn" 
-						[class.active]="selectedQueue === 420"
-						(click)="onQueueChange(420)"
+					<button class="toggle-btn" [class.active]="selectedQueue === 420" (click)="onQueueChange(420)"
 						[disabled]="chartLoading || matchesLoading">
 						Solo/Duo
 					</button>
-					<button 
-						class="toggle-btn" 
-						[class.active]="selectedQueue === 440"
-						(click)="onQueueChange(440)"
+					<button class="toggle-btn" [class.active]="selectedQueue === 440" (click)="onQueueChange(440)"
 						[disabled]="chartLoading || matchesLoading">
 						Flex
 					</button>
@@ -184,31 +180,26 @@
 			<h2>Link League of Legends Account</h2>
 			<button class="close-btn" (click)="closeLinkModal()">&times;</button>
 		</div>
-		
+
 		<div class="modal-body">
 			<div class="form-group">
 				<label for="summonerName">Summoner Name#Region</label>
-				<input 
-					type="text" 
-					id="summonerName" 
-					[(ngModel)]="summonerName" 
-					placeholder="e.g., Player#EUW1"
-					[disabled]="linkLoading"
-				/>
+				<input type="text" id="summonerName" [(ngModel)]="summonerName" placeholder="e.g., Player#EUW1"
+					[disabled]="linkLoading" />
 				<small style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
 					Enter your summoner name followed by #region (e.g., Player#EUW1)
 				</small>
 			</div>
-			
+
 			<div *ngIf="linkError" class="error-message">
 				{{ linkError }}
 			</div>
-			
+
 			<div *ngIf="linkSuccess" class="success-message">
 				{{ linkSuccess }}
 			</div>
 		</div>
-		
+
 		<div class="modal-footer">
 			<button class="cancel-btn" (click)="closeLinkModal()" [disabled]="linkLoading">
 				Cancel
@@ -222,26 +213,22 @@
 </div>
 
 <!-- AI Analysis Modal -->
-<div class="modal-overlay" *ngIf="showAiModal" (click)="closeAiAnalysisModal()" (keydown.escape)="closeAiAnalysisModal()">
-	<div class="modal-content ai-modal" [class.ai-has-result]="aiAnalysis && !aiAnalysisLoading" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+<div class="modal-overlay" *ngIf="showAiModal" (click)="closeAiAnalysisModal()"
+	(keydown.escape)="closeAiAnalysisModal()">
+	<div class="modal-content ai-modal" [class.ai-has-result]="aiAnalysis && !aiAnalysisLoading"
+		(click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>AI Analysis</h2>
 			<button class="close-btn" (click)="closeAiAnalysisModal()">&times;</button>
 		</div>
-		
+
 		<div class="modal-body">
 			<!-- Configuration Section -->
 			<div class="ai-config" *ngIf="!aiAnalysis && !aiAnalysisLoading">
 				<div class="form-group" style="margin-bottom: 1rem;">
 					<label for="matchCount">Number of Matches:</label>
-					<input 
-						type="number" 
-						id="matchCount" 
-						[(ngModel)]="aiMatchCount" 
-						min="10" 
-						max="10"
-						placeholder="10"
-					/>
+					<input type="number" id="matchCount" [(ngModel)]="aiMatchCount" min="10" max="10"
+						placeholder="10" />
 				</div>
 				<small style="color: var(--text-secondary)">Due to rate limits only 10 matches are analyzed</small>
 				<div style="margin-top: 20px;">
@@ -250,19 +237,19 @@
 					</button>
 				</div>
 			</div>
-			
+
 			<!-- Loading State -->
 			<div class="ai-loading" *ngIf="aiAnalysisLoading">
 				<div class="spinner"></div>
 				<p>Analyzing your last {{ aiMatchCount }} matches...</p>
 				<p class="loading-subtitle">This may take a few seconds</p>
 			</div>
-			
+
 			<!-- Error State -->
 			<div *ngIf="aiAnalysisError" class="error-message">
 				{{ aiAnalysisError }}
 			</div>
-			
+
 			<!-- Analysis Result -->
 			<div class="ai-result" *ngIf="aiAnalysis && !aiAnalysisLoading">
 				<div class="analysis-meta">
@@ -272,10 +259,59 @@
 				<div class="analysis-content" [innerHTML]="aiAnalysis | markdownToHtml"></div>
 			</div>
 		</div>
-		
+
 		<div class="modal-footer" *ngIf="!aiAnalysisLoading">
 			<button class="cancel-btn" (click)="closeAiAnalysisModal()">
 				Close
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- Profile Edit Modal -->
+<div class="modal-overlay" *ngIf="showProfileModal" (click)="closeProfileModal()"
+	(keydown.escape)="closeProfileModal()">
+	<div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Edit Profile</h2>
+			<button class="close-btn" (click)="closeProfileModal()">&times;</button>
+		</div>
+
+		<div class="modal-body">
+			<div class="form-group">
+				<label for="editEmail">Email</label>
+				<input type="email" id="editEmail" [(ngModel)]="profileForm.email"
+					[placeholder]="stats?.email || 'Enter email'" />
+			</div>
+
+			<div class="form-group">
+				<label for="editPassword">New Password (leave blank to keep current)</label>
+				<input type="password" id="editPassword" [(ngModel)]="profileForm.password"
+					placeholder="New password" />
+			</div>
+
+			<div class="form-group">
+				<label for="confirmPassword">Confirm New Password</label>
+				<input type="password" id="confirmPassword" [(ngModel)]="profileForm.confirmPassword"
+					placeholder="Confirm new password" />
+			</div>
+
+			<div *ngIf="profileError" class="error-message">
+				{{ profileError }}
+			</div>
+
+			<div *ngIf="profileSuccess" class="success-message">
+				{{ profileSuccess }}
+			</div>
+		</div>
+
+		<div class="modal-footer">
+			<button class="cancel-btn" (click)="closeProfileModal()" [disabled]="profileLoading">
+				Cancel
+			</button>
+			<button class="submit-btn" (click)="updateProfile()" [disabled]="profileLoading">
+				<span *ngIf="!profileLoading">Save Changes</span>
+				<span *ngIf="profileLoading">Saving...</span>
 			</button>
 		</div>
 	</div>

@@ -15,6 +15,10 @@ export class AuthService {
   public readonly isAuthenticated$ = this.authState.asObservable();
   private currentUser: { username?: string; roles?: string[] } | null = null;
 
+  getUsername(): string | undefined {
+    return this.currentUser?.username;
+  }
+
   isAdmin(): boolean {
     return !!this.currentUser && 
            Array.isArray(this.currentUser.roles) && 

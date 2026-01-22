@@ -1,2 +1,4 @@
 // Base API URL used by services. Change if your backend API base differs.
-export const API_URL = 'https://localhost:443/api/v1';
+// In production/docker, nginx proxies /api/* to backend service
+// In development, angular proxy.conf.json handles the proxy
+export const API_URL = '/api/v1';

@@ -1,0 +1,35 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Outputs
+outputs.txt
+terraform-outputs.txt
+
+# Backup files
+*.backup
+*.bak
+
+# SSH Keys
+*.pem
+*.key
+id_rsa*
+authorized_keys
+
+# Secrets
+secrets-real.yaml
+*-secrets.yaml
+.env
+.env.local
+
+# OCI Config
+.oci/

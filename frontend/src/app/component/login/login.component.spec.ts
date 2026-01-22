@@ -322,6 +322,41 @@ describe('LoginComponent - Unit Tests', () => {
       expect(mockAuthService.register).not.toHaveBeenCalled();
     });
 
+    it('should not register with invalid email', () => {
+      component.registerForm.patchValue({
+        email: 'invalid-email'
+      });
+      
+      // Force form to be invalid
+      expect(component.registerForm.valid).toBeFalse();
+      
+      component.onRegister();
+      
+      expect(mockAuthService.register).not.toHaveBeenCalled();
+      expect(component.message).toEqual({
+        type: 'error',
+        text: 'Please enter a valid email address.'
+      });
+    });
+
+    it('should not register with short password', () => {
+      component.registerForm.patchValue({
+        password: '123',
+        confirmPassword: '123'
+      });
+      
+      // Force form to be invalid
+      expect(component.registerForm.valid).toBeFalse();
+      
+      component.onRegister();
+      
+      expect(mockAuthService.register).not.toHaveBeenCalled();
+      expect(component.message).toEqual({
+        type: 'error',
+        text: 'Password must be at least 6 characters long.'
+      });
+    });
+
     it('should handle registration conflict error', () => {
       // Arrange
       const error = { status: 409 };

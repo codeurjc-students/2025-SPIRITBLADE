@@ -1,0 +1,152 @@
+# Docker Compose for SEPARATED architecture (backend + frontend)
+# Use this for testing the K8s deployment architecture locally
+
+services:
+  # Backend Service (Spring Boot API)
+  backend:
+    env_file:
+      - .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    image: ${DOCKER_USERNAME:-jae9104}/spiritblade-backend:${VERSION:-latest}
+    container_name: spiritblade-backend-separated
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_PORT: "6379"
+      SERVER_PORT: "443"
+      SERVER_SSL_ENABLED: "${SERVER_SSL_ENABLED:-true}"
+      SERVER_SSL_KEY_STORE_PASSWORD: "${SSL_PASSWORD}"
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_EXPIRATION: "${JWT_EXPIRATION:-86400000}"
+      RIOT_API_KEY: "${RIOT_API_KEY}"
+      GOOGLE_AI_API_KEY: "${GOOGLE_AI_API_KEY}"
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME:-spiritblade-uploads}"
+      LOGGING_LEVEL_COM_TFG_TFG: "INFO"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: "WARN"
+      LOGGING_LEVEL_ORG_HIBERNATE: "WARN"
+    ports:
+      - "443:443"
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # Frontend Service (Angular + Nginx proxy)
+  frontend:
+    env_file:
+      - .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: ${DOCKER_USERNAME:-jae9104}/spiritblade-frontend:${VERSION:-latest}
+    container_name: spiritblade-frontend-separated
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8444:443"
+      - "8080:80"
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--no-check-certificate", "https://localhost:443/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # MySQL Database
+  mysql:
+    env_file:
+      - .env
+    image: mysql:8.0
+    container_name: spiritblade-mysql-separated
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-spiritblade}
+    volumes:
+      - mysql_data_separated:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-1234}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: spiritblade-redis-separated
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # MinIO Object Storage
+  minio:
+    env_file:
+      - .env
+    image: minio/minio:latest
+    container_name: spiritblade-minio-separated
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - minio_data_separated:/data
+    networks:
+      - spiritblade-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  mysql_data_separated:
+    driver: local
+  minio_data_separated:
+    driver: local
+
+networks:
+  spiritblade-network:
+    driver: bridge

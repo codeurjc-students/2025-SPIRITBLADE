@@ -164,6 +164,7 @@
 									<span class="col-cs">CS</span>
 									<span class="col-gold">Gold</span>
 									<span class="col-damage">Damage</span>
+									<span class="col-vision">Vision</span>
 								</div>
 								
 								<div class="participant-row" *ngFor="let participant of team.participants">
@@ -200,6 +201,9 @@
 									
 									<div class="col-damage">
 										{{ getFormattedDamage(participant.totalDamageDealtToChampions) }}
+									</div>
+									<div class="col-vision">
+										{{ participant.visionScore || 0 }}
 									</div>
 								</div>
 							</div>
