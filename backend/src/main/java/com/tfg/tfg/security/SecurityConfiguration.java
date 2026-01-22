@@ -56,7 +56,13 @@ public class SecurityConfiguration {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
-		config.setAllowedOrigins(List.of("http://localhost:4200", "https://localhost:4200"));
+		config.setAllowedOrigins(List.of(
+			"http://localhost:4200",   // Angular dev server
+			"https://localhost:4200",  // Angular dev server (HTTPS)
+			"https://localhost:8444",  // Frontend container (docker-compose)
+			"http://localhost:8080",   // Frontend container (HTTP redirect)
+			"https://localhost:443"    // Production frontend
+		));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setMaxAge(3600L);

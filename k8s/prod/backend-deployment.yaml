@@ -7,7 +7,7 @@ metadata:
     app: backend
     environment: prod
 spec:
-  replicas: 2 # High Availability for Prod
+  replicas: 1 # Reduced for free tier (2 OCPUs total)
   selector:
     matchLabels:
       app: backend
@@ -18,17 +18,17 @@ spec:
     spec:
       containers:
       - name: app
-        # Multi-arch image supporting linux/amd64 and linux/arm64
-        image: jae9104/spiritblade:latest
+        # Multi-arch backend-only image supporting linux/amd64 and linux/arm64
+        image: jae9104/spiritblade-backend:latest
         ports:
         - containerPort: 443
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "512Mi"
+            cpu: "300m"
           limits:
-            memory: "2Gi"
-            cpu: "1500m"
+            memory: "1Gi"
+            cpu: "800m"
         env:
         - name: SPRING_DATASOURCE_URL
           # Connects to the Internal IP of the MySQL Compute Instance
@@ -79,13 +79,6 @@ spec:
             secretKeyRef:
               name: spiritblade-secrets
               key: ssl-password
-        resources:
-          requests:
-            memory: "1Gi" # Generous limits because OCI Ampere is huge
-            cpu: "500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
         livenessProbe:
           exec:
             command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]
@@ -113,5 +106,4 @@ spec:
     targetPort: 443
     protocol: TCP
     name: https
-  type: ClusterIP
   type: ClusterIP

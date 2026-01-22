@@ -7,7 +7,7 @@ metadata:
     app: frontend
     environment: prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -18,27 +18,29 @@ spec:
     spec:
       containers:
       - name: web
-        # Multi-arch image supporting linux/amd64 and linux/arm64
-        image: jae9104/spiritblade:latest
+        # Multi-arch frontend-only image (Angular + nginx) supporting linux/amd64 and linux/arm64
+        image: jae9104/spiritblade-frontend:latest
         ports:
-        - containerPort: 80
+        - containerPort: 443
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "200m"
+            memory: "256Mi"
+            cpu: "150m"
           limits:
-            memory: "1Gi"
-            cpu: "1000m"
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           httpGet:
             path: /
-            port: 80
+            port: 443
+            scheme: HTTPS
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
-            port: 80
+            port: 443
+            scheme: HTTPS
           initialDelaySeconds: 10
           periodSeconds: 5
 ---
@@ -52,6 +54,6 @@ spec:
   selector:
     app: frontend
   ports:
-  - port: 80
-    targetPort: 80
-    nodePort: 30080  # Acceso vía <NODE_PUBLIC_IP>:30080
+  - port: 443
+    targetPort: 443
+    nodePort: 30443  # Acceso vía <NODE_PUBLIC_IP>:30443 (HTTPS)
