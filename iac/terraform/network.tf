@@ -193,6 +193,16 @@ resource "oci_core_security_list" "private" {
     protocol = "all"
     source   = var.vcn_cidr
   }
+
+  # Ingress: NodePort range desde internet (para servicios expuestos)
+  ingress_security_rules {
+    protocol = "6" # TCP
+    source   = "0.0.0.0/0"
+    tcp_options {
+      min = 30000
+      max = 32767
+    }
+  }
 }
 
 # ==============================================================================
@@ -228,7 +238,7 @@ resource "oci_core_subnet" "nodes" {
   compartment_id             = var.compartment_ocid
   vcn_id                     = oci_core_vcn.main.id
   display_name               = "${var.project_name}-nodes-subnet"
-  route_table_id             = oci_core_route_table.private.id # CRÍTICO: Service Gateway + NAT para registro OKE
+  route_table_id             = oci_core_route_table.public.id # CAMBIO: Usar ruta pública para permitir NodePort externo
   security_list_ids          = [oci_core_security_list.private.id]
   dns_label                  = "nodes"
   prohibit_public_ip_on_vnic = false # Cambiar a true para producción

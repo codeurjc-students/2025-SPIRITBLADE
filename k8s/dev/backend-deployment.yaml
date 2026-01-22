@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: spiritblade-backend:dev
-        imagePullPolicy: IfNotPresent
+        image: jae9104/spiritblade-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 443
           name: https
@@ -82,10 +82,10 @@ spec:
         resources:
           requests:
             memory: "512Mi"
-            cpu: "250m"
+            cpu: "300m"
           limits:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "1Gi"
+            cpu: "800m"
         livenessProbe:
           exec:
             command: ["curl", "-k", "-f", "https://localhost:443/actuator/health"]

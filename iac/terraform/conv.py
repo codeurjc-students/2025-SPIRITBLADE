@@ -1,4 +1,4 @@
-#!/bin/bash
+content = b"""#!/bin/bash
 # ==============================================================================
 # Script de inicializacion para MySQL en Oracle Linux ARM64
 # ==============================================================================
@@ -61,3 +61,7 @@ mysql -u root <<-MYSQL_SCRIPT
 MYSQL_SCRIPT
 
 echo 'DONE'
+"""
+
+with open('d:\\tfg\\2025-SPIRITBLADE\\iac\\terraform\\mysql-init.sh', 'wb') as f:
+    f.write(content)

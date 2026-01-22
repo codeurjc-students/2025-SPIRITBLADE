@@ -16,7 +16,7 @@ resource "oci_core_instance" "mysql_instance" {
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.database.id
-    assign_public_ip = true # Para acceso inicial, puede eliminarse después
+    assign_public_ip = false # Sin IP pública - solo acceso interno desde VCN
     nsg_ids          = [oci_core_network_security_group.mysql_nsg.id]
     hostname_label   = "mysql"
   }
@@ -68,12 +68,12 @@ resource "oci_core_network_security_group_security_rule" "mysql_ingress_from_vcn
   }
 }
 
-# Permitir SSH para administración
+# Permitir SSH para administración solo desde la VCN
 resource "oci_core_network_security_group_security_rule" "mysql_ssh" {
   network_security_group_id = oci_core_network_security_group.mysql_nsg.id
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
-  source                    = "0.0.0.0/0" # CAMBIAR en producción a IP específica
+  source                    = var.vcn_cidr # Solo desde dentro de la VCN
   source_type               = "CIDR_BLOCK"
   
   tcp_options {

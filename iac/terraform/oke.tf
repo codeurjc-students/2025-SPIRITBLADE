@@ -113,6 +113,23 @@ resource "oci_core_network_security_group_security_rule" "node_icmp" {
   source_type               = "CIDR_BLOCK"
 }
 
+# Permitir NodePort range desde internet (para servicios expuestos)
+resource "oci_core_network_security_group_security_rule" "node_nodeport" {
+  network_security_group_id = oci_core_network_security_group.node_nsg.id
+  direction                 = "INGRESS"
+  protocol                  = "6" # TCP
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  
+  tcp_options {
+    destination_port_range {
+      min = 30000
+      max = 32767
+    }
+  }
+  description = "Allow NodePort traffic from internet"
+}
+
 # CRÍTICO: Permitir EGRESS a Internet para registro de nodos
 resource "oci_core_network_security_group_security_rule" "node_egress_internet" {
   network_security_group_id = oci_core_network_security_group.node_nsg.id
