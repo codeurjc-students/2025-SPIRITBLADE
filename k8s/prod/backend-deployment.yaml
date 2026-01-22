@@ -59,11 +59,6 @@ spec:
               key: oci-storage-secret-key
         - name: MINIO_BUCKET_NAME
           value: "spiritblade-bucket"
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: spiritblade-secrets
-              key: jwt-secret
         - name: RIOT_API_KEY
           valueFrom:
             secretKeyRef:
@@ -74,7 +69,12 @@ spec:
             secretKeyRef:
               name: spiritblade-secrets
               key: google-ai-api-key
-        - name: SSL_PASSWORD
+        - name: SERVER_SSL_KEY_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spiritblade-secrets
+              key: ssl-password
+        - name: SERVER_SSL_KEY_PASSWORD
           valueFrom:
             secretKeyRef:
               name: spiritblade-secrets
