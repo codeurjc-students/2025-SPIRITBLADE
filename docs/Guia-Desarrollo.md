@@ -83,9 +83,29 @@ La aplicación está compuesta por tres componentes principales:
 **Git** - Sistema de control de versiones distribuido para el seguimiento del código fuente.
 - URL oficial: https://git-scm.com/
 
+**Docker** - Plataforma de contenedores para asegurar consistencia entre desarrollo y producción.
+- URL oficial: https://www.docker.com/
+
+**Terraform** - Infraestructura como Código (IaC) utilizada para provisionar y gestionar todo el entorno de Oracle Cloud de forma automatizada.
+- URL oficial: https://www.terraform.io/
+
+**Kubernetes (OCI OKE)** - Orquestador de contenedores para gestionar la aplicación en producción con alta disponibilidad.
+- URL oficial: https://kubernetes.io/
+
 ---
 
 ## Arquitectura
+
+### Arquitectura de Producción (Cloud)
+
+En el entorno de producción (Oracle Cloud), la arquitectura evoluciona para aprovechar la nube nativa:
+
+- **Infraestructura**: Cluster Kubernetes (OKE) sobre nodos ARM Ampere A1 (4 OCPUs, 24GB RAM total).
+- **Base de Datos**: Instancia Compute independiente con MySQL 8, optimizada para persistencia y rendimiento.
+- **Almacenamiento**: OCI Object Storage (S3 Compatible) para la gestión segura de archivos.
+- **Red**: Virtual Cloud Network (VCN) con segmentación de subredes públicas (LB) y privadas (App/DB).
+
+Para detalles técnicos sobre el despliegue, ver [Guía de Despliegue en Cloud](Despliegue-Cloud.md).
 
 ### Modelo de Dominio
 
@@ -542,6 +562,31 @@ Informes de cobertura:
 - Backend: `backend/target/site/jacoco/index.html`
 - Frontend: `frontend/coverage/index.html`
 
+
+---
+
+### Estructura de Proyecto Kubernetes
+
+Para gestionar tanto el desarrollo local como el despliegue en producción sobre Oracle Cloud (OKE), el proyecto mantiene estructuras de manifiestos separadas.
+
+Ubicación: `k8s/` del repositorio.
+
+#### Entorno de Desarrollo (`k8s/dev/`)
+Diseñado para probar el despliegue completo en un cluster local (Docker Desktop / Minikube).
+- **Enfoque Full-Stack**: Incluye TODOS los servicios necesarios dentro del cluster como Pods.
+- **Contenido**:
+    - `mysql-deployment.yaml`: Base de datos MySQL en un Pod efímero.
+    - `minio-deployment.yaml`: Servicio de almacenamiento de objetos emulado local.
+    - `backend-deployment.yaml` / `frontend-deployment.yaml`: Aplicación principal.
+    - Scripts de utilidad: `deploy.ps1` (Windows) y `deploy.sh` (Linux) para despliegue en un clic.
+
+#### Entorno de Producción (`k8s/prod/`)
+Optimizado para despliegue en **Oracle Container Engine for Kubernetes (OKE)**.
+- **Enfoque Cloud-Native**: Delega el almacenamiento y la base de datos a servicios externos gestionados o instancias dedicadas.
+- **Diferencias Clave**:
+    - **No hay MySQL Deployment**: Se usa `mysql-external-service.yaml` para conectar con la VM de Base de Datos en la red privada.
+    - **No hay MinIO Deployment**: Se conecta directamente con **OCI Object Storage** (S3 Compatible) mediante secretos.
+    - **Secretos Reales**: Utiliza `secrets.yaml` para gestionar credenciales de producción (API Keys, DB Passwords).
 
 ---
 

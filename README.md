@@ -99,7 +99,8 @@ El video demostrativo muestra las funcionalidades clave de SPIRITBLADE, incluyen
 
 ### Documentación Principal
 - **[Funcionalidades](docs/Funcionalidades.md)** - Lista completa de funcionalidades implementadas y su descripción
-- **[Ejecución](docs/Ejecucion.md)** - Instrucciones para ejecutar la aplicación con Docker
+- **[Ejecución](docs/Ejecucion.md)** - Instrucciones para ejecutar la aplicación localmente
+- **[Despliegue Cloud](docs/Despliegue-Cloud.md)** - Guía completa de infraestructura y despliegue en Oracle Cloud
 - **[Guía de Desarrollo](docs/Guia-Desarrollo.md)** - Guía técnica completa para desarrolladores
 
 ### Documentación de Gestión
