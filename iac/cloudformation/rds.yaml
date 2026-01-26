@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'SPIRITBLADE RDS MySQL Instance'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: spiritblade-dev
+    Description: Environment name
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    Description: RDS Instance Class
+  DBName:
+    Type: String
+    Default: spiritblade
+    Description: Database Name
+  DBUser:
+    Type: String
+    Default: admin
+    Description: Database User
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Database Password
+
+Resources:
+  # Security Group for RDS
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow MySQL access from within VPC
+      VpcId: !ImportValue 
+        'Fn::Sub': '${EnvironmentName}-VPCId'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.0.0.0/16 # Allow from VPC CIDR
+
+  # DB Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds: !Split [",", !ImportValue 
+          'Fn::Sub': '${EnvironmentName}-PrivateSubnets']
+
+  # RDS Instance
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${EnvironmentName}-mysql
+      Engine: mysql
+      EngineVersion: '8.0'
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: 20
+      StorageType: gp2
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+      MultiAZ: false # False for dev to save costs
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 7
+      DeleteAutomatedBackups: true
+      SkipFinalSnapshot: true # For dev only
+
+Outputs:
+  DBEndpoint:
+    Description: RDS Endpoint
+    Value: !GetAtt DBInstance.Endpoint.Address
+    Export:
+      Name: !Sub ${EnvironmentName}-DBEndpoint
+  DBPort:
+    Description: RDS Port
+    Value: !GetAtt DBInstance.Endpoint.Port
+    Export:
+      Name: !Sub ${EnvironmentName}-DBPort

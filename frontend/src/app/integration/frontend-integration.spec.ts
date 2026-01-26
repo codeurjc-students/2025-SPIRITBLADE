@@ -47,7 +47,8 @@ describe('Frontend Integration Tests', () => {
   describe('API Connectivity', () => {
     it('should have correct API base URL configured', () => {
       expect(API_URL).toBeDefined();
-      expect(API_URL).toContain('http');
+      // API_URL can be relative (for nginx proxy) or absolute URL
+      expect(API_URL).toMatch(/^(https?:\/\/|\/)/);
     });
 
     it('should inject all services without errors', () => {

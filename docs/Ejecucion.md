@@ -1,6 +1,9 @@
 # Ejecución - SPIRITBLADE
 
-Este documento proporciona instrucciones detalladas para ejecutar la aplicación SPIRITBLADE usando Docker, partiendo de las imágenes publicadas en Docker Hub.
+Este documento proporciona instrucciones detalladas para ejecutar la aplicación SPIRITBLADE localmente usando Docker.
+
+> **¿Buscas desplegar en producción?**  
+> Para el despliegue en Kubernetes sobre Oracle Cloud, consulta la guía dedicada: [Despliegue en Cloud](Despliegue-Cloud.md).
 
 ---
 
@@ -183,5 +186,6 @@ keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
 ## Documentación adicional
 
 - [Guía de desarrollo](Guia-Desarrollo.md)
+- [Despliegue en Kubernetes (Nube Gratuita)](Despliegue-Kubernetes.md)
 - [API REST](API.md)
 

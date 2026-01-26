@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'SPIRITBLADE EKS Cluster and Node Group'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: spiritblade-dev
+    Description: Environment name
+  EKSClusterVersion:
+    Type: String
+    Default: '1.29'
+    Description: Kubernetes version
+  NodeInstanceType:
+    Type: String
+    Default: t3.medium
+    Description: EC2 instance type for nodes
+  NodeGroupDesiredSize:
+    Type: Number
+    Default: 2
+    Description: Desired number of nodes
+  NodeGroupMaxSize:
+    Type: Number
+    Default: 3
+    Description: Max number of nodes
+  NodeGroupMinSize:
+    Type: Number
+    Default: 1
+    Description: Min number of nodes
+
+Resources:
+  # EKS Cluster Role
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+  # EKS Cluster
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Sub ${EnvironmentName}-cluster
+      Version: !Ref EKSClusterVersion
+      RoleArn: !GetAtt EKSClusterRole.Arn
+      ResourcesVpcConfig:
+        SubnetIds: !Split [",", !ImportValue 
+          'Fn::Sub': '${EnvironmentName}-PrivateSubnets']
+        EndpointPublicAccess: true # Allow access from internet for dev convenience
+        EndpointPrivateAccess: true
+    DependsOn: EKSClusterRole
+
+  # Node Group Role
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+  # Node Group
+  EKSNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      Subnets: !Split [",", !ImportValue 
+          'Fn::Sub': '${EnvironmentName}-PrivateSubnets']
+      InstanceTypes:
+        - !Ref NodeInstanceType
+      ScalingConfig:
+        DesiredSize: !Ref NodeGroupDesiredSize
+        MaxSize: !Ref NodeGroupMaxSize
+        MinSize: !Ref NodeGroupMinSize
+    DependsOn: EKSCluster
+
+Outputs:
+  ClusterName:
+    Description: EKS Cluster Name
+    Value: !Ref EKSCluster
+    Export:
+      Name: !Sub ${EnvironmentName}-ClusterName
+  ClusterEndpoint:
+    Description: EKS Cluster Endpoint
+    Value: !GetAtt EKSCluster.Endpoint
+    Export:
+      Name: !Sub ${EnvironmentName}-ClusterEndpoint
