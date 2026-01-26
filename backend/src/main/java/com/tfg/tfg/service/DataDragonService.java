@@ -22,7 +22,7 @@ public class DataDragonService {
     private static final Logger logger = LoggerFactory.getLogger(DataDragonService.class);
 
     // Data Dragon version - update periodically or fetch dynamically
-    private static final String DATA_DRAGON_VERSION = "15.22.1";
+    private static final String DATA_DRAGON_VERSION = "15.24.1";
     private static final String DATA_DRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
     private static final String CDN_BASE = DATA_DRAGON_BASE_URL + "/cdn/" + DATA_DRAGON_VERSION;
     private static final String CHAMPION_JSON_URL = CDN_BASE + "/data/en_US/champion.json";

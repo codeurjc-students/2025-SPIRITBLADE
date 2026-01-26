@@ -12,12 +12,14 @@ public class MatchHistoryDTO {
     private Long gameTimestamp;
     private Integer lpAtMatch; // Approximate LP at this match (calculated)
     private Integer queueId; // 420=Solo/Duo, 440=Flex, etc.
+    private Integer visionScore;
 
-    public MatchHistoryDTO() {}
+    public MatchHistoryDTO() {
+    }
 
-    public MatchHistoryDTO(String matchId, String championName, Boolean win, 
-                          Integer kills, Integer deaths, Integer assists, 
-                          Long gameDuration, Long gameTimestamp) {
+    public MatchHistoryDTO(String matchId, String championName, Boolean win,
+            Integer kills, Integer deaths, Integer assists,
+            Long gameDuration, Long gameTimestamp) {
         this.matchId = matchId;
         this.championName = championName;
         this.win = win;
@@ -117,12 +119,21 @@ public class MatchHistoryDTO {
         this.queueId = queueId;
     }
 
+    public Integer getVisionScore() {
+        return visionScore;
+    }
+
+    public void setVisionScore(Integer visionScore) {
+        this.visionScore = visionScore;
+    }
+
     public String getKda() {
         return kills + "/" + deaths + "/" + assists;
     }
 
     public String getFormattedDuration() {
-        if (gameDuration == null) return "0m";
+        if (gameDuration == null)
+            return "0m";
         long minutes = gameDuration / 60;
         return minutes + "m";
     }

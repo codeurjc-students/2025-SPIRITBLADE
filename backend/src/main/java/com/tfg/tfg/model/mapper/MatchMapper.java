@@ -21,7 +21,8 @@ public final class MatchMapper {
 
     /**
      * Convert MatchHistoryDTO to MatchEntity
-     * @param dto The DTO to convert
+     * 
+     * @param dto      The DTO to convert
      * @param summoner The summoner entity
      * @return New MatchEntity
      */
@@ -31,13 +32,15 @@ public final class MatchMapper {
 
     /**
      * Convert MatchHistoryDTO to MatchEntity, updating existing entity if provided
+     * 
      * @param existing Existing entity to update, or null to create new
-     * @param dto The DTO to convert
+     * @param dto      The DTO to convert
      * @param summoner The summoner entity
      * @return MatchEntity (updated or new)
      */
     public static MatchEntity toEntity(MatchEntity existing, MatchHistoryDTO dto, Summoner summoner) {
-        if (dto == null) return null;
+        if (dto == null)
+            return null;
 
         MatchEntity entity = existing != null ? existing : new MatchEntity();
 
@@ -48,12 +51,13 @@ public final class MatchMapper {
         entity.setKills(dto.getKills() != null ? dto.getKills() : 0);
         entity.setDeaths(dto.getDeaths() != null ? dto.getDeaths() : 0);
         entity.setAssists(dto.getAssists() != null ? dto.getAssists() : 0);
+        entity.setVisionScore(dto.getVisionScore());
         entity.setGameDuration(dto.getGameDuration());
         entity.setQueueId(dto.getQueueId());
 
         if (dto.getGameTimestamp() != null) {
             entity.setTimestamp(LocalDateTime.ofEpochSecond(
-                dto.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
+                    dto.getGameTimestamp(), 0, java.time.ZoneOffset.UTC));
         }
 
         return entity;
@@ -61,14 +65,16 @@ public final class MatchMapper {
 
     /**
      * Convert MatchEntity to MatchHistoryDTO
-     * @param entity The entity to convert
-     * @param dataDragonService Service for champion icon URLs
+     * 
+     * @param entity             The entity to convert
+     * @param dataDragonService  Service for champion icon URLs
      * @param rankHistoryService Service for LP data
      * @return MatchHistoryDTO
      */
-    public static MatchHistoryDTO toDTO(MatchEntity entity, DataDragonService dataDragonService, 
-                                       RankHistoryService rankHistoryService) {
-        if (entity == null) return null;
+    public static MatchHistoryDTO toDTO(MatchEntity entity, DataDragonService dataDragonService,
+            RankHistoryService rankHistoryService) {
+        if (entity == null)
+            return null;
 
         MatchHistoryDTO dto = new MatchHistoryDTO();
         dto.setMatchId(entity.getMatchId());
@@ -77,9 +83,10 @@ public final class MatchMapper {
         dto.setKills(entity.getKills());
         dto.setDeaths(entity.getDeaths());
         dto.setAssists(entity.getAssists());
+        dto.setVisionScore(entity.getVisionScore());
         dto.setGameDuration(entity.getGameDuration());
-        dto.setGameTimestamp(entity.getTimestamp() != null ? 
-            entity.getTimestamp().toEpochSecond(ZoneOffset.UTC) : null);
+        dto.setGameTimestamp(
+                entity.getTimestamp() != null ? entity.getTimestamp().toEpochSecond(ZoneOffset.UTC) : null);
         dto.setQueueId(entity.getQueueId());
 
         // Load LP from RankHistory if available

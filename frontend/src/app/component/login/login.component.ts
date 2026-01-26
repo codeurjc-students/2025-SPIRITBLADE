@@ -26,7 +26,7 @@ export class LoginComponent {
   registerForm = this.fb.group({
     username: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
+    password: ['', [Validators.required, Validators.minLength(6)]],
     confirmPassword: ['', Validators.required]
   });
   
@@ -90,6 +90,23 @@ export class LoginComponent {
   }
 
   onRegister() {
+    if (this.registerForm.invalid) {
+      if (this.registerForm.get('username')?.hasError('required')) {
+        this.message = { type: 'error', text: 'Username is required.' };
+      } else if (this.registerForm.get('email')?.hasError('required')) {
+        this.message = { type: 'error', text: 'Email is required.' };
+      } else if (this.registerForm.get('email')?.hasError('email')) {
+        this.message = { type: 'error', text: 'Please enter a valid email address.' };
+      } else if (this.registerForm.get('password')?.hasError('required')) {
+        this.message = { type: 'error', text: 'Password is required.' };
+      } else if (this.registerForm.get('password')?.hasError('minlength')) {
+        this.message = { type: 'error', text: 'Password must be at least 6 characters long.' };
+      } else if (this.registerForm.get('confirmPassword')?.hasError('required')) {
+        this.message = { type: 'error', text: 'Confirm Password is required.' };
+      }
+      return;
+    }
+
     if (this.registerForm.valid) {
       const password = this.registerForm.get('password')?.value ?? '';
       const confirm = this.registerForm.get('confirmPassword')?.value ?? '';

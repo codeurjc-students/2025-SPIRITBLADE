@@ -20,6 +20,10 @@ export class UserService {
     return this.http.get<User>(`${API_URL}/users/me`);
   }
 
+  updateProfile(updates: any): Observable<User> {
+    return this.http.put<User>(`${API_URL}/users/me`, updates);
+  }
+
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${API_URL}/admin/users`);
   }
@@ -72,7 +76,7 @@ export class UserService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<UploadAvatarResponseDto>(
-      `${API_URL}/users/avatar`, 
+      `${API_URL}/users/avatar`,
       formData
     );
   }

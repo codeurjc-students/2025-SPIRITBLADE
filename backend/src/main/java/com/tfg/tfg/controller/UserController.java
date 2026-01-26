@@ -26,6 +26,7 @@ import com.tfg.tfg.service.UserService;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -67,7 +68,7 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<Object> updateMyProfile(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<Object> updateMyProfile(@Valid @RequestBody UserDTO userDTO) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(401).build();

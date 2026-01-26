@@ -24,7 +24,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	private userService = inject(UserService);
 
 	@ViewChild('lpChartCanvas', { static: false }) lpChartCanvas!: ElementRef<HTMLCanvasElement>;
-	
+
 	private lpChart: Chart | null = null;
 
 	loading = false;
@@ -33,16 +33,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	favoritesLoading = false;
 	favoritesError: string | null = null;
 	error: string | null = null;
-	
+
 	// Match history data
 	allMatches: MatchHistory[] = [];
 	rankedMatches: MatchHistory[] = [];
 	matchesLoading = false;
 	matchesError: string | null = null;
-	
+
 	// Queue filter (420 = Solo/Duo, 440 = Flex, null = All)
 	selectedQueue: number | null = 420; // Default to Solo/Duo
-	
+
 	// Chart data
 	chartLoading = false;
 	chartError: string | null = null;
@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	linkSuccess: string | null = null;
 	summonerName = '';
 	selectedRegion = 'EUW';
-	
+
 	// Linked summoner info
 	linkedSummoner: any = null;
 	linkedSummonerLoading = false;
@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.chartLoading = true;
 		this.chartError = null;
 		this.matchesLoading = true;
-		
+
 		this.dashboardService.getRankedMatches(0, 30, this.selectedQueue).subscribe({
 			next: (matches) => {
 				this.rankedMatches = matches;
@@ -226,14 +226,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				cumulativeLP = match.lpAtMatch || 0;
 				return cumulativeLP;
 			}
-			
+
 			const prevMatch = sortedMatches[index - 1];
 			const prevLP = prevMatch.lpAtMatch || 0;
 			const currentLP = match.lpAtMatch || 0;
-			
+
 			// Calculate the raw LP change
 			let lpChange = currentLP - prevLP;
-			
+
 			if (Math.abs(lpChange) > 50) {
 				if (lpChange < 0) {
 					lpChange += 100;
@@ -241,7 +241,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 					lpChange -= 100;
 				}
 			}
-			
+
 			cumulativeLP += lpChange;
 			return cumulativeLP;
 		});
@@ -310,7 +310,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 							label: (context) => {
 								const index = context.dataIndex;
 								const match = sortedMatches[index];
-								
+
 								if (context.datasetIndex === 0) {
 									// Win rate dataset
 									return `Win Rate: ${(context.parsed.y || 0).toFixed(1)}%`;
@@ -418,12 +418,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 						this.lpChart.destroy();
 						this.lpChart = null;
 					}
+					// IMPORTANT: Load stats even without linked account to show username
+					this.refresh();
 				}
 				this.linkedSummonerLoading = false;
 			},
 			error: (err) => {
 				console.error('Failed to load linked summoner', err);
 				this.linkedSummonerLoading = false;
+				// Load stats even on error to show username
+				this.refresh();
 			}
 		});
 	}
@@ -458,17 +462,17 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		}
 
 		const input = this.summonerName.trim();
-		
+
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
 			this.linkError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
-		
+
 		const parts = input.split('#');
 		const name = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
-		
+
 		if (!name) {
 			this.linkError = 'Please enter a valid summoner name';
 			return;
@@ -684,17 +688,17 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		}
 
 		const input = this.addFavoriteName.trim();
-		
+
 		// Validate format: nombre#región
 		if (!input.includes('#')) {
 			this.addFavoriteError = 'Please use format: name#region (e.g., jae9104#NA)';
 			return;
 		}
-		
+
 		const parts = input.split('#');
 		const summonerName = parts[0].trim();
 		const region = parts[1].trim().toUpperCase();
-		
+
 		if (!summonerName) {
 			this.addFavoriteError = 'Please enter a valid summoner name';
 			return;
@@ -758,6 +762,83 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 				console.error('Failed to load favorites', err);
 				this.favoritesError = 'Failed to load favorites.';
 				this.favoritesLoading = false;
+			}
+		});
+	}
+
+	// ============================================
+	// PROFILE MANAGEMENT
+	// ============================================
+	showProfileModal = false;
+	profileLoading = false;
+	profileError: string | null = null;
+	profileSuccess: string | null = null;
+
+	profileForm = {
+		email: '',
+		password: '',
+		confirmPassword: ''
+	};
+
+	openProfileModal() {
+		this.showProfileModal = true;
+		this.profileError = null;
+		this.profileSuccess = null;
+		// Initialize email with current email if available
+		if (this.stats && this.stats.email) {
+			this.profileForm.email = this.stats.email;
+		}
+		this.profileForm.password = '';
+		this.profileForm.confirmPassword = '';
+	}
+
+	closeProfileModal() {
+		this.showProfileModal = false;
+	}
+
+	updateProfile() {
+		// Basic validation
+		const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		if (this.profileForm.email && !emailRegex.test(this.profileForm.email)) {
+			this.profileError = 'Please enter a valid email address';
+			return;
+		}
+
+		if (this.profileForm.password && this.profileForm.password.length < 6) {
+			this.profileError = 'Password must be at least 6 characters long';
+			return;
+		}
+
+		if (this.profileForm.password && this.profileForm.password !== this.profileForm.confirmPassword) {
+			this.profileError = 'Passwords do not match';
+			return;
+		}
+
+		this.profileLoading = true;
+		this.profileError = null;
+		this.profileSuccess = null;
+
+		const updates: any = {};
+		if (this.profileForm.email) updates.email = this.profileForm.email;
+		if (this.profileForm.password) updates.password = this.profileForm.password;
+
+		this.userService.updateProfile(updates).subscribe({
+			next: (res) => {
+				this.profileLoading = false;
+				this.profileSuccess = 'Profile updated successfully';
+
+				// Refresh stats to reflect changes (e.g. email)
+				this.refresh();
+
+				// Close after delay
+				setTimeout(() => {
+					this.closeProfileModal();
+				}, 1500);
+			},
+			error: (err) => {
+				this.profileLoading = false;
+				this.profileError = err.error?.message || 'Failed to update profile';
+				console.error('Profile update error:', err);
 			}
 		});
 	}

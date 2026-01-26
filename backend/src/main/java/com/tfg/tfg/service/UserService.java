@@ -31,20 +31,22 @@ public class UserService {
 
     /**
      * Get user by ID or throw exception if not found
+     * 
      * @throws UserNotFoundException if user doesn't exist
      */
     public UserModel getUserById(Long id) {
         return userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException("User with ID '" + id + "' not found"));
+                .orElseThrow(() -> new UserNotFoundException("User with ID '" + id + "' not found"));
     }
 
     /**
      * Get user by username or throw exception if not found
+     * 
      * @throws UserNotFoundException if user doesn't exist
      */
     public UserModel getUserByName(String username) {
         return userRepository.findByName(username)
-            .orElseThrow(() -> new UserNotFoundException("User '" + username + "' not found"));
+                .orElseThrow(() -> new UserNotFoundException("User '" + username + "' not found"));
     }
 
     public Optional<UserModel> findFirstUser() {
@@ -57,7 +59,7 @@ public class UserService {
 
     public Page<UserModel> findBySearch(String search, Pageable pageable) {
         return userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            search, search, pageable);
+                search, search, pageable);
     }
 
     public Page<UserModel> findByRoleAndActive(String role, Boolean active, Pageable pageable) {
@@ -85,14 +87,14 @@ public class UserService {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPass(passwordEncoder.encode(userDTO.getPassword()));
-        
+
         // Use provided roles or default to USER
         if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
             user.setRols(userDTO.getRoles());
         } else {
             user.setRols(java.util.List.of("USER"));
         }
-        
+
         user.setActive(true);
 
         return userRepository.save(user);
@@ -100,11 +102,12 @@ public class UserService {
 
     /**
      * Update user or throw exception if not found
+     * 
      * @throws UserNotFoundException if user doesn't exist
      */
     public UserModel updateUserOrThrow(Long id, UserDTO userDTO) {
         UserModel user = getUserById(id);
-        
+
         if (userDTO.getName() != null) {
             user.setName(userDTO.getName());
         }
@@ -118,7 +121,7 @@ public class UserService {
             user.setRols(userDTO.getRoles());
         }
         user.setActive(userDTO.isActive());
-        
+
         return userRepository.save(user);
     }
 
@@ -126,6 +129,9 @@ public class UserService {
         return userRepository.findByName(username).map(user -> {
             if (userDTO.getEmail() != null) {
                 user.setEmail(userDTO.getEmail());
+            }
+            if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
+                user.setPass(passwordEncoder.encode(userDTO.getPassword()));
             }
             if (userDTO.getAvatarUrl() != null) {
                 user.setAvatarUrl(userDTO.getAvatarUrl());
@@ -143,6 +149,7 @@ public class UserService {
 
     /**
      * Delete user or throw exception if not found
+     * 
      * @throws UserNotFoundException if user doesn't exist
      */
     public void deleteUserOrThrow(Long id) throws UserNotFoundException {
@@ -159,6 +166,7 @@ public class UserService {
 
     /**
      * Set user active status or throw exception if not found
+     * 
      * @throws UserNotFoundException if user doesn't exist
      */
     public UserModel setUserActiveOrThrow(Long id, boolean active) {

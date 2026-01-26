@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
+  namespace: dev
   labels:
     app: redis
+    environment: dev
 spec:
   replicas: 1
   selector:
@@ -13,32 +15,78 @@ spec:
     metadata:
       labels:
         app: redis
+        environment: dev
     spec:
       containers:
       - name: redis
         image: redis:7-alpine
-        command: ["redis-server", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
+        command: 
+          - redis-server
+          - --maxmemory
+          - "256mb"
+          - --maxmemory-policy
+          - "allkeys-lru"
         ports:
         - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           exec:
-            command: ["redis-cli", "ping"]
-          initialDelaySeconds: 10
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           exec:
-            command: ["redis-cli", "ping"]
+            command:
+            - redis-cli
+            - ping
           initialDelaySeconds: 5
           periodSeconds: 5
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: redis
+  namespace: dev
+  labels:
+    app: redis
+    environment: dev
 spec:
   selector:
     app: redis
   ports:
   - port: 6379
     targetPort: 6379
+    protocol: TCP
+    name: redis
   type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: dev
+  labels:
+    app: redis
+    environment: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

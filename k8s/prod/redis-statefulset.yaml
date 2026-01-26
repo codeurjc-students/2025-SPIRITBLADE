@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: prod
+  labels:
+    app: redis
+    environment: prod
+spec:
+  serviceName: "redis"
+  replicas: 1 # Single replica for free tier simplicity, can be scaled if needed
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command: ["redis-server", "--appendonly", "yes"] # Enable persistence
+        ports:
+        - containerPort: 6379
+          name: redis
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+  volumeClaimTemplates: # Automatically creates Persistent Volumes (Block Volume) in OCI
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi # OCI Block Volume min size is usually 50GB but k8s handles request
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  namespace: prod
+  labels:
+    app: redis
+    environment: prod
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: redis
+  clusterIP: None # Headless service for StatefulSet

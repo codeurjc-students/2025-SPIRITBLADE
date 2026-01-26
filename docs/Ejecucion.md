@@ -186,5 +186,6 @@ keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
 ## Documentación adicional
 
 - [Guía de desarrollo](Guia-Desarrollo.md)
+- [Despliegue en Kubernetes (Nube Gratuita)](Despliegue-Kubernetes.md)
 - [API REST](API.md)
 
