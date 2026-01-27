@@ -1,0 +1,39 @@
+config:
+  target: "https://localhost" # Cambiar por la IP pública del Load Balancer en producción
+  phases:
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 5
+      name: "Fase de calentamiento"
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 10
+      name: "Fase de carga sostenida"
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 30
+      name: "Pico de tráfico (Stress Test)"
+  processor: "./processor.js" # Opcional: para generar datos dinámicos
+
+scenarios:
+  - name: "Flujo de usuario anónimo"
+    flow:
+      - get:
+          url: "/"
+      - think: 2
+      - get:
+          url: "/api/v1/summoners/search?gameName=Hide%20on%20bush&tagLine=KR1"
+          capture:
+            - json: "$.puuid"
+              as: "puuid"
+      - think: 5
+      - get:
+          url: "/api/v1/summoners/profile/{{ puuid }}"
+
+  - name: "Flujo de consulta de estadísticas"
+    weight: 2
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/api/v1/dashboard/global-stats"

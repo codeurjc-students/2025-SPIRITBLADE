@@ -46,8 +46,9 @@ resource "oci_containerengine_node_pool" "node_pool" {
     }
     
     # 2 nodos para alta disponibilidad
-    size = 2
-    
+    # size = 2 (Gestionado por Autoescaler, ver abajo)
+    size = 2 # Valor inicial
+
     # Configuración de Node Security Group
     nsg_ids = [oci_core_network_security_group.node_nsg.id]
   }
@@ -57,6 +58,23 @@ resource "oci_containerengine_node_pool" "node_pool" {
     ocpus         = 1  # 1 OCPU = 2 vCPUs por nodo (2 OCPUs total)
   }
 
+  # ============================================================================
+  # CLUSTER AUTOSCALER (FASE 3 - ESCALADO DE NODOS)
+  # ============================================================================
+  # Nota sobre Free Tier: El límite total es 4 OCPUs.
+  # Uso actual: DB (1 OCPU) + Nodos (2 OCPUs) = 3 OCPUs usados.
+  # Margen disponible: 1 OCPU.
+  # Configuración: Permitir escalar hasta 3 nodos (1+1+1 = 3 OCPUs + 1 DB = 4 OCPUs).
+  # No exceder max_nodes = 3 para garantizar coste CERO.
+  # ============================================================================
+  
+  # Habilitamos el pool managed por autoscaler (propiedad simulada o via script externo en OCI OKE Básico)
+  # En Terraform provider OCI, el autoscaling se configura asi (versiones recientes):
+  # Descomentar si usas un OKE "Enhanced Cluster" (puede tener coste). 
+  # Para Basic Cluster en Free Tier, el autoscaling nativo puede ser limitado.
+  # IMPLEMENTACIÓN: Usaremos el Cluster Autoscaler estándar de K8s configurado como Deployment
+  # dentro del cluster, apuntando al Instance Pool de OCI.
+  
   node_source_details {
     source_type = "IMAGE"
     image_id    = local.oke_image_id
@@ -179,3 +197,9 @@ output "kubeconfig_setup" {
     kubectl get nodes
   EOT
 }
+
+output "nodepool_id" {
+  description = "OCID del Node Pool para el Cluster Autoscaler"
+  value       = oci_containerengine_node_pool.node_pool.id
+}
+
