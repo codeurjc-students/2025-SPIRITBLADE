@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spiritblade-ingress
+  namespace: prod
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"  # Backend usa SSL autofirmado
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - spiritblade.dev
+    - www.spiritblade.dev
+    secretName: spiritblade-tls  # cert-manager creará este secret automáticamente
+  rules:
+  - host: spiritblade.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 443
+  - host: www.spiritblade.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 443

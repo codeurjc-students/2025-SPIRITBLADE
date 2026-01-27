@@ -7,7 +7,7 @@ metadata:
     app: frontend
     environment: prod
 spec:
-  replicas: 1
+  replicas: 1 # Gestionado por HPA (min: 1, max: 3)
   selector:
     matchLabels:
       app: frontend
@@ -49,18 +49,10 @@ kind: Service
 metadata:
   name: frontend
   namespace: prod
-  annotations:
-    # OCI Load Balancer Annotations for FREE TIER
-    # Utiliza "flexible" con ancho de banda fijo de 10Mbps (mínimo y máximo)
-    # Esto entra dentro del "Always Free" de Oracle Cloud.
-    service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
-    service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
-    service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
 spec:
-  type: LoadBalancer
+  type: ClusterIP  # Cambiado de LoadBalancer a ClusterIP - acceso vía Ingress
   selector:
     app: frontend
   ports:
   - port: 443
     targetPort: 443
-    # nodePort eliminado al usar LoadBalancer

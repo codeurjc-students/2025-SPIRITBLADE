@@ -17,13 +17,14 @@ SPIRITBLADE expone una **API REST** construida con Spring Boot que ofrece análi
 **Caché Redis**: SPIRITBLADE implementa caché distribuida con Redis para optimizar el rendimiento. Los datos de campeones, summoners, maestrías y partidas se almacenan en caché con TTLs específicos (desde 10 minutos hasta 24 horas), reduciendo significativamente las llamadas a APIs externas y mejorando los tiempos de respuesta.
 
 **URL base**:
-- **HTTPS**: `https://localhost` (puerto 443)
+- **Producción (Cloud)**: `https://spiritblade.dev` (Certificado SSL Válido)
+- **Desarrollo Local**: `https://localhost` (Certificado Autofirmado)
 
-⚠️ Importante: el servidor funciona **solo con HTTPS**. No hay acceso por HTTP. Acepta el certificado autofirmado en tu navegador la primera vez que te conectes.
+⚠️ Importante: el servidor funciona **solo con HTTPS**.
 
 Autenticación: la mayoría de endpoints requieren un token JWT Bearer en la cabecera `Authorization`.
 
-Documentación interactiva: SPIRITBLADE incluye **Swagger UI** para exploración y pruebas interactivas de la API. Proporciona una interfaz dinámica y siempre actualizada.
+Documentación interactiva: SPIRITBLADE incluye **Swagger UI** para exploración y pruebas interactivas de la API.
 
 ---
 
@@ -34,9 +35,10 @@ Documentación interactiva: SPIRITBLADE incluye **Swagger UI** para exploración
 El **Swagger UI** ofrece una interfaz completa e interactiva para explorar y probar todos los endpoints de la API directamente desde el navegador.
 
 **URL de acceso**:
-- **HTTPS**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+- **Producción**: [https://spiritblade.dev/swagger-ui.html](https://spiritblade.dev/swagger-ui.html)
+- **Local**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
 
-Primera vez: Tu navegador mostrará una advertencia de seguridad porque el certificado SSL está autofirmado. Haz clic en "Avanzado" → "Continuar a localhost (inseguro)" para aceptarlo.
+Nota: En local, tu navegador mostrará una advertencia de seguridad porque el certificado SSL está autofirmado. En producción el certificado es válido (Let's Encrypt).
 
 Funciones:
 - 📖 Catálogo completo de endpoints con descripciones, parámetros y respuestas
