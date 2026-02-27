@@ -161,7 +161,7 @@ Ver **[Guía de Ejecución completa](docs/Ejecucion.md)** para más detalles.
 |------------|------------|
 | **Frontend** | Angular 17, TypeScript, SCSS |
 | **Backend** | Spring Boot 3.4.3, Java 21 |
-| **Base de Datos** | MySQL 8.0 |
+| **Base de Datos** | MySQL 8.0 (dev local) / Oracle ADB Always Free (producción) |
 | **Caché** | Redis, Spring Cache |
 | **Almacenamiento** | MinIO (desarrollo), Oracle Object Storage (producción) |
 | **Seguridad** | Spring Security, JWT |
@@ -211,10 +211,11 @@ kubectl apply -f .
 ```
 Oracle Cloud Infrastructure (Free Tier)
 ├── OKE Cluster (Kubernetes)
-│   ├── Backend (2 pods)
-│   ├── Frontend (2 pods + LoadBalancer)
-│   └── Redis (StatefulSet)
-├── MySQL (Compute Instance ARM)
+│   ├── Backend (1-3 pods, HPA)
+│   ├── Frontend (1-3 pods, HPA)
+│   ├── Redis (Deployment, in-memory)
+│   └── Cluster Autoscaler (2-4 nodos ARM)
+├── Oracle Autonomous Database Always Free (ADB, 20 GB)
 └── Object Storage (S3-compatible)
 ```
 

@@ -1,0 +1,14 @@
+# ==============================================================================
+# SPIRITBLADE - Oracle Autonomous Database endpoint
+# ------------------------------------------------------------------------------
+# ADB Always Free usa endpoint PÚBLICO (los private endpoints no están disponibles
+# en el Free Tier). El backend conecta directamente al hostname ADB por internet
+# usando TLS estándar (sin wallet).
+#
+# La URL completa se obtiene tras: terraform output -json adb_connection_strings
+# y se configura en SPRING_DATASOURCE_URL del backend-deployment.yaml.
+#
+# Este fichero NO es necesario para el funcionamiento — el backend resuelve el
+# hostname ADB directamente sin alias K8s. Se conserva como referencia.
+# ==============================================================================
+# (sin recursos activos)

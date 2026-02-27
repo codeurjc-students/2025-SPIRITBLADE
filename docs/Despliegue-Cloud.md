@@ -17,6 +17,7 @@ graph TD
         NAT[NAT Gateway]
         S3[Object Storage (S3 API)]
         DNS[DNS: spiritblade.dev]
+        ADB[Oracle Autonomous Database<br/>Always Free · 20 GB · 19c]
         
         subgraph VCN[VCN 10.0.0.0/16]
             subgraph Public_Subnet[Public Subnet]
@@ -26,17 +27,15 @@ graph TD
             subgraph Private_Subnet_K8s[Private Subnet (K8s Nodes)]
                 K8s_Node1[Worker Node 1 (ARM)]
                 K8s_Node2[Worker Node 2 (ARM)]
+                K8s_Node34[Worker Node 3-4 (ARM, autoscaler)]
                 
                 Ingress[NGINX Ingress Controller]
                 CertMgr[cert-manager + Let's Encrypt]
                 Frontend[Frontend Pods<br/>HPA: 1-3 replicas]
                 Backend[Backend Pods<br/>HPA: 1-3 replicas]
-                Redis[Redis StatefulSet]
+                Redis[Redis Deployment]
                 Metrics[Metrics Server]
-            end
-            
-            subgraph Private_Subnet_DB[Private Subnet (Database)]
-                MySQL_VM[MySQL Compute Instance (ARM)]
+                ClusterAS[Cluster Autoscaler]
             end
         end
     end
@@ -47,15 +46,16 @@ graph TD
     Ingress --> |TLS Termination| Frontend
     CertMgr --> |Gestiona certificados SSL| Ingress
     Frontend --> |HTTPS interno| Backend
-    Backend --> |mysql-external| MySQL_VM
+    Backend --> |TCPS/1521| ADB
     Backend --> |redis-master| Redis
     Backend --> |S3 API| S3
     Metrics --> |Métricas CPU/RAM| Backend
     Metrics --> |Métricas CPU/RAM| Frontend
+    ClusterAS --> |Escala nodos 2-4| K8s_Node34
     
     K8s_Node1 --> NAT
     K8s_Node2 --> NAT
-    MySQL_VM --> NAT
+    K8s_Node34 --> NAT
 ```
 
 ### 1.2 Recursos de Computación (Oracle Ampere A1)
@@ -66,11 +66,11 @@ Oracle ofrece gratuitamente hasta 4 OCPUs y 24 GB de RAM en instancias ARM. SPIR
 |------------|-----------------|-------------------|-------|-----|-------|----|
 | **Cluster K8s (Nodo 1)** | OKE Node | `VM.Standard.A1.Flex` | 1 | 6 GB | 50 GB | Oracle Linux 8 (ARM64) |
 | **Cluster K8s (Nodo 2)** | OKE Node | `VM.Standard.A1.Flex` | 1 | 6 GB | 50 GB | Oracle Linux 8 (ARM64) |
-| **Base de Datos** | Compute Instance | `VM.Standard.A1.Flex` | 1 | 6 GB | 100 GB | Oracle Linux 8 (ARM64) |
-| **Total Utilizado** | - | - | **3** | **18 GB** | **200 GB** | - |
-| **Disponible / Libre** | - | - | 1 | 6 GB | - | - |
+| **Cluster K8s (Nodo 3-4)** | OKE Node (autoscaler) | `VM.Standard.A1.Flex` | 1 c/u | 6 GB c/u | 50 GB c/u | Oracle Linux 8 (ARM64) |
+| **Base de Datos** | Autonomous Database | `Always Free (ADB)` | — | — | 20 GB | Oracle DB 19c (gestionado) |
+| **Total máximo (4 nodos)** | - | - | **4** | **24 GB** | **200 GB + 20 GB ADB** | - |
 
-> **Nota:** 1 OCPU ARM equivale a 2 vCPUs lógicas.
+> **Nota:** ADB Always Free usa su propia cuota independiente — **no consume OCPUs ARM**. Los 4 OCPUs ARM quedan 100% disponibles para nodos OKE.
 
 ### 1.3 Componentes de Kubernetes
 
@@ -99,23 +99,26 @@ La red se configura en una **VCN** (`10.0.0.0/16`) con segmentación estricta pa
 
 1.  **Public Subnet**: Aloja únicamente los Load Balancers públicos. Permite tráfico entrante desde internet.
 2.  **Private Subnet (Nodes)**: Aloja los nodos de Kubernetes. Sin acceso directo desde internet (solo a través de NAT Gateway).
-3.  **Private Subnet (Database)**: Aloja la VM de MySQL. Acceso restringido exclusivamente desde la subnet de K8s y administración interna.
-4.  **K8s API Subnet**: Endpoint para la gestión del clúster (permitiendo acceso público o privado según configuración).
+3.  **K8s API Subnet**: Endpoint para la gestión del clúster (permitiendo acceso público o privado según configuración).
+
+> **Nota:** La base de datos ya no reside en la VCN. Oracle Autonomous Database (ADB) es un servicio gestionado con endpoint público (`adb.eu-madrid-1.oraclecloud.com`). La conexión se realiza por TCPS (TLS) desde los pods del backend directamente a internet a través del NAT Gateway.
 
 ---
 
 ## 2. Almacenamiento y Base de Datos
 
-### 2.1 Base de Datos (MySQL)
+### 2.1 Base de Datos (Oracle Autonomous Database — Always Free)
 
-A diferencia de usar el servicio gestionado MDS (que no siempre entra en el Free Tier con suficiente potencia), SPIRITBLADE despliega MySQL 8.0 en una instancia **Compute independiente**.
+SPIRITBLADE usa **Oracle Autonomous Database (ADB) Always Free**, un servicio completamente gestionado que no consume OCPUs ARM del tenant, permitiendo dedicar los 4 OCPUs al cluster Kubernetes.
 
-- **Provisionamiento**: Automático vía `cloud-init` (`mysql-init.sh`).
-- **Seguridad**:
-    - No tiene IP pública.
-    - Acceso SSH restringido a través de la VCN.
-    - Puerto 3306 abierto solo para CIDR de la VCN.
-    - Contraseña root configurada vía variable Terraform `mysql_root_password`.
+- **OCID**: `ocid1.autonomousdatabase.oc1.eu-madrid-1.anwwcljrxqno2ria6nikabtbs66bwn2kngbner6wnyqzo3esin7btnyegymq`
+- **Versión DB**: Oracle 19c · workload OLTP
+- **Almacenamiento**: 20 GB (cuota independiente, no compite con Block Volumes K8s)
+- **Endpoint**: Público con ACL (`0.0.0.0/0`), sin private endpoint
+- **Seguridad**: Conexión TCPS (TLS obligatorio) · sin mTLS (no requiere wallet)
+- **JDBC URL**: `jdbc:oracle:thin:@(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.eu-madrid-1.oraclecloud.com))(connect_data=(service_name=ge32c8a2145bafd_spiritblade_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))`
+- **Credenciales**: Usuario `ADMIN`, contraseña vía variable Terraform `adb_admin_password` y secret K8s `adb-password`.
+- **Provisionamiento**: Completamente gestionado por OCI. Terraform define el recurso en `iac/terraform/adb.tf` con `is_free_tier = true` y `lifecycle { prevent_destroy = true }`.
 
 ### 2.2 Object Storage (S3 Compatible)
 
@@ -152,7 +155,7 @@ region           = "eu-madrid-1" # O tu región preferida
 # Configuración del Proyecto
 compartment_ocid    = "ocid1.compartment.oc1..aaaa..." # O usar el tenancy_ocid si no tienes compartimentos
 public_key_path     = "C:/Users/tu_usuario/.ssh/id_rsa.pub" # Tu clave pública SSH
-mysql_root_password = "TuPasswordSegura123!" # Contraseña para la DB
+adb_admin_password  = "TuPasswordSegura123!" # Contraseña ADMIN para Oracle ADB (min 12 chars, mayús+minús+número+especial)
 project_name        = "spiritblade"
 ```
 
@@ -171,8 +174,16 @@ Revisar el plan y confirmar con `yes`. Este proceso tardará entre 10 y 20 minut
 Al finalizar, Terraform mostrará información vital. Guárdala o recupérala con `terraform output`:
 
 - **Kubeconfig Command**: Comando para configurar `kubectl` localmente.
-- **MySQL Private IP**: IP interna de la base de datos (necesaria para `k8s/prod/secrets.yaml`).
+- **ADB JDBC URL**: URL de conexión TCPS a Oracle ADB (necesaria para `k8s/prod/backend-deployment.yaml`).
 - **S3 Credentials**: Access Key, Secret Key y Endpoint para Object Storage (necesario para `k8s/prod/secrets.yaml`).
+
+```bash
+# Obtener la URL JDBC de ADB
+terraform output adb_jdbc_url
+
+# Obtener el OCID de ADB
+terraform output adb_ocid
+```
 
 ---
 
@@ -207,8 +218,8 @@ metadata:
   namespace: prod
 type: Opaque
 data:
-  # MySQL root password (base64 encoded)
-  mysql-root-password: unacontraseñaenbase64==
+  # Oracle ADB admin password (base64 encoded)
+  adb-password: unacontraseñaenbase64==
   
   # OCI Object Storage credentials (base64 encoded)
   oci-storage-access-key: unaClaveDeAccesoEnBase64==
@@ -238,7 +249,16 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 **c) Instalar NGINX Ingress Controller**:
 ```bash
+# Instalar el controlador oficial
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
+
+# IMPORTANTE (OCI Free Tier): Configurar el Load Balancer en modo Flexible (Gratis)
+# Si no haces esto, OCI creará uno de 100Mbps de pago.
+kubectl annotate service ingress-nginx-controller -n ingress-nginx \
+  service.beta.kubernetes.io/oci-load-balancer-shape="flexible" \
+  service.beta.kubernetes.io/oci-load-balancer-shape-flex-min="10" \
+  service.beta.kubernetes.io/oci-load-balancer-shape-flex-max="10" \
+  --overwrite
 ```
 
 Espera a que el Ingress Controller obtenga una IP externa:
@@ -271,7 +291,6 @@ Espera 5-10 minutos para propagación DNS.
 cd k8s/prod
 kubectl apply -f namespace.yaml
 kubectl apply -f secrets.yaml
-kubectl apply -f mysql-external-service.yaml  # Mapea MySQL VM a service interno
 kubectl apply -f redis-statefulset.yaml
 kubectl apply -f backend-deployment.yaml
 kubectl apply -f frontend-deployment.yaml
@@ -294,7 +313,7 @@ kubectl get certificaterequest -n prod
 kubectl logs -n cert-manager -l app=cert-manager
 ```
 
-> **Nota sobre MySQL**: Dado que MySQL corre en una VM fuera del cluster (pero en la misma VCN), usamos un Recurso `Service` de tipo `ClusterIP` con Endpoints manuales para mapear la IP privada de la VM (ej. `10.0.20.42`) al nombre DNS `mysql-external` dentro de Kubernetes.
+> **Nota sobre ADB**: La base de datos corre en Oracle Autonomous Database Always Free con endpoint público. El backend se conecta directamente por TCPS (TLS, puerto 1521) usando la URL larga definida en la variable de entorno `SPRING_DATASOURCE_URL` del deployment. No se necesita ningún `ExternalName` service adicional.
 
 ---
 
@@ -359,8 +378,8 @@ kubectl logs -n prod -l app=backend --tail=100
 # Verificar secrets
 kubectl get secret spiritblade-secrets -n prod -o yaml
 
-# Verificar conectividad MySQL
-kubectl exec -n prod <backend-pod> -- curl -v telnet://mysql-external:3306
+# Verificar conectividad Oracle ADB (TCPS puerto 1521)
+kubectl exec -n prod <backend-pod> -- curl -v --connect-timeout 5 https://adb.eu-madrid-1.oraclecloud.com
 ```
 
 **HPA no escala**:

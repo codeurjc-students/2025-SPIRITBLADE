@@ -19,6 +19,13 @@ spec:
   - host: spiritblade.dev
     http:
       paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 443
       - path: /
         pathType: Prefix
         backend:
@@ -29,6 +36,13 @@ spec:
   - host: www.spiritblade.dev
     http:
       paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 443
       - path: /
         pathType: Prefix
         backend:

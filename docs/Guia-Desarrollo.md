@@ -101,9 +101,9 @@ La aplicación está compuesta por tres componentes principales:
 En el entorno de producción (Oracle Cloud), la arquitectura evoluciona para aprovechar la nube nativa:
 
 - **Infraestructura**: Cluster Kubernetes (OKE) sobre nodos ARM Ampere A1 (4 OCPUs, 24GB RAM total).
-- **Base de Datos**: Instancia Compute independiente con MySQL 8, optimizada para persistencia y rendimiento.
+- **Base de Datos**: Oracle Autonomous Database Always Free (ADB), servicio gestionado con 20 GB, sin OCPUs propios (cuota independiente).
 - **Almacenamiento**: OCI Object Storage (S3 Compatible) para la gestión segura de archivos.
-- **Red**: Virtual Cloud Network (VCN) con segmentación de subredes públicas (LB) y privadas (App/DB).
+- **Red**: Virtual Cloud Network (VCN) con segmentación de subredes públicas (LB) y privadas (App). ADB se conecta externamente vía TCPS.
 
 Para detalles técnicos sobre el despliegue, ver [Guía de Despliegue en Cloud](Despliegue-Cloud.md).
 
@@ -319,7 +319,7 @@ El backend sigue una arquitectura por capas con buenas prácticas de Spring Boot
           │                  │                  │                  │
           ▼                  ▼                  ▼                  ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                   DATABASE (MySQL 8.0 ONLY)                         │ 
+│                   DATABASE (Oracle ADB — Cloud | MySQL 8.0 — Local Dev) │ 
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │  users   │  │summoners │  │ matches  │  │rank_hist │             │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
@@ -360,7 +360,7 @@ Responsabilidades por capa:
   - `AdminController` - Operaciones de administrador (`/api/v1/admin`)
 - **Services**: Lógica de negocio, gestión de transacciones, integración con APIs
 - **Repositories**: Acceso a datos con Spring Data JPA
-- **Models/Entities**: Entidades JPA mapeadas a tablas MySQL
+- **Models/Entities**: Entidades JPA mapeadas a tablas Oracle ADB (producción) / MySQL (dev local)
 
 Componentes clave:
 - **Seguridad**: HTTPS-only (puerto 443), autenticación JWT con `JwtTokenProvider` y `JwtAuthenticationFilter`
@@ -584,7 +584,7 @@ Diseñado para probar el despliegue completo en un cluster local (Docker Desktop
 Optimizado para despliegue en **Oracle Container Engine for Kubernetes (OKE)**.
 - **Enfoque Cloud-Native**: Delega el almacenamiento y la base de datos a servicios externos gestionados o instancias dedicadas.
 - **Diferencias Clave**:
-    - **No hay MySQL Deployment**: Se usa `mysql-external-service.yaml` para conectar con la VM de Base de Datos en la red privada.
+    - **No hay MySQL Deployment**: El backend se conecta directamente a **Oracle Autonomous Database (ADB Always Free)** mediante URL TCPS definida en las variables de entorno del deployment (`SPRING_DATASOURCE_URL`). No se requiere ningún service adicional.
     - **No hay MinIO Deployment**: Se conecta directamente con **OCI Object Storage** (S3 Compatible) mediante secretos.
     - **Secretos Reales**: Utiliza `secrets.yaml` para gestionar credenciales de producción (API Keys, DB Passwords).
 

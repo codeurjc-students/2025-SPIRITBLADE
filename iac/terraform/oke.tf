@@ -54,18 +54,20 @@ resource "oci_containerengine_node_pool" "node_pool" {
   }
 
   node_shape_config {
-    memory_in_gbs = 6  # 6GB por nodo (12GB total)
-    ocpus         = 1  # 1 OCPU = 2 vCPUs por nodo (2 OCPUs total)
+    memory_in_gbs = 6  # 6 GB por nodo (máx 24 GB con 4 nodos = límite Free Tier)
+    ocpus         = 1  # 1 OCPU por nodo (máx 4 OCPUs con 4 nodos = límite Free Tier)
   }
 
   # ============================================================================
   # CLUSTER AUTOSCALER (FASE 3 - ESCALADO DE NODOS)
   # ============================================================================
-  # Nota sobre Free Tier: El límite total es 4 OCPUs.
-  # Uso actual: DB (1 OCPU) + Nodos (2 OCPUs) = 3 OCPUs usados.
-  # Margen disponible: 1 OCPU.
-  # Configuración: Permitir escalar hasta 3 nodos (1+1+1 = 3 OCPUs + 1 DB = 4 OCPUs).
-  # No exceder max_nodes = 3 para garantizar coste CERO.
+  # Nota sobre Free Tier: El límite total es 4 OCPUs y 24 GB RAM.
+  # MySQL VM ELIMINADA → migrado a Oracle Autonomous Database Always Free (adb.tf).
+  # Uso actual: ADB (0 OCPUs ARM, cuota separada) + Nodos (2 OCPUs base) = 2 OCPUs.
+  # Margen disponible: 2 OCPUs → hasta 2 nodos adicionales.
+  # Configuración: Permitir escalar hasta 4 nodos (4 × 1 OCPU = 4 OCPUs = límite Free Tier).
+  # Almacenamiento: 4 nodos × 50 GB boot volume = 200 GB (límite gratuito block volumes).
+  # No exceder max_nodes = 4 para garantizar coste CERO.
   # ============================================================================
   
   # Habilitamos el pool managed por autoscaler (propiedad simulada o via script externo en OCI OKE Básico)
@@ -95,6 +97,12 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
   # SSH key para acceso a los nodos (debugging)
   ssh_public_key = file(var.public_key_path)
+
+  lifecycle {
+    # CRÍTICO: Ignorar cambios en size para que Terraform no revierta el escalado
+    # realizado por el Cluster Autoscaler (min=2, max=4 gestionado en cluster-autoscaler.yaml)
+    ignore_changes = [node_config_details[0].size]
+  }
 }
 
 # Network Security Group para los nodos

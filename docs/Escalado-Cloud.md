@@ -50,12 +50,12 @@ Se ha implementado el **Cluster Autoscaler** para gestionar dinámicamente el ta
 
 - **Componente**: `cluster-autoscaler` (v1.31.0) ejecutándose en `kube-system`.
 - **Configuración**: Configurado para escalar un Node Pool específico de OKE.
-- **Límite**: Configurado con `max-nodes=3` (3 OCPUs en K8s + 1 OCPU en DB = 4 OCPUs Límite).
+- **Límite**: Configurado con `max-nodes=4` (4 OCPUs 100% para K8s, ya que ADB usa su propia cuota independiente).
 
 **Estrategia "On-Demand"**:
 - **Estado Inicial**: 2 Nodos (2 OCPUs totales).
 - **Disparador**: Cuando el **HPA** solicita nuevos Pods y no caben en los 2 nodos existentes (CPU/RAM insuficiente), se quedan en estado `Pending`.
-- **Acción**: El Cluster Autoscaler detecta los Pods `Pending` y solicita a la API de OCI arrancar un **3er nodo**.
+- **Acción**: El Cluster Autoscaler detecta los Pods `Pending` y solicita a la API de OCI arrancar un **3er o 4º nodo**.
 - **Latency**: El arranque del nuevo nodo en OCI (Cold Start) toma aproximadamente **3-5 minutos**.
 
 **Verificación**:
@@ -99,24 +99,30 @@ kubectl top pods -n prod
 
 ---
 
-## 2. Escalabilidad de Base de Datos (MySQL)
+## 2. Escalabilidad de Base de Datos (Oracle Autonomous Database)
 
 **Equivalencia RDS**: En AWS usaríamos RDS con Read Replicas y Multi-AZ.
-**En OCI Free Tier**:
-- Usamos una Instancia Compute con MySQL instalado (`iac/terraform/mysql.tf`).
-- **Escalado Vertical**: Limitado a 4 OCPUs totales en el tenant. Actualmente usa 1 OCPU/6GB RAM. Se podría escalar a 2 OCPUs si reducimos los nodos de K8s, pero no es dinámico.
-- **Escalado Horizontal**: No viable automáticamente en Free Tier (requiere múltiples VMs y orquestación compleja).
-- **Conclusión**: Para el TFG, confiamos en la robustez de MySQL en una VM dedicada (evitando contendores K8s efímeros para la DB) y el uso agresivo de Caché (Redis).
+**En OCI Free Tier**: Se usa **Oracle Autonomous Database (ADB) Always Free**, un servicio completamente gestionado.
+
+- **Recurso Terraform**: `iac/terraform/adb.tf` — `is_free_tier = true`.
+- **Escalado de conexiones**: ADB gestiona automáticamente el pool de conexiones. Múltiples réplicas del backend (HPA) se conectan simultáneamente sin configuración adicional.
+- **Escalado de almacenamiento**: Administrado por OCI hasta 20 GB. Sin discos que gestionar manualmente.
+- **Escalado de cómputo**: ADB puede ajustar ECPUs automáticamente según la carga (gestionado por OCI, no manual).
+- **Alta disponibilidad**: OCI garantiza el SLA del servicio ADB. No hay riesgo de pérdida de datos por fallo de VM.
+- **Cuota**: Usa cuota ADB independiente — **no consume OCPUs ARM**, permitiendo dedicarlos íntegramente al cluster K8s.
+- **Conclusión**: ADB elimina la complejidad operativa de gestionar MySQL en una VM dedicada y mejora la resiliencia de la base de datos.
 
 ---
 
 ## 3. Escalabilidad de Caché (Redis)
 
-**Estrategia**: `StatefulSet`.
-- Redis corre como un StatefulSet en Kubernetes.
+**Estrategia**: `Deployment` (In-Memory).
+- **Cambio**: Se migró de `StatefulSet` a `Deployment` para eliminar la dependencia de discos persistentes (Block Volumes).
+- **Almacenamiento**: Uso de RAM (`emptyDir`) en lugar de disco.
+    - **Ahorro**: 50 GB de almacenamiento persistente liberados.
+    - **Coste**: 0€ (Usa la RAM ya asignada a los nodos).
 - **Escalado**: Manual.
-- **Operadores**: Descartados para Free Tier. Los operadores de Redis (ej. Spotahome) suelen requerir 3 nodos Sentinel + 3 Nodos Redis para HA real. Esto consumiría ~6 Pods adicionales, saturando la RAM (12GB total) del cluster innecesariamente.
-- **Optimización**: Usamos una instancia Redis optimizada como caché LRU (Least Recently Used) para aliviar la carga de la Base de Datos.
+- **Optimización**: Usamos una instancia Redis optimizada como caché LRU (Least Recently Used).
 
 ## 4. Ingress y Gestión de Tráfico
 
@@ -196,23 +202,24 @@ Se ha incluido una configuración de Artillery en `tests/load/artillery-config.y
 
 | Recurso | Configuración Actual | Límite Free Tier | Estado |
 |---------|-----------------------|------------------|--------|
-| **CPUs** | 3 OCPUs (1 DB + 2 K8s) | 4 OCPUs | ✅ Seguro (1 libre) |
-| **RAM** | 18 GB (6 DB + 12 K8s) | 24 GB | ✅ Seguro (6 GB libres) |
+| **CPUs** | 2-4 OCPUs (K8s) | 4 OCPUs | ✅ Seguro (100% Uso) |
+| **RAM** | 12-24 GB (K8s) | 24 GB | ✅ Seguro (100% Uso) |
 | **Load Balancer** | 1 Instancia Flexible:<br/>- Ingress NGINX: 10 Mbps (`143.47.39.213`) | 1 Instancia (10 Mbps) | ✅ **Optimizado** |
-| **Volúmenes** | ~160 GB (50x2 Nodos + 50 DB + 10 Redis) | 200 GB | ✅ Seguro (~40 GB libres) |
+| **Volúmenes** | **150-200 GB** (50 GB x 3-4 Nodos) | 200 GB | ⚠️ **MAX con 4 nodos** |
+| **ADB Storage** | 20 GB (cuota independiente) | 20 GB (ADB Always Free) | ✅ Cuota propia |
 | **Ancho de Banda** | Salida pública (egress) | 10 TB/mes gratis | ✅ Seguro |
 | **Certificados SSL** | Let's Encrypt (cert-manager) | Ilimitados gratis | ✅ Gratis |
 
-**CONFIRMADO: 100% GRATUITO** ✅
-- Todos los servicios (`backend`, `frontend`, `mysql-external`) usan **ClusterIP** (sin IPs públicas)
-- Acceso externo **únicamente** vía Ingress Controller (`143.47.39.213`)
-- Certificados SSL renovados automáticamente por cert-manager
-- Metrics Server y HPA usando recursos existentes (0 coste adicional)
+**ESTADO ACTUAL: 100% GRATUITO** ✅
+- **Redis**: `emptyDir` (RAM, sin disco).
+- **ADB**: Cuota independiente, no compite con OCPUs/RAM/disco de K8s.
+- **Autoscaler**: Activo (Min 2, Max 4 nodos).
+    - Estado normal (2 Nodos): 100 GB consumo total de bloques.
+    - Estado escalado (4 Nodos): 200 GB consumo total (Límite exacto).
 
 **Límites Críticos a NO Superar**:
-1. ❌ No crear más LoadBalancers (máximo: 1, actual: 1) ✅
-2. ❌ No superar 4 OCPUs ARM (actual: 3) ✅
-3. ❌ No cambiar LoadBalancer shape a > 10 Mbps ✅
-4. ❌ No superar 200 GB en volúmenes (actual: ~160 GB) ✅
+1. ❌ No crear más LoadBalancers (máximo: 1).
+2. ❌ No superar 4 OCPUs en instancias Compute (ADB no cuenta).
+3. ❌ **No crear PVCs (Volúmenes Persistentes) adicionales**: Con 4 nodos activos se alcanza el límite de 200 GB. Cualquier volumen extra causará fallo al arrancar nuevos nodos.
 
-**Nota**: El `oci-load-balancer-shape` del Ingress está configurado en `flexible` con min/max 10Mbps. Subirlo a 100Mbps o 400Mbps saldría del Free Tier y generaría costes.
+**Aviso**: Con el Cluster Autoscaler al máximo (4 nodos), se consumen exactamente los 200 GB de Block Volumes disponibles. No crear ningún PVC adicional.

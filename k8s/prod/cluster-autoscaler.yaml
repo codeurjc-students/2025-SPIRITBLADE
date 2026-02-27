@@ -127,8 +127,10 @@ spec:
             - --stderrthreshold=info
             - --cloud-provider=oci
             # IMPORTANTE: Reemplaza <TU_NODEPOOL_OCID> con el valor de: terraform output nodepool_id
-            # Ejemplo: --nodes=2:3:ocid1.nodepool.oc1.eu-madrid-1.aaaaaaaa...
-            - --nodes=2:3:ocid1.nodepool.oc1.eu-madrid-1.aaaaaaaa4cvygsqf4hvzfo7u2qqqxwucqbbv3ixors4rmeyjznla7r5vveuq
+            # Ejemplo: --nodes=2:4:ocid1.nodepool.oc1.eu-madrid-1.aaaaaaaa...
+            # Free Tier ARM: 4 OCPUs totales. MySQL VM eliminada (→ ADB) → 4 OCPUs disponibles para nodos.
+            # 4 nodos × 1 OCPU = 4 OCPUs. 4 nodos × 50 GB = 200 GB block volume (límite gratuito).
+            - --nodes=2:4:ocid1.nodepool.oc1.eu-madrid-1.aaaaaaaaeypqsb4hlcwinnd7qwgwvhugt4rx4iknhg3ww2yransflf36ootq
           env:
             - name: OCI_USE_INSTANCE_PRINCIPAL
               value: "true"

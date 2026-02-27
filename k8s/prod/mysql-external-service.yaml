@@ -1,23 +1,28 @@
+# ==============================================================================
+# SPIRITBLADE - Oracle Autonomous Database endpoint  [sustituye mysql-external]
+# ------------------------------------------------------------------------------
+# El ADB tiene private endpoint dentro de la VCN con su propio DNS:
+#   spiritbladeadb.adb.eu-madrid-1.oraclecloud.com  →  puerto 1521
+#
+# El backend ya apunta a ese FQDN directamente en SPRING_DATASOURCE_URL,
+# por lo que NO se necesita un Service/Endpoints de Kubernetes para el ADB.
+#
+# Este fichero se conserva únicamente como referencia. Si en algún momento
+# la resolución DNS del private endpoint fallara desde los pods, puedes crear
+# un ExternalName Service así:
+# ==============================================================================
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-external
+  name: adb-external
   namespace: prod
+  annotations:
+    description: "Oracle Autonomous Database Always Free - private endpoint OCI VCN"
 spec:
-  type: ClusterIP
+  type: ExternalName
+  # FQDN del private endpoint generado por Terraform (private_endpoint_label)
+  externalName: spiritbladeadb.adb.eu-madrid-1.oraclecloud.com
   ports:
-  - port: 3306
-    targetPort: 3306
-    protocol: TCP
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: mysql-external
-  namespace: prod
-subsets:
-- addresses:
-  - ip: 10.0.20.42  # Private IP of MySQL Compute instance in OCI VCN
-  ports:
-  - port: 3306
+  - port: 1521
+    targetPort: 1521
     protocol: TCP

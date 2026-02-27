@@ -1,17 +1,61 @@
-# Trigger on GitHub release - Build and push with version tag and 'latest'
-name: Deploy Release
+﻿name: Deploy Release
 
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  deploy-release:
+  build-and-push:
     uses: ./.github/workflows/build-push.yml
     with:
-      image-tag: ${{ github.event.release.tag_name }}
-      compose-tag: ${{ github.event.release.tag_name }}
+      image-tag: ${{ github.ref_name }}
+      compose-tag: ${{ github.ref_name }}
       update-latest: true
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  deploy-k8s:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Install OCI CLI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh -o install_oci_cli.sh
+          bash install_oci_cli.sh --accept-all-defaults
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: 🔐 Configure OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_CLI_KEY_CONTENT }}" > ~/.oci/key.pem
+          chmod 600 ~/.oci/key.pem
+          
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=${{ secrets.OCI_CLI_USER }}
+          fingerprint=${{ secrets.OCI_CLI_FINGERPRINT }}
+          tenancy=${{ secrets.OCI_CLI_TENANCY }}
+          region=${{ secrets.OCI_CLI_REGION }}
+          key_file=~/.oci/key.pem
+          EOF
+
+      - name: ☸️ Configure Kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          oci ce cluster create-kubeconfig \
+            --cluster-id ${{ secrets.OCI_CLUSTER_ID }} \
+            --file $HOME/.kube/config \
+            --region ${{ secrets.OCI_CLI_REGION }} \
+            --token-version 2.0.0 \
+            --kube-endpoint PUBLIC_ENDPOINT
+
+      - name: 🔄 Restart Deployments (Force Update)
+        run: |
+          kubectl rollout restart deployment/backend -n prod
+          kubectl rollout restart deployment/frontend -n prod
+          kubectl rollout status deployment/backend -n prod --timeout=120s
+          kubectl rollout status deployment/frontend -n prod --timeout=120s
