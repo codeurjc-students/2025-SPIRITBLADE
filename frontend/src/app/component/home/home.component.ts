@@ -75,4 +75,8 @@ export class HomeComponent implements OnInit {
   searchSummoner(summoner: Summoner) {
     this.router.navigate(['/summoner', summoner.name]);
   }
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
