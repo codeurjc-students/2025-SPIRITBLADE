@@ -16,7 +16,9 @@ class TeamDTOUnitTest {
 
     @Test
     void testParameterizedConstructor() {
-        TeamDTO dto = new TeamDTO(100, true);
+        TeamDTO dto = new TeamDTO();
+        dto.setTeamId(100);
+        dto.setWin(true);
         assertEquals(100, dto.getTeamId());
         assertTrue(dto.getWin());
     }

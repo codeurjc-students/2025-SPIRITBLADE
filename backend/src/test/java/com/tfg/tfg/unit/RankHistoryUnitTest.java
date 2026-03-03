@@ -50,10 +50,15 @@ class RankHistoryUnitTest {
     @Test
     void testConstructorWithParameters() {
         LocalDateTime now = LocalDateTime.now();
-        RankHistory history = new RankHistory(
-            testSummoner, now, "PLATINUM", "IV", 
-            25, 50, 48, "RANKED_SOLO_5x5"
-        );
+        RankHistory history = new RankHistory();
+        history.setSummoner(testSummoner);
+        history.setTimestamp(now);
+        history.setTier("PLATINUM");
+        history.setRank("IV");
+        history.setLeaguePoints(25);
+        history.setWins(50);
+        history.setLosses(48);
+        history.setQueueType("RANKED_SOLO_5x5");
 
         assertEquals(testSummoner, history.getSummoner());
         assertEquals(now, history.getTimestamp());

@@ -89,9 +89,25 @@ class DashboardServiceCoverageTest {
     lenient().when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(eq(s))).thenReturn(List.of());
 
         // Two matches returned from API (most recent first)
-    MatchHistoryDTO newest = new MatchHistoryDTO("m_new", "Ahri", true, 10, 2, 3, 1800L, System.currentTimeMillis()/1000);
+    MatchHistoryDTO newest = new MatchHistoryDTO();
+    newest.setMatchId("m_new");
+    newest.setChampionName("Ahri");
+    newest.setWin(true);
+    newest.setKills(10);
+    newest.setDeaths(2);
+    newest.setAssists(3);
+    newest.setGameDuration(1800L);
+    newest.setGameTimestamp(System.currentTimeMillis()/1000);
     newest.setQueueId(420);
-    MatchHistoryDTO older = new MatchHistoryDTO("m_old", "Zed", false, 5, 5, 5, 1600L, (System.currentTimeMillis()/1000)-3600);
+    MatchHistoryDTO older = new MatchHistoryDTO();
+    older.setMatchId("m_old");
+    older.setChampionName("Zed");
+    older.setWin(false);
+    older.setKills(5);
+    older.setDeaths(5);
+    older.setAssists(5);
+    older.setGameDuration(1600L);
+    older.setGameTimestamp((System.currentTimeMillis()/1000)-3600);
     older.setQueueId(420);
 
     lenient().when(riotService.getMatchHistory(eq(s.getPuuid()), anyInt(), anyInt())).thenReturn(List.of(newest, older));

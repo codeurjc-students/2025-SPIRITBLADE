@@ -276,7 +276,7 @@ class RiotServiceUnitTest {
     @Test
     void testGetDataDragonService() {
         // When
-        DataDragonService result = riotService.getDataDragonService();
+        IDataDragonService result = riotService.getDataDragonService();
         
         // Then
         assertNotNull(result);
