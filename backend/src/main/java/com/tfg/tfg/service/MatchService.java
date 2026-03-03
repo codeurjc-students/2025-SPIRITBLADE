@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +14,12 @@ import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
 
 @Service
-public class MatchService {
+public class MatchService implements IMatchService {
 
     private final MatchRepository matchRepository;
-    private final RankHistoryService rankHistoryService;
+    private final IRankHistoryService rankHistoryService;
 
-    public MatchService(MatchRepository matchRepository, RankHistoryService rankHistoryService) {
+    public MatchService(MatchRepository matchRepository, IRankHistoryService rankHistoryService) {
         this.matchRepository = matchRepository;
         this.rankHistoryService = rankHistoryService;
     }

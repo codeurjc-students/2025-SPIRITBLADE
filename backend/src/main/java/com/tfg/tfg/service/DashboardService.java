@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +25,7 @@ import com.tfg.tfg.model.mapper.MatchMapper;
  * match processing.
  */
 @Service
-public class DashboardService {
+public class DashboardService implements IDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
     private static final String UNRANKED = "Unranked";
@@ -33,15 +35,15 @@ public class DashboardService {
     private static final int MIN_LP = 0;
     private static final String DEFAULT_KDA = "0/0/0";
 
-    private final MatchService matchService;
-    private final RiotService riotService;
-    private final DataDragonService dataDragonService;
-    private final RankHistoryService rankHistoryService;
+    private final IMatchService matchService;
+    private final IRiotService riotService;
+    private final IDataDragonService dataDragonService;
+    private final IRankHistoryService rankHistoryService;
 
-    public DashboardService(MatchService matchService,
-            RiotService riotService,
-            DataDragonService dataDragonService,
-            RankHistoryService rankHistoryService) {
+    public DashboardService(IMatchService matchService,
+            IRiotService riotService,
+            IDataDragonService dataDragonService,
+            IRankHistoryService rankHistoryService) {
         this.matchService = matchService;
         this.riotService = riotService;
         this.dataDragonService = dataDragonService;
@@ -270,40 +272,37 @@ public class DashboardService {
      * Returns cached matches or fetches from API if needed
      */
     public List<MatchHistoryDTO> getRankedMatchesWithLP(Summoner summoner, Integer queueId, int page, int size) {
-        // Check database first
-        List<MatchEntity> cachedMatches;
-        if (queueId != null) {
-            cachedMatches = matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
-        } else {
-            cachedMatches = matchService.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
-        }
-
+        List<MatchEntity> cachedMatches = loadCachedMatches(summoner, queueId);
         logger.debug("Found {} cached ranked matches for summoner {}", cachedMatches.size(), summoner.getName());
 
-        // Check if we need to update from API
-        boolean needsUpdate = cachedMatches.isEmpty() ||
-                checkIfCacheNeedsUpdate(cachedMatches, summoner.getPuuid());
-
-        // If cache is valid, return from database
+        boolean needsUpdate = cachedMatches.isEmpty() || checkIfCacheNeedsUpdate(cachedMatches, summoner.getPuuid());
         if (!needsUpdate && cachedMatches.size() >= size) {
-            return cachedMatches.stream()
-                    .skip((long) page * size)
-                    .limit(size)
-                    .map(this::convertMatchEntityToDTO)
-                    .toList();
+            return buildPageFromCache(cachedMatches, page, size);
         }
 
-        // Otherwise, fetch from API
+        return fetchAndSaveFreshMatches(summoner, queueId, page, size);
+    }
+
+    private List<MatchEntity> loadCachedMatches(Summoner summoner, Integer queueId) {
+        if (queueId != null) {
+            return matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
+        }
+        return matchService.findRankedMatchesBySummonerOrderByTimestampDesc(summoner);
+    }
+
+    private List<MatchHistoryDTO> buildPageFromCache(List<MatchEntity> cachedMatches, int page, int size) {
+        return cachedMatches.stream()
+                .skip((long) page * size)
+                .limit(size)
+                .map(this::convertMatchEntityToDTO)
+                .toList();
+    }
+
+    private List<MatchHistoryDTO> fetchAndSaveFreshMatches(Summoner summoner, Integer queueId, int page, int size) {
         logger.info("Fetching fresh match data from Riot API for summoner {}", summoner.getName());
-        int start = page * size;
-        List<MatchHistoryDTO> allMatches = riotService.getMatchHistory(summoner.getPuuid(), start, size);
-
-        // Filter ranked matches
+        List<MatchHistoryDTO> allMatches = riotService.getMatchHistory(summoner.getPuuid(), page * size, size);
         List<MatchHistoryDTO> rankedMatches = filterRankedMatches(allMatches, queueId, size);
-
-        // Save matches with LP calculation
         saveMatchesToDatabaseWithLP(summoner, rankedMatches);
-
         return rankedMatches.stream().limit(size).toList();
     }
 
@@ -472,56 +471,57 @@ public class DashboardService {
         String currentDivision = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
         int currentLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
 
+        LpCalculationResult result = buildLpMap(sortedMatches, existingMatches, summoner, currentTier, currentDivision, currentLP);
+
+        persistMatchesAndRankHistory(result.newMatches(), result.lpByMatchId(), summoner, currentTier, currentDivision);
+        applyCalculatedLp(originalMatches, result.lpByMatchId());
+    }
+
+    private record LpCalculationResult(Map<String, Integer> lpByMatchId, List<MatchEntity> newMatches) {}
+
+    private LpCalculationResult buildLpMap(List<MatchHistoryDTO> sortedMatches,
+            Map<String, MatchEntity> existingMatches, Summoner summoner,
+            String currentTier, String currentDivision, int currentLP) {
         Map<String, Integer> lpByMatchId = new HashMap<>();
         List<MatchEntity> newMatches = new ArrayList<>();
-
         int lpTracker = currentLP;
 
-        // Process backwards in time
         for (int i = sortedMatches.size() - 1; i >= 0; i--) {
             MatchHistoryDTO matchDTO = sortedMatches.get(i);
             MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
+            Optional<Integer> existingLp = existing != null ? rankHistoryService.getLpForMatch(existing.getId()) : Optional.empty();
 
-            // Skip if already has LP in RankHistory
-            if (existing != null) {
-                Optional<Integer> existingLp = rankHistoryService.getLpForMatch(existing.getId());
-                if (existingLp.isPresent()) {
-                    lpTracker = existingLp.get();
-                    lpByMatchId.put(matchDTO.getMatchId(), existingLp.get());
-                    continue;
-                }
+            if (existingLp.isPresent()) {
+                lpTracker = existingLp.get();
+                lpByMatchId.put(matchDTO.getMatchId(), existingLp.get());
+                continue;
             }
 
-            // Calculate LP for this match
             int lpAtMatchStart = lpTracker;
             boolean won = matchDTO.getWin() != null && matchDTO.getWin();
-
-            // Calculate backwards LP change
             lpTracker = calculateBackwardsLpChange(lpTracker, won, currentTier, currentDivision);
-
-            // Create/update match entity
-            MatchEntity match = MatchMapper.toEntity(existing, matchDTO, summoner);
-
             lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
-            newMatches.add(match);
+            newMatches.add(MatchMapper.toEntity(existing, matchDTO, summoner));
         }
+        return new LpCalculationResult(lpByMatchId, newMatches);
+    }
 
-        // Batch save matches and create RankHistory entries
-        if (!newMatches.isEmpty()) {
-            List<MatchEntity> savedMatches = matchService.saveAll(newMatches);
-
-            // Create RankHistory for each match
-            for (MatchEntity match : savedMatches) {
-                Integer lp = lpByMatchId.get(match.getMatchId());
-                if (lp != null) {
-                    rankHistoryService.recordRankSnapshot(summoner, match, currentTier, currentDivision, lp);
-                }
+    private void persistMatchesAndRankHistory(List<MatchEntity> newMatches, Map<String, Integer> lpByMatchId,
+            Summoner summoner, String currentTier, String currentDivision) {
+        if (newMatches.isEmpty()) {
+            return;
+        }
+        List<MatchEntity> savedMatches = matchService.saveAll(newMatches);
+        for (MatchEntity match : savedMatches) {
+            Integer lp = lpByMatchId.get(match.getMatchId());
+            if (lp != null) {
+                rankHistoryService.recordRankSnapshot(summoner, match, currentTier, currentDivision, lp);
             }
-
-            logger.info("Saved {} matches with RankHistory tracking", savedMatches.size());
         }
+        logger.info("Saved {} matches with RankHistory tracking", savedMatches.size());
+    }
 
-        // Update DTOs with calculated LP
+    private void applyCalculatedLp(List<MatchHistoryDTO> originalMatches, Map<String, Integer> lpByMatchId) {
         for (MatchHistoryDTO matchDTO : originalMatches) {
             Integer calculatedLP = lpByMatchId.get(matchDTO.getMatchId());
             if (calculatedLP != null) {

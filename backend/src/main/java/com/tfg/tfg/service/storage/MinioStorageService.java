@@ -24,7 +24,7 @@ import java.util.UUID;
  * Activate with profile "minio" or "prod"
  */
 @Service
-public class MinioStorageService {
+public class MinioStorageService implements IStorageService {
 
     @Value("${minio.endpoint:http://localhost:9000}")
     private String minioEndpoint;

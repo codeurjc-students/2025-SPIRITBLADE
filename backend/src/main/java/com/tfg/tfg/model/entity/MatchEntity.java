@@ -11,6 +11,9 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "matches", indexes = {
@@ -18,6 +21,9 @@ import jakarta.persistence.Table;
         @Index(name = "idx_match_timestamp", columnList = "timestamp"),
         @Index(name = "idx_match_id", columnList = "matchId")
 })
+@Getter
+@Setter
+@NoArgsConstructor
 public class MatchEntity {
 
     @Id
@@ -48,172 +54,8 @@ public class MatchEntity {
     @JoinColumn(name = "summoner_id")
     private Summoner summoner;
 
-    public MatchEntity() {
-        // Default constructor for JPA
-    }
-
     public MatchEntity(String matchId, Summoner summoner) {
         this.matchId = matchId;
         this.summoner = summoner;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getMatchId() {
-        return matchId;
-    }
-
-    public void setMatchId(String matchId) {
-        this.matchId = matchId;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public boolean isWin() {
-        return win;
-    }
-
-    public void setWin(boolean win) {
-        this.win = win;
-    }
-
-    public int getKills() {
-        return kills;
-    }
-
-    public void setKills(int kills) {
-        this.kills = kills;
-    }
-
-    public int getDeaths() {
-        return deaths;
-    }
-
-    public void setDeaths(int deaths) {
-        this.deaths = deaths;
-    }
-
-    public int getAssists() {
-        return assists;
-    }
-
-    public void setAssists(int assists) {
-        this.assists = assists;
-    }
-
-    public Integer getVisionScore() {
-        return visionScore;
-    }
-
-    public void setVisionScore(Integer visionScore) {
-        this.visionScore = visionScore;
-    }
-
-    public Summoner getSummoner() {
-        return summoner;
-    }
-
-    public void setSummoner(Summoner summoner) {
-        this.summoner = summoner;
-    }
-
-    public String getChampionName() {
-        return championName;
-    }
-
-    public void setChampionName(String championName) {
-        this.championName = championName;
-    }
-
-    public Integer getChampionId() {
-        return championId;
-    }
-
-    public void setChampionId(Integer championId) {
-        this.championId = championId;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getLane() {
-        return lane;
-    }
-
-    public void setLane(String lane) {
-        this.lane = lane;
-    }
-
-    public Long getGameDuration() {
-        return gameDuration;
-    }
-
-    public void setGameDuration(Long gameDuration) {
-        this.gameDuration = gameDuration;
-    }
-
-    public String getGameMode() {
-        return gameMode;
-    }
-
-    public void setGameMode(String gameMode) {
-        this.gameMode = gameMode;
-    }
-
-    public Integer getQueueId() {
-        return queueId;
-    }
-
-    public void setQueueId(Integer queueId) {
-        this.queueId = queueId;
-    }
-
-    public Integer getTotalDamageDealt() {
-        return totalDamageDealt;
-    }
-
-    public void setTotalDamageDealt(Integer totalDamageDealt) {
-        this.totalDamageDealt = totalDamageDealt;
-    }
-
-    public Integer getGoldEarned() {
-        return goldEarned;
-    }
-
-    public void setGoldEarned(Integer goldEarned) {
-        this.goldEarned = goldEarned;
-    }
-
-    public Integer getChampLevel() {
-        return champLevel;
-    }
-
-    public void setChampLevel(Integer champLevel) {
-        this.champLevel = champLevel;
-    }
-
-    public String getSummonerName() {
-        return summonerName;
-    }
-
-    public void setSummonerName(String summonerName) {
-        this.summonerName = summonerName;
     }
 }

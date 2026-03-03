@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IStorageService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +30,9 @@ public class FileController {
     private static final String FALSE_VALUE = "false";
     private static final String ALLOWED_CONTENT_TYPE = "image/png";
 
-    private final MinioStorageService storageService;
+    private final IStorageService storageService;
 
-    public FileController(MinioStorageService storageService) {
+    public FileController(IStorageService storageService) {
         this.storageService = storageService;
     }
 

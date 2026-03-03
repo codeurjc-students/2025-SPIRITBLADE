@@ -41,9 +41,17 @@ public class RankHistoryDTOUnitTest {
     @Test
     public void testEnhancedConstructor() {
         LocalDateTime now = LocalDateTime.now();
-        RankHistoryDTO dto = new RankHistoryDTO(
-            1L, "TestSummoner", now, "PLATINUM", "III", 75, 20, 15, "RANKED_SOLO_5x5", 15
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(1L);
+        dto.setSummonerName("TestSummoner");
+        dto.setTimestamp(now);
+        dto.setTier("PLATINUM");
+        dto.setRank("III");
+        dto.setLeaguePoints(75);
+        dto.setWins(20);
+        dto.setLosses(15);
+        dto.setQueueType("RANKED_SOLO_5x5");
+        dto.setLpChange(15);
         
         assertEquals(1L, dto.getId());
         assertEquals("TestSummoner", dto.getSummonerName());
@@ -231,9 +239,17 @@ public class RankHistoryDTOUnitTest {
     @Test
     public void testToStringWithLpChange() {
         LocalDateTime timestamp = LocalDateTime.of(2025, 11, 10, 14, 30);
-        RankHistoryDTO dto = new RankHistoryDTO(
-            1L, "TestPlayer", timestamp, "GOLD", "II", 50, 10, 5, "RANKED_SOLO_5x5", 15
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(1L);
+        dto.setSummonerName("TestPlayer");
+        dto.setTimestamp(timestamp);
+        dto.setTier("GOLD");
+        dto.setRank("II");
+        dto.setLeaguePoints(50);
+        dto.setWins(10);
+        dto.setLosses(5);
+        dto.setQueueType("RANKED_SOLO_5x5");
+        dto.setLpChange(15);
         
         String result = dto.toString();
         assertTrue(result.contains("id=1"));
@@ -246,9 +262,17 @@ public class RankHistoryDTOUnitTest {
     @Test
     public void testToStringWithoutLpChange() {
         LocalDateTime timestamp = LocalDateTime.of(2025, 11, 10, 14, 30);
-        RankHistoryDTO dto = new RankHistoryDTO(
-            2L, "PlayerTwo", timestamp, "PLATINUM", "I", 85, 20, 10, "RANKED_SOLO_5x5", null
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(2L);
+        dto.setSummonerName("PlayerTwo");
+        dto.setTimestamp(timestamp);
+        dto.setTier("PLATINUM");
+        dto.setRank("I");
+        dto.setLeaguePoints(85);
+        dto.setWins(20);
+        dto.setLosses(10);
+        dto.setQueueType("RANKED_SOLO_5x5");
+        dto.setLpChange(null);
         
         String result = dto.toString();
         assertTrue(result.contains("id=2"));
@@ -262,9 +286,17 @@ public class RankHistoryDTOUnitTest {
     public void testComplexScenario() {
         // Test a realistic scenario with all features
         LocalDateTime now = LocalDateTime.now();
-        RankHistoryDTO dto = new RankHistoryDTO(
-            999L, "ComplexPlayer", now, "EMERALD", "III", 42, 55, 45, "RANKED_FLEX_SR", -18
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(999L);
+        dto.setSummonerName("ComplexPlayer");
+        dto.setTimestamp(now);
+        dto.setTier("EMERALD");
+        dto.setRank("III");
+        dto.setLeaguePoints(42);
+        dto.setWins(55);
+        dto.setLosses(45);
+        dto.setQueueType("RANKED_FLEX_SR");
+        dto.setLpChange(-18);
         
         // Verify all initial values
         assertEquals(999L, dto.getId());

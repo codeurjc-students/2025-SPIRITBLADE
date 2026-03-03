@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +23,7 @@ import com.tfg.tfg.repository.RankHistoryRepository;
  * Tracks summoner rank progression over time.
  */
 @Service
-public class RankHistoryService {
+public class RankHistoryService implements IRankHistoryService {
 
     private static final Logger logger = LoggerFactory.getLogger(RankHistoryService.class);
     private static final String RANKED_SOLO_QUEUE = "RANKED_SOLO_5x5";

@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +17,7 @@ import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 
 @Service
-public class UserService {
+public class UserService implements IUserService {
 
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;

@@ -21,13 +21,13 @@ import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.UserAvatarService;
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class UserAvatarServiceUnitTest {
 
     @Mock
-    private MinioStorageService storageService;
+    private IStorageService storageService;
     
     @Mock
     private UserModelRepository userRepository;

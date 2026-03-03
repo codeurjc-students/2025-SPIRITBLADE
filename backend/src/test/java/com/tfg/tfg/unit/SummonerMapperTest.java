@@ -3,7 +3,7 @@ package com.tfg.tfg.unit;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.SummonerMapper;
-import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.storage.IDataDragonService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.lenient;
 class SummonerMapperTest {
 
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
 
     @Test
     void testToDTONullSummoner() {

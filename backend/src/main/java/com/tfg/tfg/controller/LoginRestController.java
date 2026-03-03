@@ -16,7 +16,7 @@ import com.tfg.tfg.security.jwt.AuthResponse;
 import com.tfg.tfg.security.jwt.AuthResponse.Status;
 import com.tfg.tfg.security.jwt.LoginRequest;
 import com.tfg.tfg.security.jwt.UserLoginService;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IUserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,10 +32,10 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/auth")
 public class LoginRestController {
 
-	private final UserService userService;
+	private final IUserService userService;
     private final UserLoginService userLoginService;
 
-    public LoginRestController(UserService userService, UserLoginService userLoginService) {
+    public LoginRestController(IUserService userService, UserLoginService userLoginService) {
         this.userService = userService;
         this.userLoginService = userLoginService;
     }

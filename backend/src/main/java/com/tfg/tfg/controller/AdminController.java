@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.model.mapper.UserMapper;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IUserService;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -30,9 +30,9 @@ public class AdminController {
 
     private static final String ROLE_ADMIN = "ADMIN";
 
-    private final UserService userService;
+    private final IUserService userService;
 
-    public AdminController(UserService userService) {
+    public AdminController(IUserService userService) {
         this.userService = userService;
     }
 

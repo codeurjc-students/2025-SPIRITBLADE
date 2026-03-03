@@ -5,11 +5,14 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.MatchService;
-import com.tfg.tfg.service.RiotService;
-import com.tfg.tfg.service.SummonerService;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IAiAnalysisService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IDashboardService;
+import com.tfg.tfg.service.storage.IMatchService;
+import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.storage.IRiotService;
+import com.tfg.tfg.service.storage.ISummonerService;
+import com.tfg.tfg.service.storage.IUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,28 +43,28 @@ import static org.mockito.Mockito.*;
 class DashboardControllerUnitTest {
 
     @Mock
-    private SummonerService summonerService;
+    private ISummonerService summonerService;
 
     @Mock
-    private RiotService riotService;
+    private IRiotService riotService;
 
     @Mock
-    private MatchService matchService;
+    private IMatchService matchService;
 
     @Mock
-    private UserService userService;
+    private IUserService userService;
 
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
 
     @Mock
-    private com.tfg.tfg.service.DashboardService dashboardService;
+    private IDashboardService dashboardService;
 
     @Mock
-    private com.tfg.tfg.service.AiAnalysisService aiAnalysisService;
+    private IAiAnalysisService aiAnalysisService;
 
     @Mock
-    private com.tfg.tfg.service.RankHistoryService rankHistoryService;
+    private IRankHistoryService rankHistoryService;
 
     @InjectMocks
     private DashboardController dashboardController;

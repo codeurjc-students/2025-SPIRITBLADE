@@ -1,5 +1,6 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
 import org.springframework.stereotype.Component;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IStorageService;
 
 import jakarta.annotation.PostConstruct;
 import java.nio.file.Files;
@@ -27,22 +28,27 @@ public class DataInitializer {
 
     private final UserModelRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MinioStorageService minioStorageService;
-    private final DataDragonService dataDragonService;
+    private final IStorageService storageService;
+    private final IDataDragonService dataDragonService;
 
     public DataInitializer(UserModelRepository userRepository,
             PasswordEncoder passwordEncoder,
-            MinioStorageService minioStorageService,
-            DataDragonService dataDragonService) {
+            IStorageService storageService,
+            IDataDragonService dataDragonService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.minioStorageService = minioStorageService;
+        this.storageService = storageService;
         this.dataDragonService = dataDragonService;
     }
 
     @PostConstruct
     public void init() {
         boolean isProduction = isProductionMode();
+
+        // Remove duplicate system users that can accumulate after DB restarts
+        // (keeps the row with the lowest ID)
+        deduplicateSystemUser(ADMIN_USERNAME);
+        deduplicateSystemUser(USER_USERNAME);
 
         String adminPassword = resolvePassword("ADMIN_DEFAULT_PASSWORD", ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD,
                 isProduction);
@@ -54,6 +60,25 @@ public class DataInitializer {
 
         // Load static data
         dataDragonService.updateChampionDatabase();
+    }
+
+    /**
+     * Removes duplicate rows for a system user, keeping the one with the lowest ID.
+     * Duplicates can appear after an ADB/node restart when the transaction log is
+     * partially replayed.
+     */
+    private void deduplicateSystemUser(String username) {
+        java.util.List<com.tfg.tfg.model.entity.UserModel> all = userRepository.findAllByName(username);
+        if (all.size() > 1) {
+            logger.warn("Found {} duplicate rows for user '{}'. Removing extras.", all.size(), username);
+            all.stream()
+               .sorted(java.util.Comparator.comparingLong(com.tfg.tfg.model.entity.UserModel::getId))
+               .skip(1) // keep the first (lowest id)
+               .forEach(dup -> {
+                   logger.warn("Deleting duplicate user id={} name='{}'", dup.getId(), username);
+                   userRepository.delete(dup);
+               });
+        }
     }
 
     private boolean isProductionMode() {
@@ -76,7 +101,7 @@ public class DataInitializer {
     }
 
     private void createAdminUserIfNotExists(String adminPassword, boolean isProduction) {
-        if (userRepository.findByName(ADMIN_USERNAME).isEmpty()) {
+        if (!userRepository.existsByName(ADMIN_USERNAME)) {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
             admin = userRepository.save(admin);
@@ -90,8 +115,8 @@ public class DataInitializer {
                     byte[] bytes = is.readAllBytes();
                     MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME,
                             DEFAULT_AVATAR_CONTENT_TYPE);
-                    String key = minioStorageService.store(multipartFile, "avatars");
-                    String publicUrl = minioStorageService.getPublicUrl(key);
+                    String key = storageService.store(multipartFile, "avatars");
+                    String publicUrl = storageService.getPublicUrl(key);
                     admin.setAvatarUrl(publicUrl);
                     userRepository.save(admin);
                 }
@@ -104,7 +129,7 @@ public class DataInitializer {
     }
 
     private void createRegularUserIfNotExists(String userPassword, boolean isProduction) {
-        if (userRepository.findByName(USER_USERNAME).isEmpty()) {
+        if (!userRepository.existsByName(USER_USERNAME)) {
             UserModel user = new UserModel(USER_USERNAME, passwordEncoder.encode(userPassword), "USER");
             user.setEmail("user@example.com");
             user.setActive(true);
@@ -119,8 +144,8 @@ public class DataInitializer {
                     byte[] bytes = is.readAllBytes();
                     MultipartFile multipartFile = new SimpleMultipartFile(bytes, DEFAULT_AVATAR_FILENAME,
                             DEFAULT_AVATAR_CONTENT_TYPE);
-                    String key = minioStorageService.store(multipartFile, "avatars");
-                    String publicUrl = minioStorageService.getPublicUrl(key);
+                    String key = storageService.store(multipartFile, "avatars");
+                    String publicUrl = storageService.getPublicUrl(key);
                     user.setAvatarUrl(publicUrl);
                     userRepository.save(user);
                 }

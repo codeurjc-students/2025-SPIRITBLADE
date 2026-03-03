@@ -1,11 +1,12 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
 import com.tfg.tfg.exception.InvalidFileException;
 import com.tfg.tfg.exception.StorageException;
 import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IStorageService;
 import com.tfg.tfg.util.PngFileValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,14 +17,14 @@ import java.io.IOException;
  * Service for managing user profile images (avatars)
  */
 @Service
-public class UserAvatarService {
+public class UserAvatarService implements IUserAvatarService {
 
-    private final MinioStorageService storageService;
+    private final IStorageService storageService;
     private final UserModelRepository userRepository;
 
     private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5MB
 
-    public UserAvatarService(MinioStorageService storageService, UserModelRepository userRepository) {
+    public UserAvatarService(IStorageService storageService, UserModelRepository userRepository) {
         this.storageService = storageService;
         this.userRepository = userRepository;
     }

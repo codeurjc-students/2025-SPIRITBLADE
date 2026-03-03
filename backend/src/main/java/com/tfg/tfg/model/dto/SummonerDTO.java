@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.SummonerMapper;
-import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.storage.IDataDragonService;
 
 import java.time.LocalDateTime;
 
@@ -34,7 +34,7 @@ public class SummonerDTO {
      * @param dataDragonService Service to generate profile icon URLs
      * @return SummonerDTO with all fields populated
      */
-    public static SummonerDTO fromEntity(Summoner summoner, DataDragonService dataDragonService) {
+    public static SummonerDTO fromEntity(Summoner summoner, IDataDragonService dataDragonService) {
         return SummonerMapper.toDTO(summoner, dataDragonService);
     }
 }

@@ -4,8 +4,8 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.MatchMapper;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.RankHistoryService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IRankHistoryService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +23,10 @@ import static org.mockito.Mockito.lenient;
 class MatchMapperTest {
 
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
 
     @Mock
-    private RankHistoryService rankHistoryService;
+    private IRankHistoryService rankHistoryService;
 
     @Test
     void testToEntityNullDTO() {

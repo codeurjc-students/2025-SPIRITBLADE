@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,8 +17,8 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataInitializer;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class DataInitializerUnitTest {
@@ -35,13 +33,13 @@ class DataInitializerUnitTest {
     private SummonerRepository summonerRepository;
 
     @Mock
-    private MinioStorageService minioStorageService;
+    private IStorageService storageService;
 
     @Mock
     private MatchRepository matchRepository;
 
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
 
     private DataInitializer dataInitializer;
 
@@ -50,15 +48,15 @@ class DataInitializerUnitTest {
         dataInitializer = new DataInitializer(
                 userRepository,
                 passwordEncoder,
-                minioStorageService,
+                storageService,
                 dataDragonService);
     }
 
     @Test
     void testInitCreatesAdminAndUserWhenNotExist() {
         // Given - No users exist
-        when(userRepository.findByName("admin")).thenReturn(Optional.empty());
-        when(userRepository.findByName("user")).thenReturn(Optional.empty());
+        when(userRepository.existsByName("admin")).thenReturn(false);
+        when(userRepository.existsByName("user")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
 
         // Mock save to return user with ID set (simulating DB behavior)
@@ -107,10 +105,8 @@ class DataInitializerUnitTest {
     @Test
     void testInitDoesNotCreateAdminWhenExists() {
         // Given - Admin already exists
-        UserModel existingAdmin = new UserModel("admin", "encoded-password", "ADMIN");
-        existingAdmin.setId(1L);
-        when(userRepository.findByName("admin")).thenReturn(Optional.of(existingAdmin));
-        when(userRepository.findByName("user")).thenReturn(Optional.empty());
+        when(userRepository.existsByName("admin")).thenReturn(true);
+        when(userRepository.existsByName("user")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
 
         // Mock save to return user with ID set (simulating DB behavior)
@@ -141,10 +137,8 @@ class DataInitializerUnitTest {
     @Test
     void testInitDoesNotCreateUserWhenExists() {
         // Given - User already exists
-        UserModel existingUser = new UserModel("user", "encoded-password", "USER");
-        existingUser.setId(2L);
-        when(userRepository.findByName("admin")).thenReturn(Optional.empty());
-        when(userRepository.findByName("user")).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByName("admin")).thenReturn(false);
+        when(userRepository.existsByName("user")).thenReturn(true);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
 
         // Mock save to return user with ID set (simulating DB behavior)
@@ -175,10 +169,8 @@ class DataInitializerUnitTest {
     @Test
     void testInitDoesNotCreateUsersWhenBothExist() {
         // Given - Both users already exist
-        UserModel existingAdmin = new UserModel("admin", "encoded-password", "ADMIN");
-        UserModel existingUser = new UserModel("user", "encoded-password", "USER");
-        when(userRepository.findByName("admin")).thenReturn(Optional.of(existingAdmin));
-        when(userRepository.findByName("user")).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByName("admin")).thenReturn(true);
+        when(userRepository.existsByName("user")).thenReturn(true);
 
         // When
         dataInitializer.init();

@@ -5,7 +5,7 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.ParticipantDTO;
 import com.tfg.tfg.model.dto.TeamDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
-import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.storage.IDataDragonService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +30,7 @@ public final class RiotMatchMapper {
      * @return MatchHistoryDTO or null if participant not found
      */
     public static MatchHistoryDTO toMatchHistoryDTO(RiotMatchDTO riotMatch, String puuid,
-            DataDragonService dataDragonService) {
+            IDataDragonService dataDragonService) {
         if (riotMatch == null || riotMatch.getInfo() == null ||
                 riotMatch.getInfo().getParticipants() == null) {
             return null;
@@ -49,8 +49,8 @@ public final class RiotMatchMapper {
         MatchHistoryDTO dto = new MatchHistoryDTO();
         dto.setMatchId(riotMatch.getMetadata() != null ? riotMatch.getMetadata().getMatchId() : null);
         dto.setChampionName(participant.getChampionName());
-        dto.setChampionIconUrl(dataDragonService != null ? dataDragonService.getChampionIconUrl(
-                participant.getChampionId() != null ? participant.getChampionId().longValue() : null) : null);
+        Long championId = participant.getChampionId() != null ? participant.getChampionId().longValue() : null;
+        dto.setChampionIconUrl(dataDragonService != null ? dataDragonService.getChampionIconUrl(championId) : null);
         dto.setWin(participant.getWin());
         dto.setKills(participant.getKills());
         dto.setDeaths(participant.getDeaths());
@@ -71,7 +71,7 @@ public final class RiotMatchMapper {
      * @param dataDragonService Service for champion icon URLs
      * @return MatchDetailDTO with complete match information
      */
-    public static MatchDetailDTO toMatchDetailDTO(RiotMatchDTO riotMatch, DataDragonService dataDragonService) {
+    public static MatchDetailDTO toMatchDetailDTO(RiotMatchDTO riotMatch, IDataDragonService dataDragonService) {
         if (riotMatch == null || riotMatch.getInfo() == null) {
             return null;
         }
@@ -116,7 +116,7 @@ public final class RiotMatchMapper {
      * @return ParticipantDTO
      */
     public static ParticipantDTO toParticipantDTO(RiotMatchDTO.ParticipantDTO riotParticipant,
-            DataDragonService dataDragonService) {
+            IDataDragonService dataDragonService) {
         if (riotParticipant == null)
             return null;
 
@@ -126,8 +126,8 @@ public final class RiotMatchMapper {
         dto.setRiotIdGameName(riotParticipant.getRiotIdGameName());
         dto.setRiotIdTagline(riotParticipant.getRiotIdTagline());
         dto.setChampionName(riotParticipant.getChampionName());
-        dto.setChampionIconUrl(dataDragonService != null ? dataDragonService.getChampionIconUrl(
-                riotParticipant.getChampionId() != null ? riotParticipant.getChampionId().longValue() : null) : null);
+        Long championId = riotParticipant.getChampionId() != null ? riotParticipant.getChampionId().longValue() : null;
+        dto.setChampionIconUrl(dataDragonService != null ? dataDragonService.getChampionIconUrl(championId) : null);
         dto.setKills(riotParticipant.getKills());
         dto.setDeaths(riotParticipant.getDeaths());
         dto.setAssists(riotParticipant.getAssists());
@@ -161,7 +161,7 @@ public final class RiotMatchMapper {
      * @return TeamDTO
      */
     public static TeamDTO toTeamDTO(RiotMatchDTO.TeamDTO riotTeam, List<ParticipantDTO> allParticipants,
-            DataDragonService dataDragonService) {
+            IDataDragonService dataDragonService) {
         if (riotTeam == null)
             return null;
 

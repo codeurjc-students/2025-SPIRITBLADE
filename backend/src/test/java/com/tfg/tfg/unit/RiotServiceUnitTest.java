@@ -29,8 +29,8 @@ import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.RankHistoryService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IRankHistoryService;
 import com.tfg.tfg.service.RiotService;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,10 +43,10 @@ class RiotServiceUnitTest {
     private MatchRepository matchRepository;
     
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
     
     @Mock
-    private RankHistoryService rankHistoryService;
+    private IRankHistoryService rankHistoryService;
     
     @Mock
     private RestTemplate restTemplate;
@@ -276,7 +276,7 @@ class RiotServiceUnitTest {
     @Test
     void testGetDataDragonService() {
         // When
-        DataDragonService result = riotService.getDataDragonService();
+        IDataDragonService result = riotService.getDataDragonService();
         
         // Then
         assertNotNull(result);
