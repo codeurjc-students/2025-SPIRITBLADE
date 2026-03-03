@@ -42,8 +42,19 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  padding-bottom: 120px; /* For fixed footer */
-  padding-top: 80px; /* For fixed header */
+  display: flex;
+  flex-direction: column;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+}
+
+router-outlet + * {
+  flex: 1;
 }
 
 /* Typography enhancements */
@@ -65,11 +76,6 @@ p {
   background: rgba(10, 10, 15, 0.95);
   backdrop-filter: blur(15px);
   border-bottom: 2px solid var(--primary);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
   box-shadow: var(--shadow-sm);
 }
 
@@ -449,11 +455,6 @@ p {
 
 /* Fixed Footer */
 footer {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  z-index: 100;
   background: rgba(10, 10, 15, 0.95);
   backdrop-filter: blur(15px);
   border-top: 2px solid var(--primary);

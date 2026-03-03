@@ -3,8 +3,6 @@
 	component stylesheet below the Angular size budget. */
 /* Ensure page content clears the fixed header/footer */
 .dashboard-container {
-	margin-top: 80px; /* space for fixed header */
-	margin-bottom: 120px; /* space for fixed footer */
 	min-height: calc(100vh - 200px);
 }
 

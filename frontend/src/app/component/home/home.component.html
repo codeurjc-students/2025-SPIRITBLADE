@@ -1,35 +1,46 @@
-<main class="home-container">
-  <section class="hero">
-    <h1>Analyze Your League Performance</h1>
-    <p>Search for any summoner and discover detailed match statistics</p>
-  </section>
+<main class="landing-page">
 
-  <section class="search-section">
-    <div class="search-box">
-      <input 
-        type="text" 
-        placeholder="e.g., Player#EUW1"
-        class="search-input"
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()">
-      <button class="search-btn" (click)="onSearch()">Search</button>
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <span class="hero-badge">League of Legends Analytics</span>
+      <h1>Analyze Your League<br><span class="hero-highlight">Performance</span></h1>
+      <p class="hero-subtitle">
+        Search for any summoner and uncover detailed match statistics,<br>
+        champion insights and rank progression — all in one place.
+      </p>
+
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="e.g., Player#EUW1"
+          class="search-input"
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()">
+        <button class="search-btn" (click)="onSearch()">Search</button>
+      </div>
+
+      <div *ngIf="searchError" class="search-error">{{ searchError }}</div>
+    </div>
+
+    <div class="hero-scroll-hint">
+      <span>Scroll to discover</span>
+      <div class="scroll-arrow"></div>
     </div>
   </section>
 
-  <div *ngIf="searchError" class="search-error">
-      {{ searchError }}
-  </div>
-
+  <!-- ══════════ RECENT SEARCHES ══════════ -->
   <section class="recent-searches" *ngIf="!loadingRecentSearches && recentSearches.length > 0">
     <h3>Recent Searches</h3>
     <div class="summoner-list">
-      <button 
-        class="summoner-card" 
+      <button
+        class="summoner-card"
         *ngFor="let summoner of recentSearches"
         (click)="searchSummoner(summoner)">
         <div class="summoner-avatar">
-          <img *ngIf="summoner.profileIconUrl" 
-            [src]="summoner.profileIconUrl" 
+          <img *ngIf="summoner.profileIconUrl"
+            [src]="summoner.profileIconUrl"
             [alt]="summoner.name"
             class="avatar-img">
         </div>
@@ -44,8 +55,101 @@
       </button>
     </div>
   </section>
-  
+
   <section class="loading-section" *ngIf="loadingRecentSearches">
     <p>Loading recent searches...</p>
   </section>
+
+  <!-- ══════════ FEATURES ══════════ -->
+  <section class="features-section">
+    <div class="section-header">
+      <h2 class="section-title">Everything you need to improve</h2>
+      <p class="section-subtitle">Powerful analytics to understand your gameplay and climb the ranks</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Match History</h3>
+        <p>Detailed breakdown of your recent games with KDA, damage dealt, vision score and much more.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <h3>Rank Tracking</h3>
+        <p>Monitor your LP gains, rank progression and win rate across all queues and seasons.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+        </div>
+        <h3>Champion Stats</h3>
+        <p>Dive deep into your champion pool — mastery levels, win rates, and individual performance trends.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3>Player Lookup</h3>
+        <p>Look up any summoner across all regions. Scout opponents, teammates, or friends instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ HOW IT WORKS ══════════ -->
+  <section class="how-it-works">
+    <div class="section-header">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-subtitle">Get started in seconds, no account required</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+          <h3>Enter your Riot ID</h3>
+          <p>Type your summoner name followed by your region tag, for example <strong>Player#EUW1</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step-connector">
+        <div class="connector-line"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+          <h3>Explore your profile</h3>
+          <p>Browse your full match history, live champion stats and detailed ranking information.</p>
+        </div>
+      </div>
+
+      <div class="step-connector">
+        <div class="connector-line"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+          <h3>Improve your game</h3>
+          <p>Identify patterns, spot weak points and use data-driven insights to optimise your playstyle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ CTA FOOTER ══════════ -->
+  <section class="cta-section">
+    <div class="cta-glow"></div>
+    <h2>Ready to level up?</h2>
+    <p>Start by searching for your summoner above or try one of the recent searches.</p>
+    <button class="cta-btn" (click)="scrollToTop()">Search Now</button>
+  </section>
+
 </main>
