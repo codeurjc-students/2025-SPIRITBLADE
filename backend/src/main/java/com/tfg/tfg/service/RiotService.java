@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.Collections;
 
 @Service
-public class RiotService {
+public class RiotService implements IRiotService {
 
     private static final Logger logger = LoggerFactory.getLogger(RiotService.class);
     private static final String STACKTRACE_LOG_MESSAGE = "Stacktrace:";
@@ -74,14 +76,14 @@ public class RiotService {
 
     private final SummonerRepository summonerRepository;
     private final MatchRepository matchRepository;
-    private final DataDragonService dataDragonService;
-    private final RankHistoryService rankHistoryService;
+    private final IDataDragonService dataDragonService;
+    private final IRankHistoryService rankHistoryService;
     private final RestTemplate restTemplate;
 
     public RiotService(SummonerRepository summonerRepository,
             MatchRepository matchRepository,
-            DataDragonService dataDragonService,
-            RankHistoryService rankHistoryService) {
+            IDataDragonService dataDragonService,
+            IRankHistoryService rankHistoryService) {
         this.summonerRepository = summonerRepository;
         this.matchRepository = matchRepository;
         this.dataDragonService = dataDragonService;
@@ -92,7 +94,7 @@ public class RiotService {
     /**
      * Exposes DataDragonService for use by controllers
      */
-    public DataDragonService getDataDragonService() {
+    public IDataDragonService getDataDragonService() {
         return dataDragonService;
     }
 
@@ -260,7 +262,7 @@ public class RiotService {
     private void saveSummonerToDatabase(SummonerDTO dto) {
         try {
             if (dto.getPuuid() == null || dto.getPuuid().isEmpty()) {
-                logger.warn("Cannot save summoner without PUUID: {}", dto.getName());
+                logger.warn("Cannot save summoner without PUUID");
                 return;
             }
 

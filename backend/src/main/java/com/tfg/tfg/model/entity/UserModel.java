@@ -13,6 +13,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 @Entity
 public class UserModel{
 
@@ -30,6 +36,7 @@ public class UserModel{
 
     private boolean active = true;
 
+    @Setter(AccessLevel.NONE)
     private String encodedPassword;
 
 	@ElementCollection(fetch = FetchType.EAGER)
@@ -53,6 +60,8 @@ public class UserModel{
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "summoner_id")
     )
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     private List<Summoner> favoriteSummoners = new java.util.ArrayList<>();
 
     public UserModel(){
@@ -66,50 +75,6 @@ public class UserModel{
         this.image = null;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEncodedPassword() {
-        return encodedPassword;
-    }
-
     public void setPass(String encodedPassword) {
         this.encodedPassword = encodedPassword;
     }
@@ -121,14 +86,6 @@ public class UserModel{
         setPass(encodedPassword);
     }
 
-    public List<String> getRols() {
-        return rols;
-    }
-
-    public void setRols(List<String> rols) {
-        this.rols = rols;
-    }  
-
     /**
      * New clearer accessor name. Keeps compatibility with existing field name.
      */
@@ -138,46 +95,6 @@ public class UserModel{
 
     public void setRoles(List<String> roles) {
         setRols(roles);
-    }
-
-    public String getLinkedSummonerPuuid() {
-        return linkedSummonerPuuid;
-    }
-
-    public void setLinkedSummonerPuuid(String linkedSummonerPuuid) {
-        this.linkedSummonerPuuid = linkedSummonerPuuid;
-    }
-
-    public String getLinkedSummonerName() {
-        return linkedSummonerName;
-    }
-
-    public void setLinkedSummonerName(String linkedSummonerName) {
-        this.linkedSummonerName = linkedSummonerName;
-    }
-
-    public String getLinkedSummonerRegion() {
-        return linkedSummonerRegion;
-    }
-
-    public void setLinkedSummonerRegion(String linkedSummonerRegion) {
-        this.linkedSummonerRegion = linkedSummonerRegion;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public java.time.LocalDateTime getLastAiAnalysisRequest() {
-        return lastAiAnalysisRequest;
-    }
-
-    public void setLastAiAnalysisRequest(java.time.LocalDateTime lastAiAnalysisRequest) {
-        this.lastAiAnalysisRequest = lastAiAnalysisRequest;
     }
 
     public List<Summoner> getFavoriteSummoners() {

@@ -3,8 +3,8 @@ package com.tfg.tfg.model.mapper;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.RankHistoryService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IRankHistoryService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -71,8 +71,8 @@ public final class MatchMapper {
      * @param rankHistoryService Service for LP data
      * @return MatchHistoryDTO
      */
-    public static MatchHistoryDTO toDTO(MatchEntity entity, DataDragonService dataDragonService,
-            RankHistoryService rankHistoryService) {
+    public static MatchHistoryDTO toDTO(MatchEntity entity, IDataDragonService dataDragonService,
+            IRankHistoryService rankHistoryService) {
         if (entity == null)
             return null;
 

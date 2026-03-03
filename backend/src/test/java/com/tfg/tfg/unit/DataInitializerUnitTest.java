@@ -19,8 +19,8 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataInitializer;
-import com.tfg.tfg.service.DataDragonService;
-import com.tfg.tfg.service.storage.MinioStorageService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class DataInitializerUnitTest {
@@ -35,13 +35,13 @@ class DataInitializerUnitTest {
     private SummonerRepository summonerRepository;
 
     @Mock
-    private MinioStorageService minioStorageService;
+    private IStorageService storageService;
 
     @Mock
     private MatchRepository matchRepository;
 
     @Mock
-    private DataDragonService dataDragonService;
+    private IDataDragonService dataDragonService;
 
     private DataInitializer dataInitializer;
 
@@ -50,7 +50,7 @@ class DataInitializerUnitTest {
         dataInitializer = new DataInitializer(
                 userRepository,
                 passwordEncoder,
-                minioStorageService,
+                storageService,
                 dataDragonService);
     }
 

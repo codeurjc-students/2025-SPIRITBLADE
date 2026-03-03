@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,7 +19,7 @@ import com.tfg.tfg.repository.ChampionRepository;
  * Data Dragon provides champion names, images, and other static game data
  */
 @Service
-public class DataDragonService {
+public class DataDragonService implements IDataDragonService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataDragonService.class);
 

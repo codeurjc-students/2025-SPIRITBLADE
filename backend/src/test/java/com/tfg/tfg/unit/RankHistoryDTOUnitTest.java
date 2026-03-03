@@ -41,9 +41,17 @@ public class RankHistoryDTOUnitTest {
     @Test
     public void testEnhancedConstructor() {
         LocalDateTime now = LocalDateTime.now();
-        RankHistoryDTO dto = new RankHistoryDTO(
-            1L, "TestSummoner", now, "PLATINUM", "III", 75, 20, 15, "RANKED_SOLO_5x5", 15
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(1L);
+        dto.setSummonerName("TestSummoner");
+        dto.setTimestamp(now);
+        dto.setTier("PLATINUM");
+        dto.setRank("III");
+        dto.setLeaguePoints(75);
+        dto.setWins(20);
+        dto.setLosses(15);
+        dto.setQueueType("RANKED_SOLO_5x5");
+        dto.setLpChange(15);
         
         assertEquals(1L, dto.getId());
         assertEquals("TestSummoner", dto.getSummonerName());

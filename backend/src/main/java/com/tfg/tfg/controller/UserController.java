@@ -20,9 +20,9 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.model.mapper.UserMapper;
-import com.tfg.tfg.service.RiotService;
-import com.tfg.tfg.service.UserAvatarService;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IRiotService;
+import com.tfg.tfg.service.storage.IUserAvatarService;
+import com.tfg.tfg.service.storage.IUserService;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +39,12 @@ public class UserController {
     private static final String REGION_KEY = "region";
     private static final String USER_NOT_FOUND_MSG = "User not found";
 
-    private final UserService userService;
-    private final RiotService riotService;
-    private final UserAvatarService userAvatarService;
+    private final IUserService userService;
+    private final IRiotService riotService;
+    private final IUserAvatarService userAvatarService;
 
-    public UserController(UserService userService, 
-                         RiotService riotService, UserAvatarService userAvatarService) {
+    public UserController(IUserService userService, 
+                         IRiotService riotService, IUserAvatarService userAvatarService) {
         this.userService = userService;
         this.riotService = riotService;
         this.userAvatarService = userAvatarService;
@@ -183,7 +183,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            logger.warn("Failed to link summoner for user {}: {}", username, e.getMessage(), e);
+            logger.warn("Failed to link summoner for user {}", username, e);
             Map<String, Object> error = new HashMap<>();
             error.put(SUCCESS_KEY, false);
             error.put(MESSAGE_KEY, "Failed to link account: " + e.getMessage());
@@ -222,7 +222,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            logger.warn("Failed to unlink summoner for user {}: {}", username, e.getMessage(), e);
+            logger.warn("Failed to unlink summoner for user {}", username, e);
             Map<String, Object> error = new HashMap<>();
             error.put(SUCCESS_KEY, false);
             error.put(MESSAGE_KEY, "Failed to unlink account: " + e.getMessage());
@@ -268,7 +268,7 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            logger.error("Error retrieving linked summoner for user {}: {}", username, e.getMessage(), e);
+            logger.error("Error retrieving linked summoner for user {}", username, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

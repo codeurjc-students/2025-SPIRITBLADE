@@ -18,8 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
+import com.tfg.tfg.service.storage.IMatchService;
+import com.tfg.tfg.service.storage.IRankHistoryService;
 import com.tfg.tfg.service.MatchService;
-import com.tfg.tfg.service.RankHistoryService;
 
 /**
  * Unit tests for MatchService.
@@ -32,7 +33,7 @@ class MatchServiceUnitTest {
     private MatchRepository matchRepository;
 
     @Mock
-    private RankHistoryService rankHistoryService;
+    private IRankHistoryService rankHistoryService;
 
     @InjectMocks
     private MatchService matchService;

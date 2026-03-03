@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.SummonerRepository;
 import org.springframework.data.domain.Page;
@@ -16,7 +18,7 @@ import java.util.Optional;
  */
 @Service
 @Transactional
-public class SummonerService {
+public class SummonerService implements ISummonerService {
 
     private final SummonerRepository summonerRepository;
 

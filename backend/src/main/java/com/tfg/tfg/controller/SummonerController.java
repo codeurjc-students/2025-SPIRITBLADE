@@ -15,18 +15,18 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.SummonerMapper;
-import com.tfg.tfg.service.RiotService;
-import com.tfg.tfg.service.SummonerService;
-import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.storage.IRiotService;
+import com.tfg.tfg.service.storage.ISummonerService;
 
 @RestController
 @RequestMapping("/api/v1/summoners")
 public class SummonerController {
 
-    private final SummonerService summonerService;
-    private final RiotService riotService;
+    private final ISummonerService summonerService;
+    private final IRiotService riotService;
 
-    public SummonerController(SummonerService summonerService, RiotService riotService) {
+    public SummonerController(ISummonerService summonerService, IRiotService riotService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
     }
@@ -34,7 +34,7 @@ public class SummonerController {
     @GetMapping("/recent")
     public ResponseEntity<List<SummonerDTO>> getRecentSearches() {
         List<Summoner> recentSummoners = summonerService.findRecentSearches();
-        DataDragonService dataDragonService = riotService.getDataDragonService();
+        IDataDragonService dataDragonService = riotService.getDataDragonService();
         List<SummonerDTO> dtos = recentSummoners.stream()
             .filter(s -> s.getLastSearchedAt() != null)
             .map(s -> SummonerMapper.toDTO(s, dataDragonService))

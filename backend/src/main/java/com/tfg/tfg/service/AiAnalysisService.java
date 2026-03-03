@@ -1,5 +1,7 @@
 package com.tfg.tfg.service;
 
+import com.tfg.tfg.service.storage.*;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +24,7 @@ import com.tfg.tfg.model.entity.Summoner;
  * strengths, weaknesses, and recommendations.
  */
 @Service
-public class AiAnalysisService {
+public class AiAnalysisService implements IAiAnalysisService {
 
     private static final Logger logger = LoggerFactory.getLogger(AiAnalysisService.class);
 
@@ -31,14 +33,14 @@ public class AiAnalysisService {
 
     private final WebClient webClient;
     private final Gson gson;
-    private final RankHistoryService rankHistoryService;
+    private final IRankHistoryService rankHistoryService;
 
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     private static final String UNKNOWN = "Unknown";
     private static final String PARTS = "parts";
     private static final String CANDIDATES = "candidates";
 
-    public AiAnalysisService(RankHistoryService rankHistoryService) {
+    public AiAnalysisService(IRankHistoryService rankHistoryService) {
         this.webClient = WebClient.builder().build();
         this.gson = new Gson();
         this.rankHistoryService = rankHistoryService;
@@ -227,7 +229,6 @@ public class AiAnalysisService {
             return parseGeminiResponse(response);
 
         } catch (Exception e) {
-            logger.error("Error calling Gemini API: {}", e.getMessage(), e);
             throw new IOException("Failed to generate AI analysis: " + e.getMessage(), e);
         }
     }

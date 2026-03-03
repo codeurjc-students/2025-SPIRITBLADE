@@ -15,12 +15,12 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.service.RiotService;
-import com.tfg.tfg.service.SummonerService;
-import com.tfg.tfg.service.AiAnalysisService;
-import com.tfg.tfg.service.DashboardService;
-import com.tfg.tfg.service.MatchService;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IRiotService;
+import com.tfg.tfg.service.storage.ISummonerService;
+import com.tfg.tfg.service.storage.IAiAnalysisService;
+import com.tfg.tfg.service.storage.IDashboardService;
+import com.tfg.tfg.service.storage.IMatchService;
+import com.tfg.tfg.service.storage.IUserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,19 +42,19 @@ public class DashboardController {
     private static final String SUMMONER_NOT_FOUND_MSG = "Summoner not found";
     private static final String USER_NOT_FOUND_MSG = "User not found";
 
-    private final SummonerService summonerService;
-    private final RiotService riotService;
-    private final MatchService matchService;
-    private final UserService userService;
-    private final AiAnalysisService aiAnalysisService;
-    private final DashboardService dashboardService;
+    private final ISummonerService summonerService;
+    private final IRiotService riotService;
+    private final IMatchService matchService;
+    private final IUserService userService;
+    private final IAiAnalysisService aiAnalysisService;
+    private final IDashboardService dashboardService;
 
-    public DashboardController(SummonerService summonerService,
-            RiotService riotService,
-            MatchService matchService,
-            UserService userService,
-            AiAnalysisService aiAnalysisService,
-            DashboardService dashboardService) {
+    public DashboardController(ISummonerService summonerService,
+            IRiotService riotService,
+            IMatchService matchService,
+            IUserService userService,
+            IAiAnalysisService aiAnalysisService,
+            IDashboardService dashboardService) {
         this.summonerService = summonerService;
         this.riotService = riotService;
         this.matchService = matchService;

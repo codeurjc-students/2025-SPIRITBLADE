@@ -13,9 +13,20 @@ import com.tfg.tfg.model.entity.UserModel;
 public interface UserModelRepository extends JpaRepository<UserModel, Long> {
     
     /**
-     * Find user by name.
+     * Find user by name. NOTE: throws NonUniqueResultException if duplicates exist.
+     * Prefer existsByName() for existence checks, findFirstByName() when resilience is needed.
      */
     Optional<UserModel> findByName(String name);
+
+    /**
+     * Safe existence check that does not throw when duplicate rows are present.
+     */
+    boolean existsByName(String name);
+
+    /**
+     * Returns ALL users with the given name – used to detect and clean up duplicates.
+     */
+    java.util.List<UserModel> findAllByName(String name);
     
     /**
      * Finds the first user ordered by ID (ascending).

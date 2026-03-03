@@ -23,18 +23,18 @@ public class RankHistoryMapper {
             return null;
         }
 
-        return new RankHistoryDTO(
-            entity.getId(),
-            entity.getSummoner() != null ? entity.getSummoner().getName() : null,
-            entity.getTimestamp(),
-            entity.getTier(),
-            entity.getRank(),
-            entity.getLeaguePoints(),
-            entity.getWins(),
-            entity.getLosses(),
-            entity.getQueueType(),
-            entity.getLpChange()
-        );
+        RankHistoryDTO dto = new RankHistoryDTO();
+        dto.setId(entity.getId());
+        dto.setSummonerName(entity.getSummoner() != null ? entity.getSummoner().getName() : null);
+        dto.setTimestamp(entity.getTimestamp());
+        dto.setTier(entity.getTier());
+        dto.setRank(entity.getRank());
+        dto.setLeaguePoints(entity.getLeaguePoints());
+        dto.setWins(entity.getWins());
+        dto.setLosses(entity.getLosses());
+        dto.setQueueType(entity.getQueueType());
+        dto.setLpChange(entity.getLpChange());
+        return dto;
     }
 
     /**

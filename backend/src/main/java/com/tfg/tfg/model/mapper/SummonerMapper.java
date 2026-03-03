@@ -2,7 +2,7 @@ package com.tfg.tfg.model.mapper;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.dto.SummonerDTO;
-import com.tfg.tfg.service.DataDragonService;
+import com.tfg.tfg.service.storage.IDataDragonService;
 
 /**
  * Mapper helper to convert between Summoner entity and SummonerDTO
@@ -14,7 +14,7 @@ public final class SummonerMapper {
         // static helper
     }
 
-    public static SummonerDTO toDTO(Summoner summoner, DataDragonService dataDragonService) {
+    public static SummonerDTO toDTO(Summoner summoner, IDataDragonService dataDragonService) {
         if (summoner == null) return null;
         SummonerDTO dto = new SummonerDTO();
         dto.setId(summoner.getId());

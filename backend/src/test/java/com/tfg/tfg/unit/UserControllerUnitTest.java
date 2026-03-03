@@ -4,9 +4,9 @@ import com.tfg.tfg.controller.UserController;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.service.RiotService;
-import com.tfg.tfg.service.UserAvatarService;
-import com.tfg.tfg.service.UserService;
+import com.tfg.tfg.service.storage.IRiotService;
+import com.tfg.tfg.service.storage.IUserAvatarService;
+import com.tfg.tfg.service.storage.IUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,13 +29,13 @@ import static org.mockito.Mockito.*;
 class UserControllerUnitTest {
 
     @Mock
-    private UserService userService;
+    private IUserService userService;
 
     @Mock
-    private RiotService riotService;
+    private IRiotService riotService;
 
     @Mock
-    private UserAvatarService userAvatarService;
+    private IUserAvatarService userAvatarService;
 
     @Mock
     private SecurityContext securityContext;

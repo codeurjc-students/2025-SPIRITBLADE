@@ -13,6 +13,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Entity representing a snapshot of a summoner's rank at a specific point in time.
@@ -24,6 +27,9 @@ import jakarta.persistence.Table;
     @Index(name = "idx_rank_timestamp", columnList = "timestamp"),
     @Index(name = "idx_rank_summoner_queue", columnList = "summoner_id, queueType")
 })
+@Getter
+@Setter
+@NoArgsConstructor
 public class RankHistory {
 
     @Id
@@ -57,112 +63,6 @@ public class RankHistory {
 
     // LP change from previous entry (calculated)
     private Integer lpChange;      // +18, -15, etc. (null for first entry)
-
-    public RankHistory() {
-        // Default constructor for JPA
-    }
-
-    public RankHistory(Summoner summoner, LocalDateTime timestamp, String tier, String rank, 
-                       Integer leaguePoints, Integer wins, Integer losses, String queueType) {
-        this.summoner = summoner;
-        this.timestamp = timestamp;
-        this.tier = tier;
-        this.rank = rank;
-        this.leaguePoints = leaguePoints;
-        this.wins = wins;
-        this.losses = losses;
-        this.queueType = queueType;
-    }
-
-    // Getters and Setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Summoner getSummoner() {
-        return summoner;
-    }
-
-    public void setSummoner(Summoner summoner) {
-        this.summoner = summoner;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getTier() {
-        return tier;
-    }
-
-    public void setTier(String tier) {
-        this.tier = tier;
-    }
-
-    public String getRank() {
-        return rank;
-    }
-
-    public void setRank(String rank) {
-        this.rank = rank;
-    }
-
-    public Integer getLeaguePoints() {
-        return leaguePoints;
-    }
-
-    public void setLeaguePoints(Integer leaguePoints) {
-        this.leaguePoints = leaguePoints;
-    }
-
-    public Integer getWins() {
-        return wins;
-    }
-
-    public void setWins(Integer wins) {
-        this.wins = wins;
-    }
-
-    public Integer getLosses() {
-        return losses;
-    }
-
-    public void setLosses(Integer losses) {
-        this.losses = losses;
-    }
-
-    public String getQueueType() {
-        return queueType;
-    }
-
-    public void setQueueType(String queueType) {
-        this.queueType = queueType;
-    }
-
-    public MatchEntity getTriggeringMatch() {
-        return triggeringMatch;
-    }
-
-    public void setTriggeringMatch(MatchEntity triggeringMatch) {
-        this.triggeringMatch = triggeringMatch;
-    }
-
-    public Integer getLpChange() {
-        return lpChange;
-    }
-
-    public void setLpChange(Integer lpChange) {
-        this.lpChange = lpChange;
-    }
 
     /**
      * Calculates total games played at this snapshot.
