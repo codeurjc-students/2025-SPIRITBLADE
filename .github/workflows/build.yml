@@ -211,6 +211,7 @@ jobs:
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
           MINIO_REGION: us-east-1
+          JWT_SECRET: spiritblade-test-secret-key-for-ci-only-minimum-256-bits
           JWT_EXPIRATION: 86400000
           RIOT_API_KEY: ${{secrets.RIOT_API_KEY}}
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY}}
@@ -249,6 +250,7 @@ jobs:
           MINIO_SECRET_KEY: minioadmin123
           MINIO_BUCKET_NAME: spiritblade-test
           MINIO_REGION: us-east-1
+          JWT_SECRET: spiritblade-test-secret-key-for-ci-only-minimum-256-bits
           JWT_EXPIRATION: 86400000
           RIOT_API_KEY: ${{secrets.RIOT_API_KEY}}
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY}}
