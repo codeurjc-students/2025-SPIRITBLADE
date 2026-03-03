@@ -68,13 +68,6 @@ variable "vcn_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "node_image_id" {
-  description = "OCID de la imagen para los nodos de OKE (Oracle Linux 8 ARM64)"
-  type        = string
-  # Este valor debe obtenerse para tu región específica
-  # Busca: "Oracle-Linux-8.x-aarch64-*" en la consola de OCI
-}
-
 variable "public_key_path" {
   description = "Ruta a la clave SSH pública para acceso a instancias"
   type        = string

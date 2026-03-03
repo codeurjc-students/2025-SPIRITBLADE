@@ -7,7 +7,7 @@ metadata:
     app: backend
     environment: prod
 spec:
-  replicas: 1 # Reduced for free tier (2 OCPUs total)
+  replicas: 1 # Gestionado por HPA (min: 1, max: 3)
   selector:
     matchLabels:
       app: backend
@@ -26,22 +26,27 @@ spec:
         - containerPort: 443
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "300m"
+            memory: "300Mi"
+            cpu: "250m"
           limits:
-            memory: "1Gi"
-            cpu: "800m"
+            memory: "600Mi"
+            cpu: "600m"
         env:
+        # Oracle Autonomous Database - Always Free (20 GB, managed, scalable)
+        # Perfil TP (Transaction Processing), TLS sin wallet (puerto 1521, SERVER auth)
         - name: SPRING_DATASOURCE_URL
-          # TEMPORARY: Using public IP until private networking is fixed
-          value: "jdbc:mysql://mysql-external:3306/spiritblade?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+          value: "jdbc:oracle:thin:@(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.eu-madrid-1.oraclecloud.com))(connect_data=(service_name=ge32c8a2145bafd_spiritblade_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))"
+        - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+          value: "oracle.jdbc.OracleDriver"
+        - name: SPRING_JPA_DATABASE_PLATFORM
+          value: "org.hibernate.dialect.OracleDialect"
         - name: SPRING_DATASOURCE_USERNAME
-          value: "root"
+          value: "ADMIN"
         - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: spiritblade-secrets
-              key: mysql-root-password
+              key: adb-password
         - name: SPRING_DATA_REDIS_HOST
           value: "redis-master" # Points to Redis Service
         - name: SPRING_DATA_REDIS_PORT

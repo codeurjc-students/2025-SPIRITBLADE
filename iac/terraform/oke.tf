@@ -46,17 +46,37 @@ resource "oci_containerengine_node_pool" "node_pool" {
     }
     
     # 2 nodos para alta disponibilidad
-    size = 2
-    
+    # size = 2 (Gestionado por Autoescaler, ver abajo)
+    size = 2 # Valor inicial
+
     # Configuración de Node Security Group
     nsg_ids = [oci_core_network_security_group.node_nsg.id]
   }
 
   node_shape_config {
-    memory_in_gbs = 6  # 6GB por nodo (12GB total)
-    ocpus         = 1  # 1 OCPU = 2 vCPUs por nodo (2 OCPUs total)
+    memory_in_gbs = 6  # 6 GB por nodo (máx 24 GB con 4 nodos = límite Free Tier)
+    ocpus         = 1  # 1 OCPU por nodo (máx 4 OCPUs con 4 nodos = límite Free Tier)
   }
 
+  # ============================================================================
+  # CLUSTER AUTOSCALER (FASE 3 - ESCALADO DE NODOS)
+  # ============================================================================
+  # Nota sobre Free Tier: El límite total es 4 OCPUs y 24 GB RAM.
+  # MySQL VM ELIMINADA → migrado a Oracle Autonomous Database Always Free (adb.tf).
+  # Uso actual: ADB (0 OCPUs ARM, cuota separada) + Nodos (2 OCPUs base) = 2 OCPUs.
+  # Margen disponible: 2 OCPUs → hasta 2 nodos adicionales.
+  # Configuración: Permitir escalar hasta 4 nodos (4 × 1 OCPU = 4 OCPUs = límite Free Tier).
+  # Almacenamiento: 4 nodos × 50 GB boot volume = 200 GB (límite gratuito block volumes).
+  # No exceder max_nodes = 4 para garantizar coste CERO.
+  # ============================================================================
+  
+  # Habilitamos el pool managed por autoscaler (propiedad simulada o via script externo en OCI OKE Básico)
+  # En Terraform provider OCI, el autoscaling se configura asi (versiones recientes):
+  # Descomentar si usas un OKE "Enhanced Cluster" (puede tener coste). 
+  # Para Basic Cluster en Free Tier, el autoscaling nativo puede ser limitado.
+  # IMPLEMENTACIÓN: Usaremos el Cluster Autoscaler estándar de K8s configurado como Deployment
+  # dentro del cluster, apuntando al Instance Pool de OCI.
+  
   node_source_details {
     source_type = "IMAGE"
     image_id    = local.oke_image_id
@@ -77,6 +97,12 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
   # SSH key para acceso a los nodos (debugging)
   ssh_public_key = file(var.public_key_path)
+
+  lifecycle {
+    # CRÍTICO: Ignorar cambios en size para que Terraform no revierta el escalado
+    # realizado por el Cluster Autoscaler (min=2, max=4 gestionado en cluster-autoscaler.yaml)
+    ignore_changes = [node_config_details[0].size]
+  }
 }
 
 # Network Security Group para los nodos
@@ -179,3 +205,9 @@ output "kubeconfig_setup" {
     kubectl get nodes
   EOT
 }
+
+output "nodepool_id" {
+  description = "OCID del Node Pool para el Cluster Autoscaler"
+  value       = oci_containerengine_node_pool.node_pool.id
+}
+
