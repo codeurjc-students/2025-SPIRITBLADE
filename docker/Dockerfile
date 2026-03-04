@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1
 # Stage 1: Build Angular Frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN --network=host --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps
 COPY frontend/ ./
 RUN npm run build -- --configuration production --base-href=/
 
@@ -10,10 +12,12 @@ RUN npm run build -- --configuration production --base-href=/
 FROM maven:3.9-eclipse-temurin-21-alpine AS backend-builder
 WORKDIR /app/backend
 COPY backend/pom.xml ./
-RUN mvn dependency:go-offline -B
+RUN --network=host --mount=type=cache,target=/root/.m2 \
+    mvn dependency:go-offline -B
 COPY backend/src ./src
 COPY --from=frontend-builder /app/frontend/dist/spiritblade-frontend/browser ./src/main/resources/static
-RUN mvn clean package -DskipTests -B
+RUN --network=host --mount=type=cache,target=/root/.m2 \
+    mvn clean package -DskipTests -B
 
 # Stage 3: Runtime
 FROM eclipse-temurin:21-jre-alpine
