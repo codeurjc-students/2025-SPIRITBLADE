@@ -1,4 +1,5 @@
 # Reusable workflow for building and pushing Docker images
+# Uses native runners per platform (no QEMU) to avoid network timeouts
 name: Build and Push Docker
 
 on:
@@ -24,8 +25,21 @@ on:
         required: true
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  # ============================================================
+  # Build each platform on its native runner (no QEMU emulation)
+  # ============================================================
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            suffix: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            suffix: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -39,54 +53,125 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🏗️ Build and push multi-arch Docker image
+      - name: 🏗️ Build and push combined image (digest only)
+        id: build-combined
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ inputs.image-tag }}
-            ${{ inputs.update-latest == 'true' && format('{0}/spiritblade:latest', secrets.DOCKERHUB_USERNAME) || '' }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/spiritblade,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=combined-${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=combined-${{ matrix.suffix }}
 
-      - name: 🏗️ Build and push backend image (multi-arch)
+      - name: 🏗️ Build and push backend image (digest only)
+        id: build-backend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile.backend
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-backend:${{ inputs.image-tag }}
-            ${{ inputs.update-latest == true && format('{0}/spiritblade-backend:latest', secrets.DOCKERHUB_USERNAME) || '' }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-backend,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=backend-${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=backend-${{ matrix.suffix }}
 
-      - name: 🏗️ Build and push frontend image (multi-arch)
+      - name: 🏗️ Build and push frontend image (digest only)
+        id: build-frontend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile.frontend
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-frontend:${{ inputs.image-tag }}
-            ${{ inputs.update-latest == true && format('{0}/spiritblade-frontend:latest', secrets.DOCKERHUB_USERNAME) || '' }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-frontend,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=frontend-${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=frontend-${{ matrix.suffix }}
+
+      - name: 💾 Export digests
+        run: |
+          mkdir -p /tmp/digests/combined /tmp/digests/backend /tmp/digests/frontend
+          touch "/tmp/digests/combined/${DIGEST_COMBINED#sha256:}"
+          touch "/tmp/digests/backend/${DIGEST_BACKEND#sha256:}"
+          touch "/tmp/digests/frontend/${DIGEST_FRONTEND#sha256:}"
+        env:
+          DIGEST_COMBINED: ${{ steps.build-combined.outputs.digest }}
+          DIGEST_BACKEND:  ${{ steps.build-backend.outputs.digest }}
+          DIGEST_FRONTEND: ${{ steps.build-frontend.outputs.digest }}
+
+      - name: 📤 Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.suffix }}
+          path: /tmp/digests/
+          if-no-files-found: error
+          retention-days: 1
+
+  # ============================================================
+  # Merge platform digests into a single multi-arch manifest
+  # ============================================================
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏷️ Create and push manifest for spiritblade
+        run: |
+          TAGS="-t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:${{ inputs.image-tag }}"
+          if [ "${{ inputs.update-latest }}" == "true" ]; then
+            TAGS="$TAGS -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade:latest"
+          fi
+          docker buildx imagetools create $TAGS \
+            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/spiritblade@sha256:%s ' $(ls /tmp/digests/combined/))
+
+      - name: 🏷️ Create and push manifest for spiritblade-backend
+        run: |
+          TAGS="-t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-backend:${{ inputs.image-tag }}"
+          if [ "${{ inputs.update-latest }}" == "true" ]; then
+            TAGS="$TAGS -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-backend:latest"
+          fi
+          docker buildx imagetools create $TAGS \
+            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-backend@sha256:%s ' $(ls /tmp/digests/backend/))
+
+      - name: 🏷️ Create and push manifest for spiritblade-frontend
+        run: |
+          TAGS="-t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-frontend:${{ inputs.image-tag }}"
+          if [ "${{ inputs.update-latest }}" == "true" ]; then
+            TAGS="$TAGS -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-frontend:latest"
+          fi
+          docker buildx imagetools create $TAGS \
+            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-frontend@sha256:%s ' $(ls /tmp/digests/frontend/))
 
       - name: 📦 Publish docker-compose as OCI artifact
         working-directory: ./docker
         run: |
-          # Update compose file with correct image tag
           sed -i "s|spiritblade:[^ ]*|spiritblade:${{ inputs.image-tag }}|g" docker-compose.yml
-          
-          # Build and push as OCI artifact (simple method)
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} --file - . <<DOCKERFILE
+
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} --file - . <<'DOCKERFILE'
           FROM scratch
           COPY docker-compose.yml /docker-compose.yml
           DOCKERFILE
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }}
-          
+
           if [ "${{ inputs.update-latest }}" == "true" ]; then
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:${{ inputs.compose-tag }} \
+                       ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/spiritblade-compose:latest
           fi
 

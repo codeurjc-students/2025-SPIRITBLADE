@@ -3,10 +3,10 @@
 FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY backend/pom.xml ./
-RUN --network=host --mount=type=cache,target=/root/.m2 \
+RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 COPY backend/src ./src
-RUN --network=host --mount=type=cache,target=/root/.m2 \
+RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -B
 
 # Runtime stage
