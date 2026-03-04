@@ -39,10 +39,19 @@ jobs:
             echo 'user=${{ secrets.OCI_CLI_USER }}'
             echo 'fingerprint=${{ secrets.OCI_CLI_FINGERPRINT }}'
             echo 'tenancy=${{ secrets.OCI_CLI_TENANCY }}'
-            echo 'region=${{ secrets.OCI_CLI_REGION }}'
+            echo 'region=eu-madrid-1'
             echo 'key_file=/home/runner/.oci/key.pem'
           } > ~/.oci/config
           chmod 600 ~/.oci/config
+
+      - name: 🔍 Verify OCI credentials
+        env:
+          OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
+        run: |
+          echo "Testing OCI auth..."
+          oci iam user get --user-id ${{ secrets.OCI_CLI_USER }}
+          echo "Listing clusters in eu-madrid-1..."
+          oci ce cluster list --compartment-id ${{ secrets.OCI_CLI_TENANCY }} --region eu-madrid-1
 
       - name: ☸️ Configure Kubectl
         env:
@@ -50,9 +59,9 @@ jobs:
         run: |
           mkdir -p $HOME/.kube
           oci ce cluster create-kubeconfig \
-            --cluster-id ${{ secrets.OCI_CLUSTER_ID }} \
+            --cluster-id ocid1.cluster.oc1.eu-madrid-1.aaaaaaaazox7fgzym7ocb2kbxp7cluzhi6ogio4qfb6mrgjb7cuo24muyroa \
             --file $HOME/.kube/config \
-            --region ${{ secrets.OCI_CLI_REGION }} \
+            --region eu-madrid-1 \
             --token-version 2.0.0 \
             --kube-endpoint PUBLIC_ENDPOINT
 
