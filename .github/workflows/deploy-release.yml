@@ -33,17 +33,20 @@ jobs:
           mkdir -p ~/.oci
           echo "${{ secrets.OCI_CLI_KEY_CONTENT }}" > ~/.oci/key.pem
           chmod 600 ~/.oci/key.pem
-          
-          cat > ~/.oci/config <<EOF
-          [DEFAULT]
-          user=${{ secrets.OCI_CLI_USER }}
-          fingerprint=${{ secrets.OCI_CLI_FINGERPRINT }}
-          tenancy=${{ secrets.OCI_CLI_TENANCY }}
-          region=${{ secrets.OCI_CLI_REGION }}
-          key_file=~/.oci/key.pem
-          EOF
+
+          {
+            echo '[DEFAULT]'
+            echo 'user=${{ secrets.OCI_CLI_USER }}'
+            echo 'fingerprint=${{ secrets.OCI_CLI_FINGERPRINT }}'
+            echo 'tenancy=${{ secrets.OCI_CLI_TENANCY }}'
+            echo 'region=${{ secrets.OCI_CLI_REGION }}'
+            echo 'key_file=/home/runner/.oci/key.pem'
+          } > ~/.oci/config
+          chmod 600 ~/.oci/config
 
       - name: ☸️ Configure Kubectl
+        env:
+          OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
         run: |
           mkdir -p $HOME/.kube
           oci ce cluster create-kubeconfig \
