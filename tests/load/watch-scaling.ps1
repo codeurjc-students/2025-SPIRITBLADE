@@ -65,6 +65,17 @@ while ($true) {
         }
     }
 
+    Write-Header "REDIS (VPA ESTADO)"
+    try {
+        $memTarget = kubectl get vpa redis-vpa -n prod -o jsonpath="{.status.recommendation.containerRecommendations[0].target.memory}"
+        if ($memTarget) {
+            $color = if ($memTarget -match "512") { "Red" } elseif ($memTarget -match "256") { "Yellow" } else { "Cyan" }
+            Write-Host ("  redis-vpa          Recomendacion RAM target: {0,-8} " -f $memTarget) -ForegroundColor $color
+        } else {
+            Write-Host "  redis-vpa          Calculando recomendacion de memoria..." -ForegroundColor DarkGray
+        }
+    } catch { Write-Host "  (Obteniendo metricas de VPA...)" -ForegroundColor DarkGray }
+
     Write-Header "USO ACTUAL CPU/RAM (metrics-server)"
     try {
         kubectl top pods -n prod --no-headers 2>$null | ForEach-Object {
