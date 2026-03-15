@@ -1,0 +1,1876 @@
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:07:42
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:07:42
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:07:50
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:07:56
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 3%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:08:00
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 9m       RAM: 471Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:08:04
+--------------------------------------------------------
+  10.0.10.152                         CPU: 41m   (4%  ) RAM: 1551Mi   (35%)
+  10.0.10.164                         CPU: 142m  (16% ) RAM: 1940Mi   (43%)
+  10.0.10.21                          CPU: 39m   (4%  ) RAM: 2001Mi   (45%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:08:17
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:08:17
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:08:24
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:08:28
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 40%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:08:32
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 144m     RAM: 472Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:08:36
+--------------------------------------------------------
+  10.0.10.152                         CPU: 41m   (4%  ) RAM: 1551Mi   (35%)
+  10.0.10.164                         CPU: 208m  (24% ) RAM: 1943Mi   (43%)
+  10.0.10.21                          CPU: 49m   (5%  ) RAM: 2000Mi   (45%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:08:50
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:08:50
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:08:58
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:09:03
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 52%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:09:07
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 183m     RAM: 472Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:09:12
+--------------------------------------------------------
+  10.0.10.152                         CPU: 40m   (4%  ) RAM: 1550Mi   (35%)
+  10.0.10.164                         CPU: 309m  (36% ) RAM: 1950Mi   (44%)
+  10.0.10.21                          CPU: 56m   (6%  ) RAM: 2003Mi   (45%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:09:25
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:09:25
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:09:34
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 0/1    Running        age: 12s
+  backend-78c45ccf96-c2874                 0/1    Pending        age: 12s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 0/1    Running        age: 12s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:09:39
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 217%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:09:43
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 544m     RAM: 473Mi
+  frontend-755db86d94-9pjpx                CPU: 3m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:09:47
+--------------------------------------------------------
+  10.0.10.152                         CPU: 654m  (77% ) RAM: 1705Mi   (38%)
+  10.0.10.164                         CPU: 654m  (77% ) RAM: 1958Mi   (44%)
+  10.0.10.21                          CPU: 691m  (82% ) RAM: 2115Mi   (47%)
+
+  [!]  PODS PENDING -> Autoscaler anadiendo nodo...
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:10:01
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:10:01
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:10:09
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 0/1    Running        age: 47s
+  backend-78c45ccf96-c2874                 0/1    Pending        age: 47s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 0/1    Running        age: 47s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:10:13
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 238%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 2%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:10:17
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 589m     RAM: 324Mi
+  backend-78c45ccf96-nbj6m                 CPU: 528m     RAM: 476Mi
+  backend-78c45ccf96-q9wwn                 CPU: 585m     RAM: 339Mi
+  frontend-755db86d94-9pjpx                CPU: 3m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:10:21
+--------------------------------------------------------
+  10.0.10.152                         CPU: 640m  (76% ) RAM: 1891Mi   (42%)
+  10.0.10.164                         CPU: 618m  (73% ) RAM: 1954Mi   (44%)
+  10.0.10.21                          CPU: 669m  (79% ) RAM: 2318Mi   (52%)
+
+  [!]  PODS PENDING -> Autoscaler anadiendo nodo...
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:10:35
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:10:35
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:10:43
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: 81s
+  backend-78c45ccf96-c2874                 0/1    Pending        age: 81s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: 81s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:10:47
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 240%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 2%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:10:51
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 345m     RAM: 385Mi
+  backend-78c45ccf96-nbj6m                 CPU: 411m     RAM: 476Mi
+  backend-78c45ccf96-q9wwn                 CPU: 236m     RAM: 384Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:10:55
+--------------------------------------------------------
+  10.0.10.152                         CPU: 288m  (34% ) RAM: 1934Mi   (43%)
+  10.0.10.164                         CPU: 528m  (62% ) RAM: 1948Mi   (44%)
+  10.0.10.21                          CPU: 487m  (57% ) RAM: 2394Mi   (54%)
+
+  [!]  PODS PENDING -> Autoscaler anadiendo nodo...
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:11:10
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:11:10
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+
+  > Total nodos: 3 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:11:19
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: 118s
+  backend-78c45ccf96-c2874                 0/1    Pending        age: 118s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: 118s
+  backend-78c45ccf96-sv55s                 0/1    Pending        age: 13s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:11:24
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 202%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 2%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:11:29
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 591m     RAM: 405Mi
+  backend-78c45ccf96-nbj6m                 CPU: 459m     RAM: 477Mi
+  backend-78c45ccf96-q9wwn                 CPU: 471m     RAM: 393Mi
+  frontend-755db86d94-9pjpx                CPU: 5m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:11:34
+--------------------------------------------------------
+  10.0.10.152                         CPU: 661m  (78% ) RAM: 2000Mi   (45%)
+  10.0.10.164                         CPU: 656m  (78% ) RAM: 1948Mi   (44%)
+  10.0.10.21                          CPU: 779m  (92% ) RAM: 2449Mi   (55%)
+  10.0.10.217                         CPU: <unknown> (<unknown>) RAM: <unknown> (<unknown>)
+
+  [!]  PODS PENDING -> Autoscaler anadiendo nodo...
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:11:49
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:11:49
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [!!] NotReady
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:11:59
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: 2m37s
+  backend-78c45ccf96-c2874                 0/1    Pending        age: 2m37s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: 2m37s
+  backend-78c45ccf96-sv55s                 0/1    Pending        age: 52s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:12:04
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 227%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 3%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:12:09
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 593m     RAM: 439Mi
+  backend-78c45ccf96-nbj6m                 CPU: 561m     RAM: 478Mi
+  backend-78c45ccf96-q9wwn                 CPU: 599m     RAM: 435Mi
+  frontend-755db86d94-9pjpx                CPU: 5m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:12:14
+--------------------------------------------------------
+  10.0.10.152                         CPU: 664m  (79% ) RAM: 2020Mi   (45%)
+  10.0.10.164                         CPU: 658m  (78% ) RAM: 1967Mi   (44%)
+  10.0.10.21                          CPU: 774m  (92% ) RAM: 2456Mi   (55%)
+  10.0.10.217                         CPU: 964m  (114%) RAM: 432Mi    (9%)
+
+  [!]  PODS PENDING -> Autoscaler anadiendo nodo...
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:12:29
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:12:29
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [!!] NotReady
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:12:40
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 0/1    Running        age: (10s
+  backend-78c45ccf96-c2874                 0/1    ContainerCreatingage: 3m19s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: 3m19s
+  backend-78c45ccf96-sv55s                 0/1    ContainerCreatingage: 94s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:12:45
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 237%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 3%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:12:51
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 592m     RAM: 490Mi
+  backend-78c45ccf96-q9wwn                 CPU: 600m     RAM: 463Mi
+  frontend-755db86d94-9pjpx                CPU: 5m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:12:57
+--------------------------------------------------------
+  10.0.10.152                         CPU: 663m  (78% ) RAM: 2025Mi   (45%)
+  10.0.10.164                         CPU: 673m  (80% ) RAM: 1971Mi   (44%)
+  10.0.10.21                          CPU: 711m  (84% ) RAM: 2080Mi   (47%)
+  10.0.10.217                         CPU: 973m  (115%) RAM: 493Mi    (11%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:13:12
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:13:12
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:13:23
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 0/1    Running        age: (53s
+  backend-78c45ccf96-c2874                 0/1    ContainerCreatingage: 4m2s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: 4m2s
+  backend-78c45ccf96-sv55s                 0/1    ContainerCreatingage: 2m17s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:13:29
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 194%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 3%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:13:34
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 585m     RAM: 338Mi
+  backend-78c45ccf96-nbj6m                 CPU: 600m     RAM: 525Mi
+  backend-78c45ccf96-q9wwn                 CPU: 598m     RAM: 497Mi
+  frontend-755db86d94-9pjpx                CPU: 6m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:13:39
+--------------------------------------------------------
+  10.0.10.152                         CPU: 686m  (81% ) RAM: 2085Mi   (47%)
+  10.0.10.164                         CPU: 661m  (78% ) RAM: 2004Mi   (45%)
+  10.0.10.21                          CPU: 814m  (96% ) RAM: 2367Mi   (53%)
+  10.0.10.217                         CPU: 648m  (77% ) RAM: 562Mi    (12%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:13:57
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:13:57
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:14:09
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (98s
+  backend-78c45ccf96-c2874                 0/1    Running        age: 4m47s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 0/1    Running        age: (9s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: 3m2s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:14:14
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 196%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 4%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:14:19
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 598m     RAM: 457Mi
+  backend-78c45ccf96-c2874                 CPU: 405m     RAM: 77Mi
+  backend-78c45ccf96-nbj6m                 CPU: 269m     RAM: 536Mi
+  backend-78c45ccf96-q9wwn                 CPU: 583m     RAM: 103Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:14:24
+--------------------------------------------------------
+  10.0.10.152                         CPU: 632m  (75% ) RAM: 1662Mi   (37%)
+  10.0.10.164                         CPU: 390m  (46% ) RAM: 2017Mi   (45%)
+  10.0.10.21                          CPU: 681m  (81% ) RAM: 2475Mi   (55%)
+  10.0.10.217                         CPU: 991m  (117%) RAM: 719Mi    (16%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:14:40
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:14:40
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:14:50
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (2m20s
+  backend-78c45ccf96-c2874                 0/1    Running        age: 5m29s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 0/1    Running        age: (51s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: 3m44s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:14:55
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 145%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 2%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:15:00
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 233m     RAM: 465Mi
+  backend-78c45ccf96-c2874                 CPU: 428m     RAM: 240Mi
+  backend-78c45ccf96-nbj6m                 CPU: 178m     RAM: 536Mi
+  backend-78c45ccf96-q9wwn                 CPU: 601m     RAM: 368Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:15:05
+--------------------------------------------------------
+  10.0.10.152                         CPU: 653m  (77% ) RAM: 1918Mi   (43%)
+  10.0.10.164                         CPU: 262m  (31% ) RAM: 2017Mi   (45%)
+  10.0.10.21                          CPU: 238m  (28% ) RAM: 2486Mi   (56%)
+  10.0.10.217                         CPU: 804m  (95% ) RAM: 873Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:15:20
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:15:20
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:15:29
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (2m57s
+  backend-78c45ccf96-c2874                 0/1    Running        age: 6m6s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (88s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: (30s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:15:33
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 59%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:15:37
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 13m      RAM: 466Mi
+  backend-78c45ccf96-c2874                 CPU: 261m     RAM: 250Mi
+  backend-78c45ccf96-nbj6m                 CPU: 28m      RAM: 536Mi
+  backend-78c45ccf96-q9wwn                 CPU: 14m      RAM: 378Mi
+  backend-78c45ccf96-sv55s                 CPU: 502m     RAM: 131Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:15:41
+--------------------------------------------------------
+  10.0.10.152                         CPU: 76m   (9%  ) RAM: 1928Mi   (43%)
+  10.0.10.164                         CPU: 66m   (7%  ) RAM: 2019Mi   (45%)
+  10.0.10.21                          CPU: 145m  (17% ) RAM: 2473Mi   (55%)
+  10.0.10.217                         CPU: 803m  (95% ) RAM: 1055Mi   (23%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:15:54
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:15:54
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:16:02
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (3m31s
+  backend-78c45ccf96-c2874                 0/1    Running        age: 6m40s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (2m2s
+  backend-78c45ccf96-sv55s                 0/1    Error          age: (64s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:16:06
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 7%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:16:10
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 18m      RAM: 465Mi
+  backend-78c45ccf96-c2874                 CPU: 158m     RAM: 255Mi
+  backend-78c45ccf96-nbj6m                 CPU: 28m      RAM: 517Mi
+  backend-78c45ccf96-q9wwn                 CPU: 10m      RAM: 378Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:16:14
+--------------------------------------------------------
+  10.0.10.152                         CPU: 71m   (8%  ) RAM: 1929Mi   (43%)
+  10.0.10.164                         CPU: 72m   (8%  ) RAM: 2007Mi   (45%)
+  10.0.10.21                          CPU: 64m   (7%  ) RAM: 2464Mi   (55%)
+  10.0.10.217                         CPU: 432m  (51% ) RAM: 947Mi    (21%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:16:28
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:16:28
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:16:37
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (4m6s
+  backend-78c45ccf96-c2874                 0/1    Running        age: 7m15s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (2m37s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: (45s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:16:41
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 7%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:16:46
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 16m      RAM: 457Mi
+  backend-78c45ccf96-nbj6m                 CPU: 37m      RAM: 517Mi
+  backend-78c45ccf96-q9wwn                 CPU: 8m       RAM: 379Mi
+  backend-78c45ccf96-sv55s                 CPU: 570m     RAM: 177Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:16:50
+--------------------------------------------------------
+  10.0.10.152                         CPU: 58m   (6%  ) RAM: 1926Mi   (43%)
+  10.0.10.164                         CPU: 89m   (10% ) RAM: 2001Mi   (45%)
+  10.0.10.21                          CPU: 53m   (6%  ) RAM: 2458Mi   (55%)
+  10.0.10.217                         CPU: 673m  (80% ) RAM: 1158Mi   (26%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:17:04
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:17:04
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:17:13
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (4m42s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (32s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (3m13s
+  backend-78c45ccf96-sv55s                 0/1    CrashLoopBackOffage: (20s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:17:18
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 7%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:17:22
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 23m      RAM: 462Mi
+  backend-78c45ccf96-c2874                 CPU: 600m     RAM: 175Mi
+  backend-78c45ccf96-nbj6m                 CPU: 19m      RAM: 517Mi
+  backend-78c45ccf96-q9wwn                 CPU: 16m      RAM: 379Mi
+  frontend-755db86d94-9pjpx                CPU: 1m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:17:27
+--------------------------------------------------------
+  10.0.10.152                         CPU: 59m   (7%  ) RAM: 1927Mi   (43%)
+  10.0.10.164                         CPU: 69m   (8%  ) RAM: 1992Mi   (45%)
+  10.0.10.21                          CPU: 57m   (6%  ) RAM: 2459Mi   (55%)
+  10.0.10.217                         CPU: 651m  (77% ) RAM: 822Mi    (18%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:17:41
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:17:41
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:17:50
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (5m19s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (24s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (3m50s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: (57s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:17:54
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:17:59
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 17m      RAM: 462Mi
+  backend-78c45ccf96-nbj6m                 CPU: 15m      RAM: 517Mi
+  backend-78c45ccf96-q9wwn                 CPU: 9m       RAM: 380Mi
+  backend-78c45ccf96-sv55s                 CPU: 484m     RAM: 74Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:18:03
+--------------------------------------------------------
+  10.0.10.152                         CPU: 72m   (8%  ) RAM: 1926Mi   (43%)
+  10.0.10.164                         CPU: 66m   (7%  ) RAM: 1990Mi   (44%)
+  10.0.10.21                          CPU: 67m   (7%  ) RAM: 2460Mi   (55%)
+  10.0.10.217                         CPU: 995m  (118%) RAM: 979Mi    (22%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:18:17
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:18:17
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:18:25
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (5m54s
+  backend-78c45ccf96-c2874                 0/1    Error          age: (59s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (4m25s
+  backend-78c45ccf96-sv55s                 0/1    Error          age: (92s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:18:29
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 4%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:18:33
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 10m      RAM: 462Mi
+  backend-78c45ccf96-nbj6m                 CPU: 8m       RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 24m      RAM: 382Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:18:37
+--------------------------------------------------------
+  10.0.10.152                         CPU: 84m   (10% ) RAM: 1927Mi   (43%)
+  10.0.10.164                         CPU: 67m   (7%  ) RAM: 1999Mi   (45%)
+  10.0.10.21                          CPU: 61m   (7%  ) RAM: 2457Mi   (55%)
+  10.0.10.217                         CPU: 415m  (49% ) RAM: 655Mi    (14%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:18:51
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:18:51
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:18:59
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (6m28s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (37s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (4m59s
+  backend-78c45ccf96-sv55s                 0/1    CrashLoopBackOffage: (41s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:19:03
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:19:08
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 12m      RAM: 463Mi
+  backend-78c45ccf96-nbj6m                 CPU: 20m      RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 17m      RAM: 387Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:19:12
+--------------------------------------------------------
+  10.0.10.152                         CPU: 74m   (8%  ) RAM: 1930Mi   (43%)
+  10.0.10.164                         CPU: 54m   (6%  ) RAM: 1992Mi   (45%)
+  10.0.10.21                          CPU: 59m   (7%  ) RAM: 2458Mi   (55%)
+  10.0.10.217                         CPU: 728m  (86% ) RAM: 839Mi    (18%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:19:27
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:19:27
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:19:36
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (7m5s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (74s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (5m36s
+  backend-78c45ccf96-sv55s                 0/1    Running        age: (78s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:19:40
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 4%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:19:45
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 16m      RAM: 463Mi
+  backend-78c45ccf96-c2874                 CPU: 195m     RAM: 172Mi
+  backend-78c45ccf96-nbj6m                 CPU: 8m       RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 13m      RAM: 389Mi
+  backend-78c45ccf96-sv55s                 CPU: 194m     RAM: 51Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:19:50
+--------------------------------------------------------
+  10.0.10.152                         CPU: 57m   (6%  ) RAM: 1938Mi   (43%)
+  10.0.10.164                         CPU: 61m   (7%  ) RAM: 1994Mi   (45%)
+  10.0.10.21                          CPU: 51m   (6%  ) RAM: 2458Mi   (55%)
+  10.0.10.217                         CPU: 983m  (117%) RAM: 1182Mi   (26%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:20:04
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:20:04
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:20:13
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (7m42s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (26s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (6m13s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:20:18
+--------------------------------------------------------
+  backend-hpa          replicas: 5     max: 5     targets: cpu: 3%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:20:22
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 15m      RAM: 463Mi
+  backend-78c45ccf96-nbj6m                 CPU: 6m       RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 13m      RAM: 391Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:20:27
+--------------------------------------------------------
+  10.0.10.152                         CPU: 61m   (7%  ) RAM: 1937Mi   (43%)
+  10.0.10.164                         CPU: 66m   (7%  ) RAM: 1993Mi   (45%)
+  10.0.10.21                          CPU: 58m   (6%  ) RAM: 2459Mi   (55%)
+  10.0.10.217                         CPU: 415m  (49% ) RAM: 1088Mi   (24%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:20:41
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:20:41
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:20:49
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (8m18s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (62s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (6m49s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:20:53
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:20:57
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 19m      RAM: 463Mi
+  backend-78c45ccf96-c2874                 CPU: 602m     RAM: 190Mi
+  backend-78c45ccf96-nbj6m                 CPU: 10m      RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 12m      RAM: 391Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:21:01
+--------------------------------------------------------
+  10.0.10.152                         CPU: 69m   (8%  ) RAM: 1939Mi   (43%)
+  10.0.10.164                         CPU: 57m   (6%  ) RAM: 1994Mi   (45%)
+  10.0.10.21                          CPU: 64m   (7%  ) RAM: 2463Mi   (55%)
+  10.0.10.217                         CPU: 673m  (80% ) RAM: 1098Mi   (24%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:21:15
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:21:15
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:21:23
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (8m52s
+  backend-78c45ccf96-c2874                 0/1    Running        age: (96s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (7m23s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:21:27
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 3%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:21:32
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 20m      RAM: 463Mi
+  backend-78c45ccf96-c2874                 CPU: 472m     RAM: 382Mi
+  backend-78c45ccf96-nbj6m                 CPU: 10m      RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 15m      RAM: 391Mi
+  frontend-755db86d94-9pjpx                CPU: 1m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:21:36
+--------------------------------------------------------
+  10.0.10.152                         CPU: 70m   (8%  ) RAM: 1939Mi   (43%)
+  10.0.10.164                         CPU: 52m   (6%  ) RAM: 1995Mi   (45%)
+  10.0.10.21                          CPU: 62m   (7%  ) RAM: 2458Mi   (55%)
+  10.0.10.217                         CPU: 473m  (56% ) RAM: 1193Mi   (26%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:21:50
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:21:50
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:21:59
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (9m28s
+  backend-78c45ccf96-c2874                 1/1    Running        age: (2m12s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (7m59s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:22:04
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 16%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:22:08
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 58m      RAM: 465Mi
+  backend-78c45ccf96-c2874                 CPU: 32m      RAM: 387Mi
+  backend-78c45ccf96-nbj6m                 CPU: 11m      RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 9m       RAM: 393Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:22:13
+--------------------------------------------------------
+  10.0.10.152                         CPU: 68m   (8%  ) RAM: 1939Mi   (43%)
+  10.0.10.164                         CPU: 54m   (6%  ) RAM: 1994Mi   (45%)
+  10.0.10.21                          CPU: 100m  (11% ) RAM: 2462Mi   (55%)
+  10.0.10.217                         CPU: 81m   (9%  ) RAM: 1209Mi   (27%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:22:27
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:22:27
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:22:36
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (10m
+  backend-78c45ccf96-c2874                 1/1    Running        age: (2m49s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (8m36s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:22:41
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 6%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:22:45
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 18m      RAM: 465Mi
+  backend-78c45ccf96-c2874                 CPU: 30m      RAM: 387Mi
+  backend-78c45ccf96-nbj6m                 CPU: 9m       RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 11m      RAM: 392Mi
+  frontend-755db86d94-9pjpx                CPU: 1m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:22:50
+--------------------------------------------------------
+  10.0.10.152                         CPU: 55m   (6%  ) RAM: 1941Mi   (43%)
+  10.0.10.164                         CPU: 65m   (7%  ) RAM: 1994Mi   (45%)
+  10.0.10.21                          CPU: 52m   (6%  ) RAM: 2462Mi   (55%)
+  10.0.10.217                         CPU: 82m   (9%  ) RAM: 1214Mi   (27%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:23:04
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:23:04
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:23:13
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (10m
+  backend-78c45ccf96-c2874                 1/1    Running        age: (3m27s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (9m14s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:23:18
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 7%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:23:22
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 8m       RAM: 466Mi
+  backend-78c45ccf96-c2874                 CPU: 52m      RAM: 389Mi
+  backend-78c45ccf96-nbj6m                 CPU: 14m      RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 11m      RAM: 392Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:23:27
+--------------------------------------------------------
+  10.0.10.152                         CPU: 56m   (6%  ) RAM: 1940Mi   (43%)
+  10.0.10.164                         CPU: 119m  (14% ) RAM: 1993Mi   (45%)
+  10.0.10.21                          CPU: 47m   (5%  ) RAM: 2463Mi   (55%)
+  10.0.10.217                         CPU: 77m   (9%  ) RAM: 1221Mi   (27%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:23:40
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:23:40
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:23:48
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (11m
+  backend-78c45ccf96-c2874                 1/1    Running        age: (4m1s
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (9m48s
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:23:53
+--------------------------------------------------------
+  backend-hpa          replicas: 4     max: 5     targets: cpu: 6%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:23:56
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 9m       RAM: 466Mi
+  backend-78c45ccf96-c2874                 CPU: 17m      RAM: 390Mi
+  backend-78c45ccf96-nbj6m                 CPU: 8m       RAM: 516Mi
+  backend-78c45ccf96-q9wwn                 CPU: 9m       RAM: 392Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:24:01
+--------------------------------------------------------
+  10.0.10.152                         CPU: 86m   (10% ) RAM: 1943Mi   (43%)
+  10.0.10.164                         CPU: 63m   (7%  ) RAM: 1995Mi   (45%)
+  10.0.10.21                          CPU: 43m   (5%  ) RAM: 2464Mi   (55%)
+  10.0.10.217                         CPU: 69m   (8%  ) RAM: 1228Mi   (27%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:24:14
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:24:14
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:24:23
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 1/1    Running        age: (11m
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  backend-78c45ccf96-q9wwn                 1/1    Running        age: (10m
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:24:26
+--------------------------------------------------------
+  backend-hpa          replicas: 3     max: 5     targets: cpu: 3%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 0%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:26:37
+--------------------------------------------------------
+  backend-78c45ccf96-6skp8                 CPU: 11m      RAM: 467Mi
+  backend-78c45ccf96-nbj6m                 CPU: 6m       RAM: 515Mi
+  backend-78c45ccf96-q9wwn                 CPU: 15m      RAM: 396Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:26:41
+--------------------------------------------------------
+  10.0.10.152                         CPU: 75m   (8%  ) RAM: 1945Mi   (43%)
+  10.0.10.164                         CPU: 77m   (9%  ) RAM: 1999Mi   (45%)
+  10.0.10.21                          CPU: 59m   (7%  ) RAM: 2464Mi   (55%)
+  10.0.10.217                         CPU: 41m   (4%  ) RAM: 838Mi    (18%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:26:53
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:26:53
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:27:00
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:27:04
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:27:07
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 6m       RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:27:11
+--------------------------------------------------------
+  10.0.10.152                         CPU: 41m   (4%  ) RAM: 1550Mi   (35%)
+  10.0.10.164                         CPU: 57m   (6%  ) RAM: 1992Mi   (45%)
+  10.0.10.21                          CPU: 43m   (5%  ) RAM: 2005Mi   (45%)
+  10.0.10.217                         CPU: 70m   (8%  ) RAM: 842Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:27:23
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:27:23
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:27:30
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:27:34
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 2%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:27:37
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 12m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:27:41
+--------------------------------------------------------
+  10.0.10.152                         CPU: 37m   (4%  ) RAM: 1549Mi   (35%)
+  10.0.10.164                         CPU: 56m   (6%  ) RAM: 1992Mi   (45%)
+  10.0.10.21                          CPU: 39m   (4%  ) RAM: 2002Mi   (45%)
+  10.0.10.217                         CPU: 43m   (5%  ) RAM: 840Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:27:53
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:27:53
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:27:59
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:28:03
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 4%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:28:06
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 13m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:28:09
+--------------------------------------------------------
+  10.0.10.152                         CPU: 80m   (9%  ) RAM: 1563Mi   (35%)
+  10.0.10.164                         CPU: 62m   (7%  ) RAM: 1991Mi   (45%)
+  10.0.10.21                          CPU: 70m   (8%  ) RAM: 2002Mi   (45%)
+  10.0.10.217                         CPU: 66m   (7%  ) RAM: 845Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:28:21
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:28:21
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:28:27
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:28:30
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 4%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:28:34
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 7m       RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:28:37
+--------------------------------------------------------
+  10.0.10.152                         CPU: 43m   (5%  ) RAM: 1562Mi   (35%)
+  10.0.10.164                         CPU: 71m   (8%  ) RAM: 1993Mi   (45%)
+  10.0.10.21                          CPU: 39m   (4%  ) RAM: 2003Mi   (45%)
+  10.0.10.217                         CPU: 41m   (4%  ) RAM: 844Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:28:48
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:28:48
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:28:55
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:28:59
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:29:02
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 5m       RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:29:06
+--------------------------------------------------------
+  10.0.10.152                         CPU: 44m   (5%  ) RAM: 1548Mi   (34%)
+  10.0.10.164                         CPU: 58m   (6%  ) RAM: 1997Mi   (45%)
+  10.0.10.21                          CPU: 35m   (4%  ) RAM: 2004Mi   (45%)
+  10.0.10.217                         CPU: 39m   (4%  ) RAM: 845Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:29:18
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:29:18
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:29:25
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:29:29
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 2%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:29:32
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 14m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:29:36
+--------------------------------------------------------
+  10.0.10.152                         CPU: 40m   (4%  ) RAM: 1548Mi   (35%)
+  10.0.10.164                         CPU: 54m   (6%  ) RAM: 1995Mi   (45%)
+  10.0.10.21                          CPU: 41m   (4%  ) RAM: 2001Mi   (45%)
+  10.0.10.217                         CPU: 44m   (5%  ) RAM: 840Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:29:48
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:29:48
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:29:55
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:29:59
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 6%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:30:02
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 5m       RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:30:06
+--------------------------------------------------------
+  10.0.10.152                         CPU: 92m   (10% ) RAM: 1550Mi   (35%)
+  10.0.10.164                         CPU: 127m  (15% ) RAM: 1995Mi   (45%)
+  10.0.10.21                          CPU: 59m   (7%  ) RAM: 2002Mi   (45%)
+  10.0.10.217                         CPU: 74m   (8%  ) RAM: 841Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:30:18
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:30:18
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:30:24
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:30:27
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 7%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:30:31
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 18m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:30:34
+--------------------------------------------------------
+  10.0.10.152                         CPU: 41m   (4%  ) RAM: 1549Mi   (35%)
+  10.0.10.164                         CPU: 72m   (8%  ) RAM: 1998Mi   (45%)
+  10.0.10.21                          CPU: 53m   (6%  ) RAM: 2006Mi   (45%)
+  10.0.10.217                         CPU: 40m   (4%  ) RAM: 841Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:30:45
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:30:45
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:30:52
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:30:56
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 5%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:30:59
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 13m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:31:02
+--------------------------------------------------------
+  10.0.10.152                         CPU: 40m   (4%  ) RAM: 1551Mi   (35%)
+  10.0.10.164                         CPU: 73m   (8%  ) RAM: 1990Mi   (44%)
+  10.0.10.21                          CPU: 36m   (4%  ) RAM: 2004Mi   (45%)
+  10.0.10.217                         CPU: 58m   (6%  ) RAM: 846Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:31:14
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:31:14
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:31:21
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:31:24
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 3%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:31:28
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 9m       RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:31:31
+--------------------------------------------------------
+  10.0.10.152                         CPU: 42m   (5%  ) RAM: 1551Mi   (35%)
+  10.0.10.164                         CPU: 60m   (7%  ) RAM: 1990Mi   (44%)
+  10.0.10.21                          CPU: 29m   (3%  ) RAM: 2005Mi   (45%)
+  10.0.10.217                         CPU: 49m   (5%  ) RAM: 842Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:31:43
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:31:43
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
+
+  > Total nodos: 4 / 4
+
+--------------------------------------------------------
+  PODS prod (HPA: max=5)  22:31:51
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 1/1    Running        age: 11h
+  frontend-755db86d94-9pjpx                1/1    Running        age: 10d
+  redis-b9c7c5d7-q7h5v                     1/1    Running        age: 11d
+
+--------------------------------------------------------
+  HPA ESTADO  22:31:54
+--------------------------------------------------------
+  backend-hpa          replicas: 1     max: 5     targets: cpu: 6%/70%
+  frontend-hpa         replicas: 1     max: 4     targets: cpu: 1%/70%
+
+--------------------------------------------------------
+  USO ACTUAL CPU/RAM (metrics-server)  22:31:58
+--------------------------------------------------------
+  backend-78c45ccf96-nbj6m                 CPU: 16m      RAM: 515Mi
+  frontend-755db86d94-9pjpx                CPU: 2m       RAM: 4Mi
+  redis-b9c7c5d7-q7h5v                     CPU: 5m       RAM: 12Mi
+
+--------------------------------------------------------
+  USO NODO  22:32:01
+--------------------------------------------------------
+  10.0.10.152                         CPU: 42m   (5%  ) RAM: 1549Mi   (35%)
+  10.0.10.164                         CPU: 64m   (7%  ) RAM: 1994Mi   (45%)
+  10.0.10.21                          CPU: 35m   (4%  ) RAM: 2004Mi   (45%)
+  10.0.10.217                         CPU: 50m   (5%  ) RAM: 842Mi    (19%)
+
+  Proxima actualizacion en 5 segundos...  (Ctrl+C para salir)
+
+=======================================================
+       NUEVA ACTUALIZACION: 22:32:14
+=======================================================
+
+--------------------------------------------------------
+  NODOS (Autoscaler: min=2, max=4)  22:32:14
+--------------------------------------------------------
+  10.0.10.152                         [OK] Ready
+  10.0.10.164                         [OK] Ready
+  10.0.10.21                          [OK] Ready
+  10.0.10.217                         [OK] Ready
