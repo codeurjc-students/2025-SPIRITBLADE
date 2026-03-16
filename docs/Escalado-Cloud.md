@@ -6,16 +6,23 @@ El objetivo de esta fase es implementar mecanismos de autoescalado que respondan
 
 ### 1.1 Escalado de Aplicación (Horizontal Pod Autoscaler - HPA)
 **Implementado**: Sí (`k8s/prod/hpa.yaml`).
-**Mecanismo**: Kubernetes escala el número de Pods (réplicas) de Backend y Frontend basándose en el uso de CPU y memoria.
+**Mecanismo**: Kubernetes escala el número de Pods (réplicas) de Backend y Frontend basándose en el uso de CPU.
 
 **Configuración Backend HPA**:
-- **Replicas**: Min 1, Max 3
+- **Replicas**: Min 1, Max 5
 - **Métricas**:
   - CPU: 70% average utilization
-  - Memoria: 80% average utilization
 - **Comportamiento de escalado**:
   - Scale Down: Estabilización 300s, máximo 50% reducción por ciclo
   - Scale Up: Estabilización 60s, máximo 100% incremento por ciclo
+
+### 📝 Incidencia Documentada: Escalar por memoria en aplicaciones Java
+
+Durante las pruebas de autoescalado, se detectó un problema de "falsos positivos" de carga causados por la configuración del **HPA basado en consumo de Memoria**. 
+
+* **Contexto**: El HPA de Kubernetes calcula el uso porcentual de memoria en base al valor `requests` definido en el deployment, no del valor `limits`. Para el backend se definieron `requests.memory: 300Mi`.
+* **Problema**: La JVM (Java Virtual Machine) sobre la que correo Spring Boot suele hacer una reserva agresiva de heap en su arranque (en torno a 400-450MiB). Al iniciar un Pod base o crear uno nuevo, el clúster observaba un uso promedio de 144% respecto a lo solicitado (430Mi sobre 300Mi). Esto provocaba que el HPA entrase en "pánico", disparando la creación continuada de réplicas hasta alcanzar el `Max (5)`, a pesar de que el sistema no estaba recibiendo tráfico HTTP.
+* **Solución**: Se procedió a retirar la métrica de memoria del manifiesto del HPA para el backend. En aplicaciones Java, escalar únicamente por **utilización de CPU** es la buena práctica recomendada, dado que el Garbage Collector interno no devuelve la memoria RAM que "ya no usa" directamente al sistema operativo, lo que vuelve la monitorización RAM poco representativa de la carga real (Concurrency o Throughput) de la aplicación.
 
 **Configuración Frontend HPA**:
 - **Replicas**: Min 1, Max 3
@@ -28,6 +35,13 @@ El objetivo de esta fase es implementar mecanismos de autoescalado que respondan
 **Requisitos**:
 - `metrics-server` instalado y funcionando (`kubectl get deployment metrics-server -n kube-system`)
 - Pods con `resources.requests` definidos (CPU y memoria)
+
+### 📝 Incidencia Documentada: Timeouts críticos en Compilación Docker Multi-Arquitectura
+
+* **Contexto**: Para aprovechar los procesadores ARM de la capa gratuita (Oracle Ampere A1) sin perder la compatibilidad con los entornos locales de desarrollo tradicionales, se requería que las imágenes de contenedor del Backend y Frontend soportasen multi-arquitectura (`linux/amd64` y `linux/arm64`). Para lograr esto en el pipeline de CI/CD se empleaba *Docker Buildx* junto al emulador *QEMU*.
+* **Problema**: Los ficheros `Dockerfile` originales estaban plantados de tal forma que toda la compilación del código ocurría *dentro* del proceso de construcción de Docker (por ejemplo, descargar y compilar módulos node o descargar todo el repositorio de Maven). Al emular el juego de instrucciones ARM de todas esas tareas de compilación pesadas sobre una máquina GitHub Action (que es puramente x86 AMD64), el emulador generaba un cuello de botella monumental. Esto provocaba **"Timeouts" catastróficos**, elevando los tiempos de build por encima del límite de las plataformas, cancelando y paralizando los despliegues.
+* **Solución**: Se rediseñó por completo la estrategia. En lugar de compilar el código dentro del contenedor usando QEMU, se reestructuraron los workflows para compilar los artefactos nativamente y de manera ultrarrápida usando el Runner puro de GitHub (generando la carpeta `dist/` en Angular y el `.jar` de Spring Boot). Consecuentemente, se reescribieron los `Dockerfile` para que fuesen únicamente envoltorios que copian el artefacto pre-compilado en crudo dentro de la imagen base final de alpine de cada arquitectura. Este cambio fulminó los tiempos de espera eternos y resolvió los errores de Pipeline con arquitecturas cruzadas.
+
 
 **Verificación**:
 ```bash

@@ -33,9 +33,10 @@ graph TD
                 CertMgr[cert-manager + Let's Encrypt]
                 Frontend[Frontend Pods<br/>HPA: 1-3 replicas]
                 Backend[Backend Pods<br/>HPA: 1-3 replicas]
-                Redis[Redis Deployment]
+                Redis[Redis Deployment<br/>VPA: 64Mi-512Mi]
                 Metrics[Metrics Server]
                 ClusterAS[Cluster Autoscaler]
+                VPA[Vertical Pod Autoscaler]
             end
         end
     end
@@ -52,6 +53,7 @@ graph TD
     Metrics --> |Métricas CPU/RAM| Backend
     Metrics --> |Métricas CPU/RAM| Frontend
     ClusterAS --> |Escala nodos 2-4| K8s_Node34
+    VPA --> |Ajusta memoria dinámica| Redis
     
     K8s_Node1 --> NAT
     K8s_Node2 --> NAT
@@ -89,9 +91,13 @@ Oracle ofrece gratuitamente hasta 4 OCPUs y 24 GB de RAM en instancias ARM. SPIR
 - Frontend: 1-3 réplicas (escala al 70% CPU)
 - Requiere Metrics Server para funcionar
 
+**Vertical Pod Autoscaler (VPA)**:
+- Redis: Escala verticalmente los recursos de memoria (RAM) asignando dinámicamente entre 64Mi y 512Mi.
+- Permite maximizar el uso gratuito de los nodos sin sobrepasar los límites físicos y reinicia los pods en caso de presión extrema de RAM.
+
 **Metrics Server**:
 - Recopila métricas de uso de CPU y memoria de los pods
-- Esencial para que HPA pueda tomar decisiones de escalado
+- Esencial para que HPA y VPA puedan tomar decisiones de escalado
 
 ### 1.4 Red (Networking)
 
@@ -237,17 +243,25 @@ data:
 
 ### Paso 3: Instalar Componentes de Infraestructura
 
-**a) Instalar Metrics Server (requerido para HPA)**:
+**a) Instalar Metrics Server (requerido para HPA y VPA)**:
 ```bash
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ```
 
-**b) Instalar cert-manager (gestión automática de certificados SSL)**:
+**b) Instalar Vertical Pod Autoscaler (requerido para Redis)**:
+En OKE no viene por defecto. Ejecuta en una terminal bash:
+```bash
+git clone https://github.com/kubernetes/autoscaler.git
+cd autoscaler/vertical-pod-autoscaler
+./hack/vpa-up.sh
+```
+
+**c) Instalar cert-manager (gestión automática de certificados SSL)**:
 ```bash
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
 ```
 
-**c) Instalar NGINX Ingress Controller**:
+**d) Instalar NGINX Ingress Controller**:
 ```bash
 # Instalar el controlador oficial
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
@@ -291,12 +305,14 @@ Espera 5-10 minutos para propagación DNS.
 cd k8s/prod
 kubectl apply -f namespace.yaml
 kubectl apply -f secrets.yaml
-kubectl apply -f redis-statefulset.yaml
+kubectl apply -f redis-deployment.yaml
+kubectl apply -f redis-vpa.yaml           # Vertical Pod Autoscaler para Redis
 kubectl apply -f backend-deployment.yaml
 kubectl apply -f frontend-deployment.yaml
-kubectl apply -f hpa.yaml  # Horizontal Pod Autoscaler
+kubectl apply -f hpa.yaml                 # Horizontal Pod Autoscaler
+kubectl apply -f cluster-autoscaler.yaml  # Autoscaler de nodos OCI
 kubectl apply -f letsencrypt-issuer.yaml  # ClusterIssuer para Let's Encrypt
-kubectl apply -f ingress.yaml  # Ingress con TLS automático
+kubectl apply -f ingress.yaml             # Ingress con TLS automático
 ```
 
 ### Paso 7: Verificar Certificado SSL
