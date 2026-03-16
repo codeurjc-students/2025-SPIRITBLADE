@@ -33,10 +33,9 @@ graph TD
                 CertMgr[cert-manager + Let's Encrypt]
                 Frontend[Frontend Pods<br/>HPA: 1-3 replicas]
                 Backend[Backend Pods<br/>HPA: 1-3 replicas]
-                Redis[Redis Deployment<br/>VPA: 64Mi-512Mi]
+                Redis[Redis Cluster Helm<br/>HPA: 2-4 replicas]
                 Metrics[Metrics Server]
                 ClusterAS[Cluster Autoscaler]
-                VPA[Vertical Pod Autoscaler]
             end
         end
     end
@@ -48,12 +47,11 @@ graph TD
     CertMgr --> |Gestiona certificados SSL| Ingress
     Frontend --> |HTTPS interno| Backend
     Backend --> |TCPS/1521| ADB
-    Backend --> |redis-master| Redis
+    Backend --> |redis-cluster-master| Redis
     Backend --> |S3 API| S3
     Metrics --> |Métricas CPU/RAM| Backend
     Metrics --> |Métricas CPU/RAM| Frontend
     ClusterAS --> |Escala nodos 2-4| K8s_Node34
-    VPA --> |Ajusta memoria dinámica| Redis
     
     K8s_Node1 --> NAT
     K8s_Node2 --> NAT
@@ -89,15 +87,12 @@ Oracle ofrece gratuitamente hasta 4 OCPUs y 24 GB de RAM en instancias ARM. SPIR
 **Horizontal Pod Autoscaler (HPA)**:
 - Backend: 1-3 réplicas (escala al 70% CPU / 80% RAM)
 - Frontend: 1-3 réplicas (escala al 70% CPU)
+- Redis Cache Replicas: 2-4 réplicas (escala al 70% CPU)
 - Requiere Metrics Server para funcionar
-
-**Vertical Pod Autoscaler (VPA)**:
-- Redis: Escala verticalmente los recursos de memoria (RAM) asignando dinámicamente entre 64Mi y 512Mi.
-- Permite maximizar el uso gratuito de los nodos sin sobrepasar los límites físicos y reinicia los pods en caso de presión extrema de RAM.
 
 **Metrics Server**:
 - Recopila métricas de uso de CPU y memoria de los pods
-- Esencial para que HPA y VPA puedan tomar decisiones de escalado
+- Esencial para que las reglas HPA de todo el cluster puedan tomar decisiones de escalado
 
 ### 1.4 Red (Networking)
 
