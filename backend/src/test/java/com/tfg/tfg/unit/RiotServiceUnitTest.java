@@ -1185,6 +1185,7 @@ class RiotServiceUnitTest {
         cachedSummoner.setName(riotId);
         cachedSummoner.setPuuid(puuid);
         cachedSummoner.setLevel(75);
+        cachedSummoner.setProfileIconId(1);
         when(summonerRepository.findByName(riotId)).thenReturn(Optional.of(cachedSummoner));
         when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
 
