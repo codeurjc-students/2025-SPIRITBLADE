@@ -29,10 +29,10 @@ class AuthSystemTest {
 
     @LocalServerPort
     private int port;
-    
+
     @Autowired
     private UserModelRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -41,19 +41,19 @@ class AuthSystemTest {
         RestAssured.useRelaxedHTTPSValidation();
         RestAssured.baseURI = "https://localhost";
     }
-    
+
     @BeforeEach
     void createTestUsers() {
         // Clear any existing test users
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
         userRepository.findByName("admin").ifPresent(u -> userRepository.delete(u));
-        
+
         // Create test users with known passwords
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
         userRepository.save(user);
-        
+
         // Create admin user
         UserModel admin = new UserModel("admin", passwordEncoder.encode("admin"), "ADMIN");
         admin.setEmail("admin@example.com");
@@ -64,232 +64,228 @@ class AuthSystemTest {
     @Test
     void testLoginWithValidCredentialsReturnsToken() {
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "user123"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .body("accessToken", notNullValue())
-            .body("status", equalTo("SUCCESS"));
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "user123"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .body("accessToken", notNullValue())
+                .body("status", equalTo("SUCCESS"));
     }
 
     @Test
-    void testLoginWithInvalidCredentialsReturns401() {
+    void testLoginWithInvalidCredentials() {
+        // Invalid password
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "wrongpassword"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(401);
-    }
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "wrongpassword"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(401);
 
-    @Test
-    void testLoginWithNonExistentUserReturns401() {
+        // Non-existent user
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "nonexistent",
-                    "password": "pass"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(401);
-    }
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "nonexistent",
+                            "password": "pass"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(401);
 
-    @Test
-    void testLoginWithEmptyUsernameReturns400() {
+        // Empty username
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "",
-                    "password": "pass"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(anyOf(is(400), is(401)));
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "",
+                            "password": "pass"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(anyOf(is(400), is(401)));
     }
 
     @Test
     void testRegisterWithValidDataReturnsSuccess() {
         String uniqueUsername = "newuser" + System.currentTimeMillis();
-        
+
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body(String.format("""
-                {
-                    "username": "%s",
-                    "password": "newpass123",
-                    "email": "%s@test.com"
-                }
-                """, uniqueUsername, uniqueUsername))
-        .when()
-            .post("/api/v1/auth/register")
-        .then()
-            .statusCode(anyOf(is(200), is(201)))
-            .body("message", equalTo("User registered successfully"));
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body(String.format("""
+                        {
+                            "username": "%s",
+                            "password": "newpass123",
+                            "email": "%s@test.com"
+                        }
+                        """, uniqueUsername, uniqueUsername))
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .statusCode(anyOf(is(200), is(201)))
+                .body("message", equalTo("User registered successfully"));
     }
 
     @Test
-    void testRegisterWithExistingUsernameReturns409() {
+    void testRegisterWithInvalidData() {
+        // Existing username
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "pass123",
-                    "email": "duplicate@test.com"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/register")
-        .then()
-            .statusCode(anyOf(is(409), is(400), is(500)));
-    }
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "pass123",
+                            "email": "duplicate@test.com"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .statusCode(anyOf(is(409), is(400), is(500)));
 
-    @Test
-    void testRegisterWithInvalidEmailReturns400() {
+        // Invalid email
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "newuser123",
-                    "password": "pass123",
-                    "email": "invalid-email"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/register")
-        .then()
-            .statusCode(anyOf(is(400), is(200), is(201), is(409))); // 409 if user already exists
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "newuser123",
+                            "password": "pass123",
+                            "email": "invalid-email"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .statusCode(anyOf(is(400), is(200), is(201), is(409)));
     }
 
     @Test
     void testGetMeWithValidTokenReturnsUserInfo() {
         // First login to get token
         String token = given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "user123"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .extract()
-            .path("accessToken");
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "user123"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
 
         // Then get user info
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + token)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/auth/me")
-        .then()
-            .statusCode(200)
-            .body("username", notNullValue())
-            .body("roles", notNullValue());
+                .port(port)
+                .header("Authorization", "Bearer " + token)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/auth/me")
+                .then()
+                .statusCode(200)
+                .body("username", notNullValue())
+                .body("roles", notNullValue());
     }
 
     @Test
-    void testGetMeWithoutTokenReturns401() {
+    void testGetMeWithInvalidTokens() {
+        // Without token
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/auth/me")
-        .then()
-            .statusCode(401);
-    }
+                .port(port)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/auth/me")
+                .then()
+                .statusCode(401);
 
-    @Test
-    void testGetMeWithInvalidTokenReturns401() {
+        // With invalid token
         given()
-            .port(port)
-            .header("Authorization", "Bearer invalid_token_here")
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/auth/me")
-        .then()
-            .statusCode(401);
+                .port(port)
+                .header("Authorization", "Bearer invalid_token_here")
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/auth/me")
+                .then()
+                .statusCode(401);
     }
 
     @Test
     void testLogoutWithValidTokenReturnsSuccess() {
         // First login
         String token = given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "user123"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .extract()
-            .path("accessToken");
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "user123"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
 
         // Then logout
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + token)
-            .contentType(ContentType.JSON)
-        .when()
-            .post("/api/v1/auth/logout")
-        .then()
-            .statusCode(anyOf(is(200), is(204)));
+                .port(port)
+                .header("Authorization", "Bearer " + token)
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/api/v1/auth/logout")
+                .then()
+                .statusCode(anyOf(is(200), is(204)));
     }
 
     @Test
     void testLoginReturnsUserWithCorrectRole() {
-        // Login response contains accessToken but not roles (roles are in JWT token itself)
+        // Login response contains accessToken but not roles (roles are in JWT token
+        // itself)
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "admin",
-                    "password": "admin"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .body("accessToken", notNullValue())
-            .body("status", equalTo("SUCCESS"));
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "admin",
+                            "password": "admin"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .body("accessToken", notNullValue())
+                .body("status", equalTo("SUCCESS"));
     }
 }

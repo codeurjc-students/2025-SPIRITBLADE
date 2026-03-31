@@ -44,11 +44,11 @@ public class MatchEntity {
     private String lane;
     private Long gameDuration;
     private String gameMode;
-    private Integer queueId; // Queue ID
+    private Integer queueId;
     private Integer totalDamageDealt;
     private Integer goldEarned;
     private Integer champLevel;
-    private String summonerName; // Denormalized for quick access
+    private String summonerName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "summoner_id")

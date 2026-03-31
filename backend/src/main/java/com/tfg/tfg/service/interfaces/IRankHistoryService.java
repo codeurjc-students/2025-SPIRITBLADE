@@ -1,4 +1,4 @@
-package com.tfg.tfg.service.storage;
+package com.tfg.tfg.service.interfaces;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +11,7 @@ import com.tfg.tfg.model.entity.Summoner;
 public interface IRankHistoryService {
 
     RankHistory recordRankSnapshot(Summoner summoner, MatchEntity match,
-                                   String tier, String rank, Integer leaguePoints);
+            String tier, String rank, Integer leaguePoints);
 
     Optional<RankHistory> getRankForMatch(Long matchId);
 

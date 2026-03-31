@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +16,11 @@ import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.MatchMapper;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IDashboardService;
+import com.tfg.tfg.service.interfaces.IMatchService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IRiotService;
 
 /**
  * Service layer for Dashboard operations.
@@ -95,7 +98,6 @@ public class DashboardService implements IDashboardService {
                 return 0;
             }
 
-            // Get LP from RankHistory for the first (oldest) match
             Optional<Integer> firstMatchLP = rankHistoryService.getLpForMatch(recentMatches.get(0).getId());
             Integer currentLP = summoner.getLp();
 
@@ -187,7 +189,6 @@ public class DashboardService implements IDashboardService {
                 return 0.0;
             }
 
-            // Filter only ranked matches (Solo/Duo and Flex)
             List<MatchEntity> rankedMatches = recentMatches.stream()
                     .filter(match -> {
                         Integer queueId = match.getQueueId();
@@ -212,7 +213,6 @@ public class DashboardService implements IDashboardService {
             if (count == 0)
                 return 0.0;
 
-            // Round to 1 decimal place
             double avg = totalVision / count;
             return Math.round(avg * 10.0) / 10.0;
         } catch (Exception e) {
@@ -234,7 +234,6 @@ public class DashboardService implements IDashboardService {
                 return DEFAULT_KDA;
             }
 
-            // Filter only ranked matches (Solo/Duo and Flex)
             List<MatchEntity> rankedMatches = recentMatches.stream()
                     .filter(match -> {
                         Integer queueId = match.getQueueId();
@@ -324,7 +323,6 @@ public class DashboardService implements IDashboardService {
                 match.getTimestamp() != null ? match.getTimestamp().toEpochSecond(java.time.ZoneOffset.UTC) : null);
         dto.setQueueId(match.getQueueId());
 
-        // Load LP from RankHistory if available
         rankHistoryService.getLpForMatch(match.getId())
                 .ifPresent(dto::setLpAtMatch);
 
@@ -395,23 +393,19 @@ public class DashboardService implements IDashboardService {
 
             Map<String, MatchEntity> existingMatches = matchService.findExistingMatchesByMatchIds(matchIds);
 
-            // Count matches needing LP calculation
             long matchesNeedingLP = countMatchesNeedingLP(matches, existingMatches);
 
-            // If all have LP, just populate DTOs from RankHistory
             if (matchesNeedingLP == 0) {
                 logger.info("All matches already have LP, loading from RankHistory");
                 populateLpFromHistory(matches, existingMatches);
                 return;
             }
 
-            // Sort matches for LP calculation
             List<MatchHistoryDTO> sortedMatches = new ArrayList<>(matches);
             sortedMatches.sort((a, b) -> Long.compare(
                     a.getGameTimestamp() != null ? a.getGameTimestamp() : 0,
                     b.getGameTimestamp() != null ? b.getGameTimestamp() : 0));
 
-            // Validate summoner has rank data
             if (!isRankedSummoner(summoner)) {
                 logger.warn("Cannot calculate LP for unranked summoner {}", summoner.getName());
                 saveMatchesWithoutLp(sortedMatches, existingMatches, summoner);
@@ -420,7 +414,6 @@ public class DashboardService implements IDashboardService {
 
             logger.info("Starting LP calculation for {} matches", matchesNeedingLP);
 
-            // Process matches and calculate LP
             processAndSaveMatchesWithLp(sortedMatches, matches, existingMatches, summoner);
 
         } catch (Exception e) {
@@ -434,7 +427,6 @@ public class DashboardService implements IDashboardService {
                     MatchEntity existing = existingMatches.get(m.getMatchId());
                     if (existing == null)
                         return true;
-                    // Check if RankHistory exists for this match
                     return rankHistoryService.getLpForMatch(existing.getId()).isEmpty();
                 })
                 .count();
@@ -471,13 +463,15 @@ public class DashboardService implements IDashboardService {
         String currentDivision = summoner.getRank() != null ? summoner.getRank() : DEFAULT_RANK;
         int currentLP = summoner.getLp() != null ? summoner.getLp() : MIN_LP;
 
-        LpCalculationResult result = buildLpMap(sortedMatches, existingMatches, summoner, currentTier, currentDivision, currentLP);
+        LpCalculationResult result = buildLpMap(sortedMatches, existingMatches, summoner, currentTier, currentDivision,
+                currentLP);
 
         persistMatchesAndRankHistory(result.newMatches(), result.lpByMatchId(), summoner, currentTier, currentDivision);
         applyCalculatedLp(originalMatches, result.lpByMatchId());
     }
 
-    private record LpCalculationResult(Map<String, Integer> lpByMatchId, List<MatchEntity> newMatches) {}
+    private record LpCalculationResult(Map<String, Integer> lpByMatchId, List<MatchEntity> newMatches) {
+    }
 
     private LpCalculationResult buildLpMap(List<MatchHistoryDTO> sortedMatches,
             Map<String, MatchEntity> existingMatches, Summoner summoner,
@@ -489,7 +483,8 @@ public class DashboardService implements IDashboardService {
         for (int i = sortedMatches.size() - 1; i >= 0; i--) {
             MatchHistoryDTO matchDTO = sortedMatches.get(i);
             MatchEntity existing = existingMatches.get(matchDTO.getMatchId());
-            Optional<Integer> existingLp = existing != null ? rankHistoryService.getLpForMatch(existing.getId()) : Optional.empty();
+            Optional<Integer> existingLp = existing != null ? rankHistoryService.getLpForMatch(existing.getId())
+                    : Optional.empty();
 
             if (existingLp.isPresent()) {
                 lpTracker = existingLp.get();
@@ -534,17 +529,14 @@ public class DashboardService implements IDashboardService {
      * Calculate LP change going backwards in time
      */
     private int calculateBackwardsLpChange(int lpTracker, boolean won, String currentTier, String divisionTracker) {
-        // Inverted: if won, subtract LP (going back in time)
         int lpChange = won ? -20 : +15;
         int newLpTracker = lpTracker + lpChange;
 
-        // Handle demotion if LP < 0
         while (newLpTracker < 0 && canDemote(currentTier, divisionTracker)) {
             divisionTracker = demoteDivision(divisionTracker);
             newLpTracker += 100;
         }
 
-        // Clamp to 0 if can't demote
         if (newLpTracker < 0) {
             newLpTracker = 0;
         }

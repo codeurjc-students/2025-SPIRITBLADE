@@ -23,33 +23,31 @@ public class UserLoginService {
 	private final UserDetailsService userDetailsService;
 	private final JwtTokenProvider jwtTokenProvider;
 
-	public UserLoginService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, JwtTokenProvider jwtTokenProvider) {
+	public UserLoginService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService,
+			JwtTokenProvider jwtTokenProvider) {
 		this.authenticationManager = authenticationManager;
 		this.userDetailsService = userDetailsService;
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
 	public ResponseEntity<AuthResponse> login(LoginRequest loginRequest) {
-		
+
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		
 		String username = loginRequest.getUsername();
 		UserDetails user = userDetailsService.loadUserByUsername(username);
 
 		var newAccessToken = jwtTokenProvider.generateAccessToken(user);
 		var newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
 
-		// Return tokens in response body instead of cookies to avoid Chrome blocking
 		AuthResponse loginResponse = new AuthResponse(
-			AuthResponse.Status.SUCCESS,
-			"Auth successful",
-			newAccessToken,
-			newRefreshToken
-		);
+				AuthResponse.Status.SUCCESS,
+				"Auth successful",
+				newAccessToken,
+				newRefreshToken);
 		return ResponseEntity.ok().body(loginResponse);
 	}
 
@@ -86,13 +84,13 @@ public class UserLoginService {
 		Cookie cookie = new Cookie(type.cookieName, token);
 		cookie.setMaxAge((int) type.duration.getSeconds());
 		cookie.setHttpOnly(true);
-		cookie.setSecure(true); // Required for HTTPS
+		cookie.setSecure(true);
 		cookie.setPath("/");
-		cookie.setAttribute("SameSite", "None"); // Required for cross-origin cookies
+		cookie.setAttribute("SameSite", "None");
 		return cookie;
 	}
 
-	private Cookie removeTokenCookie(TokenType type){
+	private Cookie removeTokenCookie(TokenType type) {
 		Cookie cookie = new Cookie(type.cookieName, "");
 		cookie.setMaxAge(0);
 		cookie.setHttpOnly(true);

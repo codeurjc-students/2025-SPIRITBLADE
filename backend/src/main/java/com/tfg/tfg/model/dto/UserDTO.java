@@ -28,7 +28,6 @@ public class UserDTO {
     private boolean active;
     private String avatarUrl;
     
-    // Alias for 'name' field to support both 'name' and 'username' in JSON
     @JsonProperty("username")
     public String getUsername() {
         return name;

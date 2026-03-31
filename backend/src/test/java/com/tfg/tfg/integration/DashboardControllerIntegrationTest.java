@@ -48,7 +48,8 @@ import static org.mockito.Mockito.*;
  * - calculateLPChange() - Line 520+
  * - saveMatchesToDatabase() - Line 620+
  * 
- * Strategy: Use real database with @Transactional, mock only external API (RiotService)
+ * Strategy: Use real database with @Transactional, mock only external API
+ * (RiotService)
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -117,11 +118,11 @@ class DashboardControllerIntegrationTest {
 
         // Create realistic match history (30 matches over last 14 days)
         LocalDateTime now = LocalDateTime.now();
-        
+
         // Last 7 days - 15 matches with LP progression
         // Start with LP 65 seven days ago, progress forward in time
         int lpTracker = 65; // Starting LP (7 days ago)
-        for (int i = 14; i >= 0; i--) {  // Reverse order - oldest first (14 days ago to now)
+        for (int i = 14; i >= 0; i--) { // Reverse order - oldest first (14 days ago to now)
             MatchEntity match = new MatchEntity();
             match.setMatchId("EUW1_recent_" + i);
             match.setSummoner(testSummoner);
@@ -139,7 +140,7 @@ class DashboardControllerIntegrationTest {
             // Ensure chronological ordering: i runs 14..0 so this gives 14 days ago -> now
             match.setTimestamp(now.minusDays(i));
             MatchEntity savedMatch = matchRepository.save(match);
-            
+
             // Create RankHistory for LP tracking
             RankHistory rankHistory = new RankHistory();
             rankHistory.setSummoner(testSummoner);
@@ -151,7 +152,7 @@ class DashboardControllerIntegrationTest {
             rankHistory.setQueueType("RANKED_SOLO_5x5");
             rankHistory.setLpChange(won ? 20 : -15);
             rankHistoryRepository.save(rankHistory);
-            
+
             // Update LP for next match (moving forward in time)
             lpTracker += won ? 20 : -15;
             if (lpTracker > 100) {
@@ -160,7 +161,7 @@ class DashboardControllerIntegrationTest {
                 lpTracker = 0;
             }
         }
-        
+
         // Older matches (7-14 days) - 15 matches
         for (int i = 15; i < 30; i++) {
             MatchEntity match = new MatchEntity();
@@ -187,41 +188,45 @@ class DashboardControllerIntegrationTest {
         testUser.setLinkedSummonerName(TEST_PLAYER);
         testUser = userRepository.save(testUser);
 
-
         // Mock RiotService to return champion mastery
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
         mastery.setChampionName("Ahri");
         mastery.setChampionLevel(7);
         mastery.setChampionPoints(250000);
         when(riotService.getTopChampionMasteries(anyString(), anyInt()))
-            .thenReturn(List.of(mastery));
+                .thenReturn(List.of(mastery));
 
-        // Default mock for MatchService - return ranked matches from setup for normal tests
+        // Default mock for MatchService - return ranked matches from setup for normal
+        // tests
         List<MatchEntity> allMatches = matchRepository.findBySummonerOrderByTimestampDesc(testSummoner);
         List<MatchEntity> rankedMatches = allMatches.stream()
-            .filter(m -> m.getQueueId() != null && (m.getQueueId() == 420 || m.getQueueId() == 440))
-            .toList();
+                .filter(m -> m.getQueueId() != null && (m.getQueueId() == 420 || m.getQueueId() == 440))
+                .toList();
         doReturn(rankedMatches).when(matchService).findRecentMatches(any(), any());
         doReturn(rankedMatches).when(matchService).findRecentMatchesForRoleAnalysis(any(), anyInt());
         doReturn(rankedMatches).when(matchService).findRankedMatchesBySummonerOrderByTimestampDesc(any());
-        doReturn(rankedMatches).when(matchService).findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(any(), any());
+        doReturn(rankedMatches).when(matchService).findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(any(),
+                any());
     }
 
     private String getChampionName(int index) {
-        String[] champions = {"Ahri", "Zed", "Lux", "Yasuo", "Jinx", "Thresh", "Lee Sin"};
+        String[] champions = { "Ahri", "Zed", "Lux", "Yasuo", "Jinx", "Thresh", "Lee Sin" };
         return champions[index % champions.length];
     }
 
     private Integer getChampionId(int index) {
-        Integer[] ids = {103, 238, 99, 157, 222, 412, 64};
+        Integer[] ids = { 103, 238, 99, 157, 222, 412, 64 };
         return ids[index % ids.length];
     }
 
     private String getLane(int index) {
         // Create varied distribution with MIDDLE being most common
-        if (index % 5 == 0 || index % 5 == 1) return "MIDDLE";
-        if (index % 5 == 2) return "TOP";
-        if (index % 5 == 3) return "JUNGLE";
+        if (index % 5 == 0 || index % 5 == 1)
+            return "MIDDLE";
+        if (index % 5 == 2)
+            return "TOP";
+        if (index % 5 == 3)
+            return "JUNGLE";
         return "BOTTOM";
     }
 
@@ -231,11 +236,11 @@ class DashboardControllerIntegrationTest {
         // This test triggers:
         // - populateSummonerStats()
         // - formatRank()
-        // - calculateLPGainedLast7Days() 
+        // - calculateLPGainedLast7Days()
         // - calculateMainRole()
         // - formatLaneName()
         // - getFavoriteChampion()
-        
+
         try {
             mockMvc.perform(get(STATS_URL))
                     .andExpect(status().isOk())
@@ -266,11 +271,10 @@ class DashboardControllerIntegrationTest {
         mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(JSON_MAIN_ROLE, anyOf(
-                    equalTo("Mid Lane"),
-                    equalTo("Top Lane"),
-                    equalTo("Jungle"),
-                    equalTo("Bot Lane")
-                )));
+                        equalTo("Mid Lane"),
+                        equalTo("Top Lane"),
+                        equalTo("Jungle"),
+                        equalTo("Bot Lane"))));
     }
 
     @Test
@@ -282,7 +286,7 @@ class DashboardControllerIntegrationTest {
         // - convertMatchEntityToDTO()
         // - demoteDivision()
         // - canDemote()
-        
+
         mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "0")
                 .param("size", "20"))
@@ -306,16 +310,13 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetFavoritesEmptyList() throws Exception {
+    void testFavoritesCompleteFlow() throws Exception {
+        // 1. Initial empty state
         mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
-    }
 
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavoriteSuccess() throws Exception {
-        // Create another summoner
+        // Create target summoner to add
         Summoner favorite = new Summoner();
         favorite.setName("ProPlayer");
         favorite.setPuuid("pro-puuid-123");
@@ -324,53 +325,42 @@ class DashboardControllerIntegrationTest {
         favorite.setLp(1500);
         summonerRepository.save(favorite);
 
+        // 2. Add Favorite Success
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/ProPlayer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
                 .andExpect(jsonPath(JSON_MESSAGE, containsString("added to favorites")));
-    }
 
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavoriteCannotAddOwnAccount() throws Exception {
+        // 3. Verify it was added
+        mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].name", equalTo("ProPlayer")));
+
+        // 4. Remove Favorite
+        mockMvc.perform(delete("/api/v1/dashboard/me/favorites/ProPlayer"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
+                .andExpect(jsonPath(JSON_MESSAGE, containsString("removed from favorites")));
+
+        // 5. Verify it was removed
+        mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        // 6. Test Error Cases
+        mockMvc.perform(delete("/api/v1/dashboard/me/favorites/NotInFavorites"))
+                .andExpect(status().isNotFound());
+
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/" + TEST_PLAYER))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_SUCCESS, equalTo(false)))
                 .andExpect(jsonPath(JSON_MESSAGE, containsString("Cannot add your own linked account")));
-    }
 
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testAddFavoriteSummonerNotFound() throws Exception {
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/NonExistent"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath(JSON_SUCCESS, equalTo(false)))
                 .andExpect(jsonPath(JSON_MESSAGE, containsString("not found")));
-    }
-
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testRemoveFavoriteSuccess() throws Exception {
-        // Add favorite first
-        Summoner favorite = new Summoner();
-        favorite.setName("ToRemove");
-        favorite.setPuuid("remove-123");
-        summonerRepository.save(favorite);
-        
-        testUser.addFavoriteSummoner(favorite);
-        userRepository.save(testUser);
-
-        mockMvc.perform(delete("/api/v1/dashboard/me/favorites/ToRemove"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
-                .andExpect(jsonPath(JSON_MESSAGE, containsString("removed from favorites")));
-    }
-
-    @Test
-    @WithMockUser(username = "testplayer", roles = "USER")
-    void testRemoveFavoriteNotFound() throws Exception {
-        mockMvc.perform(delete("/api/v1/dashboard/me/favorites/NotInFavorites"))
-                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -554,7 +544,7 @@ class DashboardControllerIntegrationTest {
     void testGenerateAiAnalysisAiServiceNotConfigured() throws Exception {
         // Mock AI service to throw IllegalStateException
         when(aiAnalysisService.analyzePerformance(any(), any()))
-            .thenThrow(new IllegalStateException("AI service not configured"));
+                .thenThrow(new IllegalStateException("AI service not configured"));
 
         mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
                 .andExpect(status().isServiceUnavailable())
@@ -567,11 +557,12 @@ class DashboardControllerIntegrationTest {
     void testGenerateAiAnalysisGenericException() throws Exception {
         // Mock AI service to throw generic exception
         when(aiAnalysisService.analyzePerformance(any(), any()))
-            .thenThrow(new RuntimeException("Database connection failed"));
+                .thenThrow(new RuntimeException("Database connection failed"));
 
         mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success", equalTo(false)))
-                .andExpect(jsonPath("$.message", containsString("Error generating AI analysis: Database connection failed")));
+                .andExpect(jsonPath("$.message",
+                        containsString("Error generating AI analysis: Database connection failed")));
     }
 }

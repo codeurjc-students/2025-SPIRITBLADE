@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +13,7 @@ import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
+import com.tfg.tfg.service.interfaces.IUserService;
 
 @Service
 public class UserService implements IUserService {
@@ -90,7 +89,6 @@ public class UserService implements IUserService {
         user.setEmail(userDTO.getEmail());
         user.setPass(passwordEncoder.encode(userDTO.getPassword()));
 
-        // Use provided roles or default to USER
         if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
             user.setRols(userDTO.getRoles());
         } else {

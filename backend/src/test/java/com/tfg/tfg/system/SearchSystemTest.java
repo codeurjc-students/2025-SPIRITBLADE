@@ -73,7 +73,7 @@ class SearchSystemTest {
         // Setup mocks - specific cases first
         when(riotService.getSummonerByName("TestSummoner#EUW")).thenReturn(mockDto);
         when(riotService.getSummonerByName("Test Summoner#EUW")).thenReturn(mockDto);
-        
+
         // For "Faker#LCK" test case - should throw SummonerNotFoundException
         when(riotService.getSummonerByName("Faker#LCK")).thenThrow(new SummonerNotFoundException("Summoner not found"));
 
@@ -120,7 +120,8 @@ class SearchSystemTest {
     }
 
     @Test
-    void testSearchSummonerWithEmptyNameReturns400() {
+    void testSearchSummonerEdgeCases() {
+        // Empty Name
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -129,10 +130,8 @@ class SearchSystemTest {
                 .get("/api/v1/summoners/name/%20") // URL encoded space
                 .then()
                 .statusCode(anyOf(is(200), is(400), is(404)));
-    }
 
-    @Test
-    void testSearchSummonerWithSpecialCharactersHandlesCorrectly() {
+        // Special Characters
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)

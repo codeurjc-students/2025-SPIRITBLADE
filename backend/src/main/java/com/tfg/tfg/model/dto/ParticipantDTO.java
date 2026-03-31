@@ -21,16 +21,15 @@ public class ParticipantDTO {
     private Integer visionScore;
     private Boolean win;
     private Integer teamId;
-    private String teamPosition; // TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY
+    private String teamPosition;
     
-    // Items (0-6)
     private Integer item0;
     private Integer item1;
     private Integer item2;
     private Integer item3;
     private Integer item4;
     private Integer item5;
-    private Integer item6; // Trinket
+    private Integer item6;
 
     public String getKda() {
         return kills + "/" + deaths + "/" + assists;

@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(JwtRequestFilter.class);
 
 	private final UserDetailsService userDetailsService;
@@ -32,33 +32,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
+			throws ServletException, IOException {
 
 		try {
-			// Read token from Authorization header instead of cookies
 			var claims = jwtTokenProvider.validateToken(request, false);
 			var userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
 
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-						userDetails, null, userDetails.getAuthorities());
-				
+					userDetails, null, userDetails.getAuthorities());
+
 			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		} catch (Exception ex) {
-			//Avoid logging when no token is found
-			String message = ex.getMessage();
-			if(message != null && 
-			   (message.contains("Authorization header") || 
-			    message.contains("Bearer") ||
-			    message.equals("No access token cookie found in request") || 
-			    message.equals("No cookies found in request"))) {
-				// Silent fail - this is expected for public endpoints
-			} else {
-				log.error("Exception processing JWT Token: ", ex);
-			}			
+			log.error("Exception processing JWT Token: ", ex);
 		}
 
 		filterChain.doFilter(request, response);
-	}	
+	}
 
 }

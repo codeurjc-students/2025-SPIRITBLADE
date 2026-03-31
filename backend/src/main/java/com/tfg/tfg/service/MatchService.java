@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
+import com.tfg.tfg.service.interfaces.IMatchService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 
 @Service
 public class MatchService implements IMatchService {
@@ -24,7 +24,8 @@ public class MatchService implements IMatchService {
         this.rankHistoryService = rankHistoryService;
     }
 
-    public List<MatchEntity> findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(Summoner summoner, Integer queueId) {
+    public List<MatchEntity> findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(Summoner summoner,
+            Integer queueId) {
         return matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(summoner, queueId);
     }
 
@@ -33,13 +34,12 @@ public class MatchService implements IMatchService {
     }
 
     public List<MatchEntity> findRecentMatches(Summoner summoner, LocalDateTime since) {
-        // Find matches with RankHistory entries (ranked matches with LP tracking)
         List<MatchEntity> allMatches = matchRepository.findBySummonerOrderByTimestampDesc(summoner);
-        
+
         return allMatches.stream()
                 .filter(m -> m.getTimestamp() != null && m.getTimestamp().isAfter(since))
                 .filter(m -> rankHistoryService.getLpForMatch(m.getId()).isPresent())
-                .sorted((a, b) -> a.getTimestamp().compareTo(b.getTimestamp())) // Oldest first
+                .sorted((a, b) -> a.getTimestamp().compareTo(b.getTimestamp()))
                 .toList();
     }
 

@@ -5,7 +5,7 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.ParticipantDTO;
 import com.tfg.tfg.model.dto.TeamDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
-import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +18,6 @@ import java.util.List;
 public final class RiotMatchMapper {
 
     private RiotMatchMapper() {
-        // static helper
     }
 
     /**
@@ -36,7 +35,6 @@ public final class RiotMatchMapper {
             return null;
         }
 
-        // Find the participant matching the PUUID
         RiotMatchDTO.ParticipantDTO participant = riotMatch.getInfo().getParticipants().stream()
                 .filter(p -> puuid.equals(p.getPuuid()))
                 .findFirst()
@@ -78,7 +76,6 @@ public final class RiotMatchMapper {
 
         MatchDetailDTO dto = new MatchDetailDTO();
 
-        // Basic match info
         dto.setMatchId(riotMatch.getMetadata() != null ? riotMatch.getMetadata().getMatchId() : null);
         dto.setGameCreation(riotMatch.getInfo().getGameCreation());
         dto.setGameDuration(riotMatch.getInfo().getGameDuration());
@@ -87,7 +84,6 @@ public final class RiotMatchMapper {
         dto.setGameVersion(riotMatch.getInfo().getGameVersion());
         dto.setQueueId(riotMatch.getInfo().getQueueId());
 
-        // Map all participants
         List<ParticipantDTO> participants = new ArrayList<>();
         if (riotMatch.getInfo().getParticipants() != null) {
             for (RiotMatchDTO.ParticipantDTO riotParticipant : riotMatch.getInfo().getParticipants()) {
@@ -96,7 +92,6 @@ public final class RiotMatchMapper {
         }
         dto.setParticipants(participants);
 
-        // Map teams
         List<TeamDTO> teams = new ArrayList<>();
         if (riotMatch.getInfo().getTeams() != null) {
             for (RiotMatchDTO.TeamDTO riotTeam : riotMatch.getInfo().getTeams()) {
@@ -140,7 +135,6 @@ public final class RiotMatchMapper {
         dto.setTeamId(riotParticipant.getTeamId());
         dto.setTeamPosition(riotParticipant.getTeamPosition());
 
-        // Items
         dto.setItem0(riotParticipant.getItem0());
         dto.setItem1(riotParticipant.getItem1());
         dto.setItem2(riotParticipant.getItem2());
@@ -170,14 +164,12 @@ public final class RiotMatchMapper {
         dto.setTeamId(riotTeam.getTeamId());
         dto.setWin(riotTeam.getWin());
 
-        // Filter participants by team
         if (allParticipants != null) {
             dto.setParticipants(allParticipants.stream()
                     .filter(p -> riotTeam.getTeamId().equals(p.getTeamId()))
                     .toList());
         }
 
-        // Objectives - initialize to 0 if not present
         dto.setBaronKills(
                 getObjectiveKills(riotTeam.getObjectives() != null ? riotTeam.getObjectives().getBaron() : null));
         dto.setDragonKills(
@@ -189,7 +181,6 @@ public final class RiotMatchMapper {
         dto.setRiftHeraldKills(
                 getObjectiveKills(riotTeam.getObjectives() != null ? riotTeam.getObjectives().getRiftHerald() : null));
 
-        // Bans - initialize to empty list if not present or service unavailable
         if (riotTeam.getBans() != null && dataDragonService != null) {
             dto.setBans(riotTeam.getBans().stream()
                     .map(ban -> ban.getChampionId() != null

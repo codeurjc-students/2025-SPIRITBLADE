@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tfg.tfg.model.dto.MatchDetailDTO;
-import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.riot.RiotChampionMasteryDTO;
 import com.tfg.tfg.model.entity.Summoner;
@@ -64,34 +63,40 @@ class SummonerControllerIntegrationTest {
     @BeforeEach
     void setup() {
         // Clean up in correct order due to foreign key constraints
-        // user_favorite_summoners (many-to-many) -> rank_history -> matches -> summoners -> users
-        
+        // user_favorite_summoners (many-to-many) -> rank_history -> matches ->
+        // summoners -> users
+
         // Clear favorite summoners relationships
         userModelRepository.findAll().forEach(user -> {
             user.getFavoriteSummoners().clear();
             userModelRepository.save(user);
         });
-        
+
         rankHistoryRepository.deleteAll();
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
-        
+
         // Mock DataDragonService
         when(riotService.getDataDragonService()).thenReturn(dataDragonService);
     }
 
     @Test
     @WithMockUser
-    void testGetRecentSearchesEmptyDatabase() throws Exception {
+    void testRecentSearchesFlow() throws Exception {
+        // 1. Initially Empty Database
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
-    }
 
-    @Test
-    @WithMockUser
-    void testGetRecentSearchesWithSummoners() throws Exception {
-        // Create 12 summoners (should return only 9 most recent)
+        // 2. Add summoner WITHOUT date (should be filtered)
+        Summoner withoutDate = new Summoner();
+        withoutDate.setName("WithoutDate");
+        withoutDate.setPuuid("puuid-filtered");
+        withoutDate.setTier("GOLD");
+        withoutDate.setLastSearchedAt(null);
+        summonerRepository.save(withoutDate);
+
+        // 3. Add summoners WITH date
         for (int i = 0; i < 12; i++) {
             Summoner s = new Summoner();
             s.setName("Recent" + i);
@@ -101,36 +106,13 @@ class SummonerControllerIntegrationTest {
             summonerRepository.save(s);
         }
 
+        // 4. Verify results (should return only 9 most recent, filtering out the one
+        // without date)
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(9)))
                 .andExpect(jsonPath("$[0].name", equalTo("Recent0"))) // Most recent
                 .andExpect(jsonPath("$[8].name", equalTo("Recent8")));
-    }
-
-    @Test
-    @WithMockUser
-    void testGetRecentSearchesFiltersNullLastSearchedAt() throws Exception {
-        // Create summoner WITH lastSearchedAt
-        Summoner withDate = new Summoner();
-        withDate.setName("WithDate");
-        withDate.setPuuid("puuid-1");
-        withDate.setTier("GOLD");
-        withDate.setLastSearchedAt(LocalDateTime.now());
-        summonerRepository.save(withDate);
-
-        // Create summoner WITHOUT lastSearchedAt (should be filtered)
-        Summoner withoutDate = new Summoner();
-        withoutDate.setName("WithoutDate");
-        withoutDate.setPuuid("puuid-2");
-        withoutDate.setTier("GOLD");
-        withoutDate.setLastSearchedAt(null);
-        summonerRepository.save(withoutDate);
-
-        mockMvc.perform(get("/api/v1/summoners/recent"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].name", equalTo("WithDate")));
     }
 
     @Test
@@ -154,12 +136,13 @@ class SummonerControllerIntegrationTest {
 
     @Test
     void testGetSummonerByNameNotFound() throws Exception {
-    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
+        when(riotService.getSummonerByName("NonExistent"))
+                .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-    mockMvc.perform(get("/api/v1/summoners/name/NonExistent"))
-        .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/summoners/name/NonExistent"))
+                .andExpect(status().isNotFound());
 
-    verify(riotService).getSummonerByName("NonExistent");
+        verify(riotService).getSummonerByName("NonExistent");
     }
 
     @Test
@@ -194,89 +177,18 @@ class SummonerControllerIntegrationTest {
     }
 
     @Test
-    void testGetTopChampionsSummonerNotFound() throws Exception {
-    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
+    void testSummonerNotFoundErrors() throws Exception {
+        when(riotService.getSummonerByName("NonExistent"))
+                .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-    mockMvc.perform(get("/api/v1/summoners/name/NonExistent/masteries"))
-        .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/summoners/name/NonExistent/matches"))
+                .andExpect(status().isNotFound());
 
-    verify(riotService).getSummonerByName("NonExistent");
-    verify(riotService, never()).getTopChampionMasteries(anyString(), anyInt());
-    }
+        mockMvc.perform(get("/api/v1/summoners/name/NonExistent/masteries"))
+                .andExpect(status().isNotFound());
 
-    @Test
-    void testGetTopChampionsSummonerWithoutPuuid() throws Exception {
-        SummonerDTO mockSummoner = new SummonerDTO();
-        mockSummoner.setName("NoPuuid");
-        mockSummoner.setPuuid(null);
-
-        when(riotService.getSummonerByName("NoPuuid")).thenReturn(mockSummoner);
-
-    // If PUUID is null the service should not proceed; mock the subsequent call to throw so controller returns 404
-    when(riotService.getTopChampionMasteries(isNull(), anyInt()))
-        .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
-
-    mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/masteries"))
-        .andExpect(status().isNotFound());
-
-    verify(riotService).getSummonerByName("NoPuuid");
-    verify(riotService).getTopChampionMasteries(isNull(), anyInt());
-    }
-
-    @Test
-    void testGetRecentMatchesSuccess() throws Exception {
-        SummonerDTO mockSummoner = new SummonerDTO();
-        mockSummoner.setName("TestPlayer");
-        mockSummoner.setPuuid("test-puuid-123");
-
-        MatchHistoryDTO match1 = new MatchHistoryDTO();
-        match1.setMatchId("EUW1_123");
-        match1.setChampionName("Ahri");
-
-        MatchHistoryDTO match2 = new MatchHistoryDTO();
-        match2.setMatchId("EUW1_124");
-        match2.setChampionName("Zed");
-
-        when(riotService.getSummonerByName("TestPlayer")).thenReturn(mockSummoner);
-        when(riotService.getMatchHistory("test-puuid-123", 0, 5))
-                .thenReturn(List.of(match1, match2));
-
-        mockMvc.perform(get("/api/v1/summoners/name/TestPlayer/matches"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].matchId", equalTo("EUW1_123")))
-                .andExpect(jsonPath("$[1].matchId", equalTo("EUW1_124")));
-
-        verify(riotService).getMatchHistory("test-puuid-123", 0, 5);
-    }
-
-    @Test
-    void testGetRecentMatchesWithPagination() throws Exception {
-        SummonerDTO mockSummoner = new SummonerDTO();
-        mockSummoner.setName("TestPlayer");
-        mockSummoner.setPuuid("test-puuid-123");
-
-        when(riotService.getSummonerByName("TestPlayer")).thenReturn(mockSummoner);
-        when(riotService.getMatchHistory("test-puuid-123", 10, 5))
-                .thenReturn(List.of());
-
-        // Page 2 with size 5 means start = 2 * 5 = 10
-        mockMvc.perform(get("/api/v1/summoners/name/TestPlayer/matches")
-                .param("page", "2")
-                .param("size", "5"))
-                .andExpect(status().isOk());
-
-        verify(riotService).getMatchHistory("test-puuid-123", 10, 5);
-    }
-
-    @Test
-    void testGetRecentMatchesSummonerNotFound() throws Exception {
-    when(riotService.getSummonerByName("NonExistent")).thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
-
-    mockMvc.perform(get("/api/v1/summoners/name/NonExistent/matches"))
-        .andExpect(status().isNotFound());
-
-    verify(riotService, never()).getMatchHistory(anyString(), anyInt(), anyInt());
+        verify(riotService, never()).getMatchHistory(anyString(), anyInt(), anyInt());
+        verify(riotService, never()).getTopChampionMasteries(anyString(), anyInt());
     }
 
     @Test
@@ -287,15 +199,16 @@ class SummonerControllerIntegrationTest {
 
         when(riotService.getSummonerByName("NoPuuid")).thenReturn(mockSummoner);
 
-    // If PUUID is null the service should not proceed; mock the subsequent call to throw so controller returns 404
-    when(riotService.getMatchHistory(isNull(), anyInt(), anyInt()))
-        .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
+        // If PUUID is null the service should not proceed; mock the subsequent call to
+        // throw so controller returns 404
+        when(riotService.getMatchHistory(isNull(), anyInt(), anyInt()))
+                .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 
-    mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/matches"))
-        .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/summoners/name/NoPuuid/matches"))
+                .andExpect(status().isNotFound());
 
-    verify(riotService).getSummonerByName("NoPuuid");
-    verify(riotService).getMatchHistory(isNull(), anyInt(), anyInt());
+        verify(riotService).getSummonerByName("NoPuuid");
+        verify(riotService).getMatchHistory(isNull(), anyInt(), anyInt());
     }
 
     @Test

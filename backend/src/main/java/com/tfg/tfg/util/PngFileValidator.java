@@ -14,7 +14,7 @@ public final class PngFileValidator {
     private static final String ALLOWED_CONTENT_TYPE = "image/png";
     private static final String PNG_EXTENSION = ".png";
     private static final byte[] PNG_MAGIC_BYTES = {
-        (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A
+            (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A
     };
 
     private PngFileValidator() {
@@ -26,7 +26,7 @@ public final class PngFileValidator {
      *
      * @param file The file to validate
      * @throws IllegalArgumentException if validation fails
-     * @throws IOException if file reading fails
+     * @throws IOException              if file reading fails
      */
     public static void validatePngFile(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
@@ -34,15 +34,14 @@ public final class PngFileValidator {
         }
 
         validateContentType(file.getContentType());
-        
+
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {
             throw new IllegalArgumentException("Filename is required");
         }
-        
+
         validateExtension(originalFilename);
-        
-        // Optional: Validate magic bytes for extra security
+
         try (InputStream inputStream = file.getInputStream()) {
             validateMagicBytes(inputStream);
         }
@@ -57,8 +56,7 @@ public final class PngFileValidator {
     public static void validateContentType(String contentType) {
         if (contentType == null || !contentType.equalsIgnoreCase(ALLOWED_CONTENT_TYPE)) {
             throw new IllegalArgumentException(
-                "Invalid file type. Only PNG images are allowed. Provided: " + contentType
-            );
+                    "Invalid file type. Only PNG images are allowed. Provided: " + contentType);
         }
     }
 
@@ -71,8 +69,7 @@ public final class PngFileValidator {
     public static void validateExtension(String fileName) {
         if (fileName == null || !fileName.toLowerCase().endsWith(PNG_EXTENSION)) {
             throw new IllegalArgumentException(
-                "Invalid file extension. Only .png files are allowed"
-            );
+                    "Invalid file extension. Only .png files are allowed");
         }
     }
 
@@ -81,24 +78,22 @@ public final class PngFileValidator {
      * Reads the first 8 bytes of the stream to verify it's a valid PNG file.
      *
      * @param inputStream The input stream to validate
-     * @throws IOException if reading fails
+     * @throws IOException              if reading fails
      * @throws IllegalArgumentException if magic bytes don't match
      */
     public static void validateMagicBytes(InputStream inputStream) throws IOException {
         byte[] header = new byte[PNG_MAGIC_BYTES.length];
         int bytesRead = inputStream.read(header);
-        
+
         if (bytesRead != PNG_MAGIC_BYTES.length) {
             throw new IllegalArgumentException(
-                "Invalid PNG file: unable to read file header"
-            );
+                    "Invalid PNG file: unable to read file header");
         }
-        
+
         for (int i = 0; i < PNG_MAGIC_BYTES.length; i++) {
             if (header[i] != PNG_MAGIC_BYTES[i]) {
                 throw new IllegalArgumentException(
-                    "Invalid PNG file: file header does not match PNG signature"
-                );
+                        "Invalid PNG file: file header does not match PNG signature");
             }
         }
     }

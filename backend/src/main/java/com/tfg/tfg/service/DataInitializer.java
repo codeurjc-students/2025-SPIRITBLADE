@@ -1,6 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
 import org.springframework.stereotype.Component;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,11 +8,12 @@ import org.slf4j.LoggerFactory;
 
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
-import com.tfg.tfg.service.storage.IStorageService;
+import com.tfg.tfg.service.interfaces.IStorageService;
 
 import jakarta.annotation.PostConstruct;
 import java.nio.file.Files;
 import org.springframework.web.multipart.MultipartFile;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 
 @Component
 public class DataInitializer {
@@ -45,8 +45,6 @@ public class DataInitializer {
     public void init() {
         boolean isProduction = isProductionMode();
 
-        // Remove duplicate system users that can accumulate after DB restarts
-        // (keeps the row with the lowest ID)
         deduplicateSystemUser(ADMIN_USERNAME);
         deduplicateSystemUser(USER_USERNAME);
 
@@ -58,7 +56,6 @@ public class DataInitializer {
         createAdminUserIfNotExists(adminPassword, isProduction);
         createRegularUserIfNotExists(userPassword, isProduction);
 
-        // Load static data
         dataDragonService.updateChampionDatabase();
     }
 
@@ -72,12 +69,12 @@ public class DataInitializer {
         if (all.size() > 1) {
             logger.warn("Found {} duplicate rows for user '{}'. Removing extras.", all.size(), username);
             all.stream()
-               .sorted(java.util.Comparator.comparingLong(com.tfg.tfg.model.entity.UserModel::getId))
-               .skip(1) // keep the first (lowest id)
-               .forEach(dup -> {
-                   logger.warn("Deleting duplicate user id={} name='{}'", dup.getId(), username);
-                   userRepository.delete(dup);
-               });
+                    .sorted(java.util.Comparator.comparingLong(com.tfg.tfg.model.entity.UserModel::getId))
+                    .skip(1)
+                    .forEach(dup -> {
+                        logger.warn("Deleting duplicate user id={} name='{}'", dup.getId(), username);
+                        userRepository.delete(dup);
+                    });
         }
     }
 
@@ -106,7 +103,6 @@ public class DataInitializer {
             admin.setEmail("admin@example.com");
             admin = userRepository.save(admin);
 
-            // Upload default avatar to storage (MinIO) and set avatarUrl
             try (java.io.InputStream is = getClass().getClassLoader()
                     .getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
                 if (is == null) {
@@ -135,7 +131,6 @@ public class DataInitializer {
             user.setActive(true);
             user = userRepository.save(user);
 
-            // Upload default avatar to storage (MinIO) and set avatarUrl
             try (java.io.InputStream is = getClass().getClassLoader()
                     .getResourceAsStream("static/img/" + DEFAULT_AVATAR_FILENAME)) {
                 if (is == null) {
@@ -166,7 +161,6 @@ public class DataInitializer {
     }
 
     private String generateSecurePassword(String prefix) {
-        // Generate a more secure password for development
         return prefix + "Secure" + System.currentTimeMillis() % 10000 + "!";
     }
 

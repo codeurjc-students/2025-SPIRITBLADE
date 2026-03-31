@@ -1,4 +1,4 @@
-package com.tfg.tfg.service.storage;
+package com.tfg.tfg.service.interfaces;
 
 import org.springframework.web.multipart.MultipartFile;
 

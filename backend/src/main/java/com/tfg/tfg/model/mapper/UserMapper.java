@@ -10,7 +10,6 @@ import com.tfg.tfg.model.dto.UserDTO;
 public final class UserMapper {
 
     private UserMapper() {
-        // Utility class - prevent instantiation
     }
 
     /**
@@ -31,7 +30,6 @@ public final class UserMapper {
         dto.setRoles(user.getRols());
         dto.setActive(user.isActive());
         dto.setAvatarUrl(user.getAvatarUrl());
-        // Note: password is intentionally NOT mapped for security
         return dto;
     }
 
@@ -52,7 +50,6 @@ public final class UserMapper {
         user.setRols(dto.getRoles());
         user.setActive(dto.isActive());
         user.setAvatarUrl(dto.getAvatarUrl());
-        // Note: ID and password are managed separately
         return user;
     }
 }

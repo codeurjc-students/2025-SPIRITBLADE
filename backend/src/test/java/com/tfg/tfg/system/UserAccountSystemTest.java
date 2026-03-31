@@ -28,13 +28,13 @@ class UserAccountSystemTest {
 
     @LocalServerPort
     private int port;
-    
+
     @Autowired
     private UserModelRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     private String authToken;
 
     @BeforeAll
@@ -42,248 +42,246 @@ class UserAccountSystemTest {
         RestAssured.useRelaxedHTTPSValidation();
         RestAssured.baseURI = "https://localhost";
     }
-    
+
     @BeforeEach
     void authenticate() {
         // Clear any existing test user
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
-        
+
         // Create test user with known password
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
         userRepository.save(user);
-        
+
         authToken = given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "username": "testuser",
-                    "password": "user123"
-                }
-                """)
-        .when()
-            .post("/api/v1/auth/login")
-        .then()
-            .statusCode(200)
-            .extract()
-            .path("accessToken");
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "username": "testuser",
+                            "password": "user123"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
     }
 
     @Test
     void testGetMyProfileReturnsUserInfo() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/me")
-        .then()
-            .statusCode(200)
-            .body("username", notNullValue())
-            .body("email", notNullValue())
-            .body("roles", notNullValue());
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/users/me")
+                .then()
+                .statusCode(200)
+                .body("username", notNullValue())
+                .body("email", notNullValue())
+                .body("roles", notNullValue());
     }
 
     @Test
     void testGetLinkedSummonerWithoutLinkReturnsNotLinked() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/linked-summoner")
-        .then()
-            .statusCode(200)
-            .body("linked", equalTo(false));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/users/linked-summoner")
+                .then()
+                .statusCode(200)
+                .body("linked", equalTo(false));
     }
 
     @Test
     void testLinkSummonerWithValidCredentialsLinksAccount() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "TestSummoner",
-                    "region": "EUW"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(anyOf(is(200), is(404), is(400))); // 404 if summoner doesn't exist
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "TestSummoner",
+                            "region": "EUW"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(anyOf(is(200), is(404), is(400))); // 404 if summoner doesn't exist
     }
 
     @Test
-    void testLinkSummonerWithEmptySummonerNameReturns400() {
+    void testLinkSummonerInvalidData() {
+        // Empty Summoner Name
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "",
-                    "region": "EUW"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(400);
-    }
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "",
+                            "region": "EUW"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(400);
 
-    @Test
-    void testLinkSummonerWithInvalidRegionReturns400() {
+        // Invalid Region
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "TestSummoner",
-                    "region": "INVALID"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(anyOf(is(400), is(404)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "TestSummoner",
+                            "region": "INVALID"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(anyOf(is(400), is(404)));
     }
 
     @Test
     void testUnlinkSummonerWithoutLinkedAccountReturnsError() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .post("/api/v1/users/unlink-summoner")
-        .then()
-            .statusCode(anyOf(is(200), is(400)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/api/v1/users/unlink-summoner")
+                .then()
+                .statusCode(anyOf(is(200), is(400)));
     }
 
     @Test
-    void testLinkSummonerUnauthorizedReturns401() {
+    void testEndpointsUnauthorizedAccess() {
+        // Link Summoner
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "TestSummoner",
-                    "region": "EUW"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(401);
-    }
+                .port(port)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "TestSummoner",
+                            "region": "EUW"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(401);
 
-    @Test
-    void testGetLinkedSummonerUnauthorizedReturns401() {
+        // Get Linked Summoner
         given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/linked-summoner")
-        .then()
-            .statusCode(401);
+                .port(port)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/users/linked-summoner")
+                .then()
+                .statusCode(401);
     }
 
     @Test
     void testUpdateProfileWithValidDataUpdatesUser() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "email": "newemail@test.com"
-                }
-                """)
-        .when()
-            .put("/api/v1/users/me")
-        .then()
-            .statusCode(anyOf(is(200), is(404)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "email": "newemail@test.com"
+                        }
+                        """)
+                .when()
+                .put("/api/v1/users/me")
+                .then()
+                .statusCode(anyOf(is(200), is(404)));
     }
 
     @Test
     void testUploadAvatarWithoutFileReturns400() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.MULTIPART)
-        .when()
-            .post("/api/v1/users/avatar")
-        .then()
-            .statusCode(anyOf(is(400), is(500))); // 500 if multipart boundary is missing
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.MULTIPART)
+                .when()
+                .post("/api/v1/users/avatar")
+                .then()
+                .statusCode(anyOf(is(400), is(500))); // 500 if multipart boundary is missing
     }
 
     @Test
     void testDeleteAvatarRemovesAvatar() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .delete("/api/v1/users/avatar")
-        .then()
-            .statusCode(anyOf(is(200), is(204), is(404)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .delete("/api/v1/users/avatar")
+                .then()
+                .statusCode(anyOf(is(200), is(204), is(404)));
     }
 
     @Test
     void testGetMyProfileContainsExpectedFields() {
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("/api/v1/users/me")
-        .then()
-            .statusCode(200)
-            .body("id", notNullValue())
-            .body("username", notNullValue())
-            .body("email", notNullValue())
-            .body("roles", notNullValue())
-            .body("active", notNullValue());
-            // linkedSummonerName can be null if not linked
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/users/me")
+                .then()
+                .statusCode(200)
+                .body("id", notNullValue())
+                .body("username", notNullValue())
+                .body("email", notNullValue())
+                .body("roles", notNullValue())
+                .body("active", notNullValue());
+        // linkedSummonerName can be null if not linked
     }
 
     @Test
     void testLinkSummonerTwoDifferentSummonersUpdatesLink() {
         // First link
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "FirstSummoner",
-                    "region": "EUW"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(anyOf(is(200), is(404), is(400)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "FirstSummoner",
+                            "region": "EUW"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(anyOf(is(200), is(404), is(400)));
 
         // Second link (should replace first)
         given()
-            .port(port)
-            .header("Authorization", "Bearer " + authToken)
-            .contentType(ContentType.JSON)
-            .body("""
-                {
-                    "summonerName": "SecondSummoner",
-                    "region": "EUW"
-                }
-                """)
-        .when()
-            .post("/api/v1/users/link-summoner")
-        .then()
-            .statusCode(anyOf(is(200), is(404), is(400)));
+                .port(port)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                            "summonerName": "SecondSummoner",
+                            "region": "EUW"
+                        }
+                        """)
+                .when()
+                .post("/api/v1/users/link-summoner")
+                .then()
+                .statusCode(anyOf(is(200), is(404), is(400)));
     }
 }

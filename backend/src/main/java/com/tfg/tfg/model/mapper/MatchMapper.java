@@ -3,8 +3,8 @@ package com.tfg.tfg.model.mapper;
 import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
-import com.tfg.tfg.service.storage.IDataDragonService;
-import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -16,7 +16,6 @@ import java.time.ZoneOffset;
 public final class MatchMapper {
 
     private MatchMapper() {
-        // static helper
     }
 
     /**
@@ -89,17 +88,15 @@ public final class MatchMapper {
                 entity.getTimestamp() != null ? entity.getTimestamp().toEpochSecond(ZoneOffset.UTC) : null);
         dto.setQueueId(entity.getQueueId());
 
-        // Load LP from RankHistory if available
         if (rankHistoryService != null) {
             rankHistoryService.getLpForMatch(entity.getId()).ifPresent(dto::setLpAtMatch);
         }
 
-        // Enrich with champion icon from DataDragon
         if (dataDragonService != null && entity.getChampionId() != null) {
             try {
                 dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(entity.getChampionId().longValue()));
             } catch (Exception e) {
-                // Icon fetch failure is non-critical
+                dto.setChampionIconUrl(null);
             }
         }
 

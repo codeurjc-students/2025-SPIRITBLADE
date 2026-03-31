@@ -16,15 +16,15 @@ import lombok.AllArgsConstructor;
 public class Champion {
 
     @Id
-    private Long id; // Riot's numeric Champion ID (e.g., 266 for Aatrox)
+    private Long id;
 
     @Column(name = "champion_key", nullable = false)
-    private String key; // Riot's string key (e.g., "Aatrox")
+    private String key;
 
     @Column(nullable = false)
-    private String name; // Display name (e.g., "Aatrox")
+    private String name;
 
     @Column(name = "image_url")
-    private String imageUrl; // Full URL to the champion's icon
+    private String imageUrl;
 
 }

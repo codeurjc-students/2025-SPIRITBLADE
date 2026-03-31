@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.SummonerRepository;
 import org.springframework.data.domain.Page;
@@ -11,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.tfg.tfg.service.interfaces.ISummonerService;
 
 /**
  * Service layer for Summoner operations.

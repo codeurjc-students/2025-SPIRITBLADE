@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-    "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
+        "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class DashboardE2ETest {
 
@@ -58,7 +58,7 @@ class DashboardE2ETest {
         options.addArguments("--disable-web-security");
         options.addArguments("--allow-running-insecure-content");
         options.addArguments("--ignore-certificate-errors");
-        
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         baseUrl = "https://localhost:" + port;
@@ -77,83 +77,63 @@ class DashboardE2ETest {
         // Access the Angular app root first
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         // Then try to navigate to dashboard
         driver.get(baseUrl + DASHBOARD_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String currentUrl = driver.getCurrentUrl();
         String pageContent = driver.findElement(By.tagName("body")).getText();
-        
+
         // Angular should handle the redirect client-side or load the page
-        boolean isProtected = currentUrl.contains("/login") || 
-                             currentUrl.contains(DASHBOARD_PATH) ||
-                             pageContent.contains("login") || 
-                             pageContent.contains("Unauthorized") ||
-                             pageContent.contains("authenticate") ||
-                             !pageContent.isEmpty();
-        
+        boolean isProtected = currentUrl.contains("/login") ||
+                currentUrl.contains(DASHBOARD_PATH) ||
+                pageContent.contains("login") ||
+                pageContent.contains("Unauthorized") ||
+                pageContent.contains("authenticate") ||
+                !pageContent.isEmpty();
+
         assertTrue(isProtected, "Dashboard should load through Angular");
-        
+
         log.info("âœ“ Dashboard authentication protection verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
     @Test
-    void testUserMatchHistoryAPIEndpoint() {
+    void testRiotDataAPIEndpoints() {
         // Test match history API endpoint
         driver.get(baseUrl + "/api/v1/riot/match-history/testUser");
-        
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        String responseContent = driver.findElement(By.tagName("body")).getText();
-        assertNotNull(responseContent);
-        
-        // Should respond (even if unauthorized or with data)
-        assertTrue(
-            responseContent.contains("Unauthorized") || 
-            responseContent.contains("error") ||
-            responseContent.contains("matches") ||
-            responseContent.contains("data") ||
-            !responseContent.isEmpty(),
-            "Match history API should respond"
-        );
-        
-        log.info("âœ“ Match history API endpoint is accessible");
-    }
+        String matchResponse = driver.findElement(By.tagName("body")).getText();
+        assertNotNull(matchResponse);
+        assertTrue(!matchResponse.isEmpty(), "Match history API should respond");
+        log.info("✓ Match history API endpoint is accessible");
 
-    @Test
-    void testChampionMasteryAPIEndpoint() {
-        // Test champion mastery API endpoint
+        // Test champion mastery API endpoint using the same session
         driver.get(baseUrl + "/api/v1/riot/champion-mastery/testUser");
-        
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        String responseContent = driver.findElement(By.tagName("body")).getText();
-        assertNotNull(responseContent);
-        
-        // Should respond
-        assertTrue(!responseContent.isEmpty(), "Champion mastery API should respond");
-        
-        log.info("âœ“ Champion mastery API endpoint is accessible");
+        String masteryResponse = driver.findElement(By.tagName("body")).getText();
+        assertNotNull(masteryResponse);
+        assertTrue(!masteryResponse.isEmpty(), "Champion mastery API should respond");
+        log.info("✓ Champion mastery API endpoint is accessible");
     }
 
     @Test
     void testDashboardPageStructure() {
         driver.get(baseUrl + DASHBOARD_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         try {
             // Check for basic dashboard structure
             List<WebElement> divElements = driver.findElements(By.tagName("div"));
             List<WebElement> chartElements = driver.findElements(By.tagName("canvas"));
-            
+
             log.info("âœ“ Dashboard page structure analysis");
             log.info("  Div elements found: {}", divElements.size());
             log.info("  Chart elements found: {}", chartElements.size());
-            
+
             assertTrue(true, "Dashboard page structure verified");
-            
+
         } catch (Exception e) {
             log.info("Note: Dashboard elements may require authentication to load");
             assertTrue(true, "Test completed with expected authentication behavior");
@@ -165,21 +145,20 @@ class DashboardE2ETest {
         // Access the Angular app root first
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         // Test that /profile redirects to /dashboard
         driver.get(baseUrl + "/profile");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String currentUrl = driver.getCurrentUrl();
-        
+
         // Should redirect to dashboard or login through Angular routing
         assertTrue(
-            currentUrl.contains(DASHBOARD_PATH) || 
-            currentUrl.contains("/login") ||
-            currentUrl.contains("/profile"),
-            "Profile should be handled by Angular routing"
-        );
-        
+                currentUrl.contains(DASHBOARD_PATH) ||
+                        currentUrl.contains("/login") ||
+                        currentUrl.contains("/profile"),
+                "Profile should be handled by Angular routing");
+
         log.info("âœ“ Profile redirect verified");
         log.info("  Redirected to: {}", currentUrl);
     }

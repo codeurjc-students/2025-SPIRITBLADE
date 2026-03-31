@@ -29,8 +29,8 @@ import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
-import com.tfg.tfg.service.storage.IDataDragonService;
-import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 import com.tfg.tfg.service.RiotService;
 
 @ExtendWith(MockitoExtension.class)
@@ -1138,5 +1138,63 @@ class RiotServiceUnitTest {
         
         // Then
         assertNull(result);
+    }
+
+    @Test
+    void testGetTopChampionMasteries_httpClientErrorException_returnsEmpty() {
+        // Given - HttpClientErrorException specifically (separate catch block from generic Exception)
+        String puuid = "test-puuid";
+
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            isNull(),
+            eq(RiotChampionMasteryDTO[].class),
+            anyString(),
+            anyInt(),
+            anyString()
+        )).thenThrow(new org.springframework.web.client.HttpClientErrorException(
+                org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, "Rate limited"));
+
+        // When
+        List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 3);
+
+        // Then - Returns empty list on HttpClientErrorException
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetSummonerByName_httpClientErrorException_withDatabaseFallback() {
+        // Given - API returns HttpClientErrorException but summoner is in DB
+        String riotId = "TestPlayer#EUW";
+        String puuid = "test-puuid";
+
+        when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(),
+            eq(RiotAccountDTO.class),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenThrow(new org.springframework.web.client.HttpClientErrorException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Service unavailable"));
+
+        Summoner cachedSummoner = new Summoner();
+        cachedSummoner.setName(riotId);
+        cachedSummoner.setPuuid(puuid);
+        cachedSummoner.setLevel(75);
+        cachedSummoner.setProfileIconId(1);
+        when(summonerRepository.findByName(riotId)).thenReturn(Optional.of(cachedSummoner));
+        when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
+
+        // When
+        SummonerDTO result = riotService.getSummonerByName(riotId);
+
+        // Then - Should return cached data
+        assertNotNull(result);
+        assertEquals(riotId, result.getName());
+        verify(summonerRepository).findByName(riotId);
     }
 }

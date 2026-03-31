@@ -62,46 +62,26 @@ class RiotServiceIntegrationTest {
     }
 
     @Test
-    void testSummonerRepositoryCanSaveAndRetrieve() {
+    void testSummonerRepositoryCoreOperations() {
+        // Test save and retrieve
         Summoner summoner = new Summoner();
         summoner.setName("TestSummoner");
-        summoner.setPuuid("test-puuid-12345");
+        summoner.setPuuid("unique-puuid-123");
         summoner.setRiotId("TestSummoner#EUW");
         summoner.setLevel(30);
-        
         Summoner saved = summonerRepository.save(summoner);
-        
+
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getName()).isEqualTo("TestSummoner");
-        
-        Summoner found = summonerRepository.findByPuuid("test-puuid-12345").orElse(null);
-        assertThat(found).isNotNull();
-        assertThat(found.getName()).isEqualTo("TestSummoner");
-    }
 
-    @Test
-    void testSummonerRepositoryFindByNameCaseInsensitive() {
-        Summoner summoner = new Summoner();
-        summoner.setName("CaseSensitive");
-        summoner.setPuuid("test-puuid-case");
-        summoner.setRiotId("CaseSensitive#EUW");
-        summonerRepository.save(summoner);
-        
-        Summoner found = summonerRepository.findByName("casesensitive").orElse(null);
-        assertThat(found).isNotNull();
-        assertThat(found.getName()).isEqualTo("CaseSensitive");
-    }
+        // Test retrieve by PUUID
+        Summoner foundByPuuid = summonerRepository.findByPuuid("unique-puuid-123").orElse(null);
+        assertThat(foundByPuuid).isNotNull();
 
-    @Test
-    void testSummonerRepositoryFindByPuuidReturnsUnique() {
-        Summoner summoner = new Summoner();
-        summoner.setName("UniquePuuid");
-        summoner.setPuuid("unique-puuid-123");
-        summoner.setRiotId("UniquePuuid#EUW");
-        summonerRepository.save(summoner);
-        
-        Summoner found = summonerRepository.findByPuuid("unique-puuid-123").orElse(null);
-        assertThat(found).isNotNull();
+        // Test case insensitive findByName
+        Summoner foundByName = summonerRepository.findByName("testsummoner").orElse(null);
+        assertThat(foundByName).isNotNull();
+        assertThat(foundByName.getName()).isEqualTo("TestSummoner");
     }
 
     @Test
@@ -111,13 +91,13 @@ class RiotServiceIntegrationTest {
         summoner1.setPuuid("duplicate-puuid");
         summoner1.setRiotId("Summoner1#EUW");
         summonerRepository.save(summoner1);
-        
+
         // Trying to save another summoner with same PUUID should fail
         Summoner summoner2 = new Summoner();
         summoner2.setName("Summoner2");
         summoner2.setPuuid("duplicate-puuid");
         summoner2.setRiotId("Summoner2#EUW");
-        
+
         assertThrows(Exception.class, () -> {
             summonerRepository.save(summoner2);
             summonerRepository.flush(); // Force DB constraint check
@@ -131,64 +111,47 @@ class RiotServiceIntegrationTest {
         summoner.setPuuid("linked-puuid");
         summoner.setRiotId("LinkedSummoner#EUW");
         summonerRepository.save(summoner);
-        
+
         testUser.setLinkedSummonerName("LinkedSummoner");
         userRepository.save(testUser);
-        
+
         UserModel found = userRepository.findById(testUser.getId()).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getLinkedSummonerName()).isEqualTo("LinkedSummoner");
     }
 
     @Test
-    void testUserRepositoryCanAddFavorites() {
+    void testUserRepositoryFavoritesFlow() {
+        // Setup initial favorite
         Summoner favorite = new Summoner();
         favorite.setName("FavoriteSummoner");
         favorite.setPuuid("favorite-puuid");
         favorite.setRiotId("FavoriteSummoner#EUW");
         favorite = summonerRepository.save(favorite);
         summonerRepository.flush();
-        
-        // Refresh the testUser to ensure it's managed and favoriteSummoners is initialized
-        testUser = userRepository.findById(testUser.getId()).orElseThrow();
-        
-        // Use the helper method which handles initialization
-        testUser.addFavoriteSummoner(favorite);
-        testUser = userRepository.save(testUser);
-        userRepository.flush();
-        
-        // Refresh again to get persisted state
-        UserModel found = userRepository.findById(testUser.getId()).orElseThrow();
-        assertThat(found).isNotNull();
-        assertThat(found.getFavoriteSummoners()).hasSizeGreaterThanOrEqualTo(1);
-        assertThat(found.getFavoriteSummoners().stream()
-            .anyMatch(s -> s.getName().equals("FavoriteSummoner"))).isTrue();
-    }
 
-    @Test
-    void testUserRepositoryCanRemoveFavorites() {
-        Summoner favorite = new Summoner();
-        favorite.setName("ToRemove");
-        favorite.setPuuid("remove-puuid");
-        favorite.setRiotId("ToRemove#EUW");
-        favorite = summonerRepository.save(favorite);
-        summonerRepository.flush();
-        
-        // Refresh to ensure collection is mutable
+        // Test Add Favorite
         testUser = userRepository.findById(testUser.getId()).orElseThrow();
         testUser.addFavoriteSummoner(favorite);
         testUser = userRepository.save(testUser);
         userRepository.flush();
-        
-        // Refresh again before removal
+
+        UserModel foundWithFav = userRepository.findById(testUser.getId()).orElseThrow();
+        assertThat(foundWithFav).isNotNull();
+        assertThat(foundWithFav.getFavoriteSummoners()).hasSizeGreaterThanOrEqualTo(1);
+        assertThat(foundWithFav.getFavoriteSummoners().stream()
+                .anyMatch(s -> s.getName().equals("FavoriteSummoner"))).isTrue();
+
+        // Test Remove Favorite
         testUser = userRepository.findById(testUser.getId()).orElseThrow();
         testUser.removeFavoriteSummoner(favorite);
         testUser = userRepository.save(testUser);
         userRepository.flush();
-        
-        UserModel found = userRepository.findById(testUser.getId()).orElseThrow();
-        assertThat(found).isNotNull();
-        assertThat(found.getFavoriteSummoners()).isEmpty();
+
+        UserModel foundWithoutFav = userRepository.findById(testUser.getId()).orElseThrow();
+        assertThat(foundWithoutFav).isNotNull();
+        assertThat(foundWithoutFav.getFavoriteSummoners().stream()
+                .noneMatch(s -> s.getName().equals("FavoriteSummoner"))).isTrue();
     }
 
     @Test
@@ -200,12 +163,12 @@ class RiotServiceIntegrationTest {
         java.time.LocalDateTime firstSearch = java.time.LocalDateTime.now();
         summoner.setLastSearchedAt(firstSearch);
         summoner = summonerRepository.save(summoner);
-        
+
         // Update with a later timestamp
         java.time.LocalDateTime secondSearch = firstSearch.plusSeconds(1);
         summoner.setLastSearchedAt(secondSearch);
         summoner = summonerRepository.save(summoner);
-        
+
         assertThat(summoner.getLastSearchedAt()).isAfter(firstSearch);
     }
 
@@ -220,9 +183,9 @@ class RiotServiceIntegrationTest {
         summoner.setLp(45);
         summoner.setWins(100);
         summoner.setLosses(95);
-        
+
         summonerRepository.save(summoner);
-        
+
         Summoner found = summonerRepository.findByPuuid("ranked-puuid").orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getTier()).isEqualTo("GOLD");

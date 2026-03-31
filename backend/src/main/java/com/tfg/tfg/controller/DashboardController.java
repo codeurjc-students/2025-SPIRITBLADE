@@ -15,12 +15,12 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;
-import com.tfg.tfg.service.storage.IRiotService;
-import com.tfg.tfg.service.storage.ISummonerService;
-import com.tfg.tfg.service.storage.IAiAnalysisService;
-import com.tfg.tfg.service.storage.IDashboardService;
-import com.tfg.tfg.service.storage.IMatchService;
-import com.tfg.tfg.service.storage.IUserService;
+import com.tfg.tfg.service.interfaces.IRiotService;
+import com.tfg.tfg.service.interfaces.ISummonerService;
+import com.tfg.tfg.service.interfaces.IAiAnalysisService;
+import com.tfg.tfg.service.interfaces.IDashboardService;
+import com.tfg.tfg.service.interfaces.IMatchService;
+import com.tfg.tfg.service.interfaces.IUserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -73,14 +73,11 @@ public class DashboardController {
             summoner = summonerService.findByName(linkedSummonerName).orElse(null);
         }
 
-        // Delegate to service for business logic
         Map<String, Object> result = dashboardService.getPersonalStats(summoner);
 
-        // Add user info
         result.put("username", username);
         result.put("linkedSummoner", linkedSummonerName);
 
-        // Add email for profile editing
         if (!GUEST.equals(username)) {
             userService.findByName(username).ifPresent(user -> {
                 result.put("email", user.getEmail());
@@ -94,18 +91,13 @@ public class DashboardController {
      * Resolves the authenticated username or returns GUEST
      */
     private String resolveUsername() {
-        try {
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated()) {
-                Object principal = auth.getPrincipal();
-                // Principal can be a String "anonymousUser" or a UserDetails instance
-                if (principal instanceof String s && "anonymousUser".equals(s)) {
-                    return GUEST;
-                }
-                return auth.getName();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof String s && "anonymousUser".equals(s)) {
+                return GUEST;
             }
-        } catch (Exception ex) {
-            // ignore and return default
+            return auth.getName();
         }
         return GUEST;
     }
@@ -114,39 +106,26 @@ public class DashboardController {
      * Finds the summoner name linked to the authenticated user from UserModel
      */
     private String resolveLinkedSummonerName(String username) {
-        if (GUEST.equals(username)) {
-            return null;
-        }
-
-        try {
-            // Get the user and return their linked summoner name
-            return userService.findByName(username)
-                    .map(UserModel::getLinkedSummonerName)
-                    .orElse(null);
-        } catch (Exception ex) {
-            // ignore and return null
-        }
-        return null;
+        return userService.findByName(username)
+                .map(UserModel::getLinkedSummonerName)
+                .orElse(null);
     }
 
     @GetMapping("/me/favorites")
     @Transactional(readOnly = true)
     public ResponseEntity<List<SummonerDTO>> myFavorites() {
-        // Return favorite summoners for the authenticated user
         String username = resolveUsername();
 
         if (GUEST.equals(username)) {
             return ResponseEntity.ok(List.of());
         }
 
-        // Get user and their favorite summoners
         UserModel user = userService.findByName(username).orElse(null);
 
         if (user == null) {
             return ResponseEntity.ok(List.of());
         }
 
-        // Get user's favorite summoners
         List<SummonerDTO> favorites = user.getFavoriteSummoners()
                 .stream()
                 .map(s -> SummonerMapper.toDTO(s, riotService.getDataDragonService()))
@@ -172,10 +151,8 @@ public class DashboardController {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, USER_NOT_FOUND_MSG));
         }
 
-        // First try to find summoner in database
         Summoner summoner = summonerService.findByName(summonerName).orElse(null);
 
-        // If not in database, try to fetch from Riot API
         if (summoner == null) {
             logger.info("Summoner not in database, fetching from Riot API");
             try {
@@ -185,7 +162,6 @@ public class DashboardController {
                             .body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, SUMMONER_NOT_FOUND_MSG));
                 }
 
-                // After API call, summoner should be saved to DB, retrieve it
                 summoner = summonerService.findByName(summonerName).orElse(null);
                 if (summoner == null) {
                     return ResponseEntity.status(404).body(
@@ -198,13 +174,11 @@ public class DashboardController {
             }
         }
 
-        // Check if it's the user's own linked summoner
         if (summonerName.equalsIgnoreCase(user.getLinkedSummonerName())) {
             return ResponseEntity.badRequest()
                     .body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, "Cannot add your own linked account as favorite"));
         }
 
-        // Add to favorites
         user.addFavoriteSummoner(summoner);
         userService.save(user);
 
@@ -228,13 +202,11 @@ public class DashboardController {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, USER_NOT_FOUND_MSG));
         }
 
-        // Find summoner by name
         Summoner summoner = summonerService.findByName(summonerName).orElse(null);
         if (summoner == null) {
             return ResponseEntity.status(404).body(Map.of(SUCCESS_KEY, false, MESSAGE_KEY, SUMMONER_NOT_FOUND_MSG));
         }
 
-        // Remove from favorites
         user.removeFavoriteSummoner(summoner);
         userService.save(user);
 
@@ -263,7 +235,6 @@ public class DashboardController {
         }
 
         try {
-            // Delegate to service for business logic
             List<MatchHistoryDTO> rankedMatches = dashboardService
                     .getRankedMatchesWithLP(summoner, queueId, page, size);
             logger.info("Returning {} ranked matches", rankedMatches.size());
@@ -287,17 +258,15 @@ public class DashboardController {
     @PostMapping("/me/ai-analysis")
     public ResponseEntity<Object> generateAiAnalysis(@RequestParam(defaultValue = "10") int matchCount) {
         try {
-            // Validate match count
             if (matchCount < 10) {
                 return ResponseEntity.badRequest().body(Map.of(
                         SUCCESS_KEY, false,
                         MESSAGE_KEY, "At least 10 matches are required for analysis"));
             }
             if (matchCount > 10) {
-                matchCount = 10; // Cap at 10 matches
+                matchCount = 10;
             }
 
-            // Get authenticated user
             String username = resolveUsername();
             if (GUEST.equals(username)) {
                 return ResponseEntity.status(401).body(Map.of(
@@ -305,7 +274,6 @@ public class DashboardController {
                         MESSAGE_KEY, "You must be logged in to use AI analysis"));
             }
 
-            // Get user and check cooldown
             UserModel user = userService.findByName(username).orElse(null);
             if (user == null) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -313,7 +281,6 @@ public class DashboardController {
                         MESSAGE_KEY, USER_NOT_FOUND_MSG));
             }
 
-            // RATE LIMITING: Check cooldown (5 minutes)
             if (user.getLastAiAnalysisRequest() != null) {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime cooldownEnds = user.getLastAiAnalysisRequest().plusMinutes(5);
@@ -332,14 +299,12 @@ public class DashboardController {
                 }
             }
 
-            // Get linked summoner
             if (user.getLinkedSummonerName() == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                         SUCCESS_KEY, false,
                         MESSAGE_KEY, "You must link your League of Legends account first"));
             }
 
-            // Get summoner
             Summoner summoner = summonerService.findByName(user.getLinkedSummonerName())
                     .orElse(null);
 
@@ -349,12 +314,10 @@ public class DashboardController {
                         MESSAGE_KEY, "The linked summoner account was not found"));
             }
 
-            // Get recent RANKED matches only (queueId 420 = Solo/Duo, 440 = Flex)
             List<MatchEntity> allMatches = matchService.findRecentMatches(
                     summoner,
                     LocalDateTime.now().minusMonths(2));
 
-            // Filter only RANKED matches
             List<MatchEntity> rankedMatches = allMatches.stream()
                     .filter(match -> {
                         Integer queueId = match.getQueueId();
@@ -381,12 +344,9 @@ public class DashboardController {
             logger.info("Generating AI analysis ({} ranked matches out of {} total)",
                     rankedMatches.size(), allMatches.size());
 
-            // Update cooldown timestamp BEFORE calling AI service (prevent parallel
-            // requests)
             user.setLastAiAnalysisRequest(LocalDateTime.now());
             userService.save(user);
 
-            // Generate AI analysis
             AiAnalysisResponseDto analysis = aiAnalysisService.analyzePerformance(summoner, rankedMatches);
 
             return ResponseEntity.ok(analysis);
