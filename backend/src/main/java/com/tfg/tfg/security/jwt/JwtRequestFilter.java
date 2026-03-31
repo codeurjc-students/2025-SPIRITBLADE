@@ -44,15 +44,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		} catch (Exception ex) {
-			String message = ex.getMessage();
-			if (message != null &&
-					(message.contains("Authorization header") ||
-							message.contains("Bearer") ||
-							message.equals("No access token cookie found in request") ||
-							message.equals("No cookies found in request"))) {
-			} else {
-				log.error("Exception processing JWT Token: ", ex);
-			}
+			log.error("Exception processing JWT Token: ", ex);
 		}
 
 		filterChain.doFilter(request, response);

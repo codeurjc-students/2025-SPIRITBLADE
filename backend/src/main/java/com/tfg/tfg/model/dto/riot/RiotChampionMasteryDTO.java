@@ -23,6 +23,7 @@ public class RiotChampionMasteryDTO {
      * Empty constructor for serialization/deserialization
      */
     public RiotChampionMasteryDTO() {
+        // Empty constructor
     }
 
     public String getPuuid() {

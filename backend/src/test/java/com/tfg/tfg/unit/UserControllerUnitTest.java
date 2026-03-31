@@ -423,4 +423,63 @@ class UserControllerUnitTest {
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
+
+    @Test
+    void testGetMyProfile_nullAuthentication_returnsFirstUser() {
+        // Covers auth==null path in getMyProfile (delegates to findFirstUser)
+        when(securityContext.getAuthentication()).thenReturn(null);
+        UserModel firstUser = new UserModel();
+        firstUser.setName("admin");
+        firstUser.setActive(true);
+        when(userService.findFirstUser()).thenReturn(Optional.of(firstUser));
+
+        ResponseEntity<Object> response = controller.getMyProfile();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userService).findFirstUser();
+    }
+
+    @Test
+    void testGetMyProfile_withImageFallbackWhenAvatarUrlNull() {
+        // Covers the uncovered new line: avatarUrl==null but image field set → dto.setAvatarUrl(user.getImage())
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "testuser", null, java.util.Collections.emptyList()
+        );
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        UserModel userWithImage = new UserModel();
+        userWithImage.setName("testuser");
+        userWithImage.setActive(true);
+        userWithImage.setImage("http://legacy.image.url");
+        userWithImage.setAvatarUrl(null);
+        when(userService.findByName("testuser")).thenReturn(Optional.of(userWithImage));
+
+        ResponseEntity<Object> response = controller.getMyProfile();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        UserDTO dto = (UserDTO) response.getBody();
+        assertNotNull(dto);
+        assertEquals("http://legacy.image.url", dto.getAvatarUrl());
+    }
+
+    @Test
+    void testGetLinkedSummoner_notLinked_returnsLinkedFalse() {
+        // Covers the else branch: linkedSummonerPuuid == null → response.put("linked", false)
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "testuser", null, java.util.Collections.emptyList()
+        );
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        UserModel noLinkUser = new UserModel();
+        noLinkUser.setName("testuser");
+        noLinkUser.setActive(true);
+        noLinkUser.setLinkedSummonerPuuid(null);
+        when(userService.findByName("testuser")).thenReturn(Optional.of(noLinkUser));
+
+        ResponseEntity<Object> response = controller.getLinkedSummoner();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> body = (java.util.Map<String, Object>) response.getBody();
+        assertEquals(false, body.get("linked"));
+    }
+
 }

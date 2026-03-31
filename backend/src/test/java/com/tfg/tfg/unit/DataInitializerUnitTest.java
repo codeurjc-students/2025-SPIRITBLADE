@@ -280,4 +280,45 @@ class DataInitializerUnitTest {
         byte[] fileContent = java.nio.file.Files.readAllBytes(tempFile.toPath());
         assertArrayEquals(content, fileContent);
     }
+
+    @Test
+    void testDeduplicateSystemUser_removesExtraRows() {
+        // Given - two duplicates for 'admin' with different IDs
+        UserModel dup1 = new UserModel("admin", "pw", "ADMIN");
+        dup1.setId(1L);
+        UserModel dup2 = new UserModel("admin", "pw", "ADMIN");
+        dup2.setId(2L);
+
+        when(userRepository.findAllByName("admin")).thenReturn(java.util.List.of(dup1, dup2));
+        when(userRepository.findAllByName("user")).thenReturn(java.util.List.of());
+        when(userRepository.existsByName("admin")).thenReturn(true);
+        when(userRepository.existsByName("user")).thenReturn(true);
+
+        // When
+        dataInitializer.init();
+
+        // Then - the duplicate with higher ID should be deleted
+        verify(userRepository).delete(dup2);
+        // dup1 (lowest ID) should never be deleted
+        verify(userRepository, never()).delete(dup1);
+    }
+
+    @Test
+    void testResolvePassword_productionMode_noEnvVar() {
+        // Call init() under production mode via system property
+        System.setProperty("spring.profiles.active", "production");
+        try {
+            when(userRepository.findAllByName(anyString())).thenReturn(java.util.List.of());
+            when(userRepository.existsByName("admin")).thenReturn(true);
+            when(userRepository.existsByName("user")).thenReturn(true);
+
+            // When - admin and user already exist, just trigger resolvePassword in production path
+            dataInitializer.init();
+
+            // Then - no users created, but init completed without error
+            verify(userRepository, never()).save(any());
+        } finally {
+            System.clearProperty("spring.profiles.active");
+        }
+    }
 }

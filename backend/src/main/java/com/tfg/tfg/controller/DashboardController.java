@@ -91,16 +91,13 @@ public class DashboardController {
      * Resolves the authenticated username or returns GUEST
      */
     private String resolveUsername() {
-        try {
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated()) {
-                Object principal = auth.getPrincipal();
-                if (principal instanceof String s && "anonymousUser".equals(s)) {
-                    return GUEST;
-                }
-                return auth.getName();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof String s && "anonymousUser".equals(s)) {
+                return GUEST;
             }
-        } catch (Exception ex) {
+            return auth.getName();
         }
         return GUEST;
     }
@@ -109,13 +106,9 @@ public class DashboardController {
      * Finds the summoner name linked to the authenticated user from UserModel
      */
     private String resolveLinkedSummonerName(String username) {
-        try {
-            return userService.findByName(username)
-                    .map(UserModel::getLinkedSummonerName)
-                    .orElse(null);
-        } catch (Exception ex) {
-        }
-        return null;
+        return userService.findByName(username)
+                .map(UserModel::getLinkedSummonerName)
+                .orElse(null);
     }
 
     @GetMapping("/me/favorites")

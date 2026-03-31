@@ -467,8 +467,6 @@ public class RiotService implements IRiotService {
      */
     public List<MatchHistoryDTO> getMatchHistory(String puuid, int start, int count) {
         try {
-            logger.info("Fetching match history for PUUID: {}, start: {}, count: {}", puuid, start, count);
-
             if (!isCacheFresh(puuid)) {
                 logger.info("Cache is outdated, need to fetch new matches from API");
             } else {
@@ -509,7 +507,7 @@ public class RiotService implements IRiotService {
         try {
             Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
             if (summonerOpt.isEmpty()) {
-                logger.debug("No summoner found in DB for PUUID {}, cache not fresh", puuid);
+                logger.debug("No summoner found in DB for requested PUUID, cache not fresh");
                 return false; // No cache exists
             }
 

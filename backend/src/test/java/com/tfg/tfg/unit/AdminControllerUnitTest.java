@@ -189,4 +189,59 @@ class AdminControllerUnitTest {
         verify(userService).getUserById(userId);
         verify(userService, never()).updateUserOrThrow(anyLong(), any());
     }
+
+    @Test
+    void testUpdateUser_adminUserForbidden() {
+        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+        Long userId = 2L;
+        UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
+        adminUser.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(adminUser);
+
+        ResponseEntity<UserDTO> response = adminController.updateUser(userId, new UserDTO());
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verify(userService, never()).updateUserOrThrow(anyLong(), any());
+    }
+
+    @Test
+    void testToggleUserActive_adminUserForbidden() {
+        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+        Long userId = 2L;
+        UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
+        adminUser.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(adminUser);
+
+        ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verify(userService, never()).toggleUserActive(anyLong());
+    }
+
+    @Test
+    void testDeleteUser_adminUserForbidden() {
+        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+        Long userId = 2L;
+        UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
+        adminUser.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(adminUser);
+
+        ResponseEntity<Void> response = adminController.deleteUser(userId);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verify(userService, never()).deleteUserOrThrow(anyLong());
+    }
+
+    @Test
+    void testToggleUserActive_returnsNotFound_whenServiceReturnsEmpty() {
+        Long userId = 1L;
+        UserModel user = new UserModel("testuser", "pass", "USER");
+        user.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(user);
+        when(userService.toggleUserActive(userId)).thenReturn(Optional.empty());
+
+        ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
 }

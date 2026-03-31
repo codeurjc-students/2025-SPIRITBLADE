@@ -460,4 +460,22 @@ class DashboardServiceUnitTest {
         // Then - save should not be called
         verify(matchService, never()).save(any(MatchEntity.class));
     }
+
+    @Test
+    void testCalculateLPGainedLast7Days_nullCurrentLP_returnsZero() {
+        // Covers the condition branch: currentLP == null
+        Summoner s = new Summoner();
+        s.setName("nullLpPlayer");
+        s.setLp(null); // LP is null
+
+        MatchEntity m = new MatchEntity();
+        m.setId(10L);
+        when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m));
+        when(rankHistoryService.getLpForMatch(10L)).thenReturn(java.util.Optional.of(50));
+
+        int result = dashboardService.calculateLPGainedLast7Days(s);
+
+        // LP is null so result must be 0
+        assertEquals(0, result);
+    }
 }
