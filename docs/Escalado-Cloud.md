@@ -130,13 +130,24 @@ kubectl top pods -n prod
 
 ## 3. Escalabilidad de Caché (Redis)
 
-**Estrategia**: `Deployment` (In-Memory).
-- **Cambio**: Se migró de `StatefulSet` a `Deployment` para eliminar la dependencia de discos persistentes (Block Volumes).
-- **Almacenamiento**: Uso de RAM (`emptyDir`) en lugar de disco.
-    - **Ahorro**: 50 GB de almacenamiento persistente liberados.
-    - **Coste**: 0€ (Usa la RAM ya asignada a los nodos).
-- **Escalado**: Manual.
-- **Optimización**: Usamos una instancia Redis optimizada como caché LRU (Least Recently Used).
+**Estrategia antigua**: `Deployment` estático (In-Memory) + Vertical Pod Autoscaler (VPA).
+- *Se ha reemplazado esta configuración por un clúster horizontal avanzado.*
+
+### 🚀 Estrategia Actual: Escalado Horizontal de Caché mediante Helm (Implementado)
+
+Para resolver el problema del escalado horizontal de la caché de manera robusta sin salirse de la capa Always Free de OCI, se ha implementado el **Helm Chart oficial de Bitnami para Redis**, configurado estratégicamente para sortear las limitaciones de Oracle Cloud:
+
+1. **Arquitectura Replication**: 
+   Se ha desplegado utilizando la arquitectura `Primary-Replica` de Bitnami configurando 2 Workers (1 Master de escritura / 2 Réplicas de lectura). Esto equilibra de manera eficiente la carga de lecturas masivas del backend frente a sobrecargas de peticiones en un modelo de Autoescalado Horizontal HPA.
+2. **Evasión del cuello de botella de Block Volumes (OCI Limits)**: 
+   Para no reventar el límite máximo de particiones físicas asignadas al *Free Tier* de OCI, se ha inyectado el comando en instalación `persistence.enabled=false`. Gracias a ello, todo el clúster de Redis utiliza de manera natural el almacenamiento volátil temporal RAM (`emptyDir`) del propio nodo en vez de PVCs.
+3. **Compatibilidad Multi-Arquitectura nativa**:
+   Las imágenes de Bitnami Redis soportan nativamente el ecosistema `linux/arm64`, por lo que el despliegue aprovecha la potencia cruda de los procesadores Ampere A1 de la nube.
+
+**Verificación y Conexión de Spring Boot**:
+El backend localiza y enruta tráfico de manera automática a la base de datos distribuida haciendo uso del Driver de Jedis/Lettuce embebido en Spring contra el Service Master interno que crea el gráfico de Helm: `redis-cluster-master:6379`.
+
+El **HPA** vinculado a las réplicas (`redis-cluster-replicas`) aumenta de **2 a 4 Pods** cuando el consumo de CPU sube al 70%. Al dotar a las réplicas de una configuración asimétrica entre `requests` (muy bajo, 20m CPU / 32Mi RAM) y `limits` (alto, 200m CPU / 256Mi RAM) en el archivo de configuración `redis-values.yaml`, el clúster transiciona paulatinamente por el estado intermedio de 3 pods sin saltar bruscamente del mínimo al máximo, suavizando el proceso de escalado frente a ráfagas.
 
 ## 4. Ingress y Gestión de Tráfico
 

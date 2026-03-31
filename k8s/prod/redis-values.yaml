@@ -1,0 +1,30 @@
+# Valores de configuración estratégicos para OCI Free Tier
+# Anula persistent volumes y ajusta recursos para caber en Ampere A1 (ARM64)
+architecture: replication
+
+auth:
+  enabled: false
+
+master:
+  persistence:
+    enabled: false # Vital para sortear el límite max_volumes de Oracle
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "64Mi"
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+
+replica:
+  replicaCount: 2
+  persistence:
+    enabled: false # Sin discos de lectura en la nube
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "64Mi"
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+      memory: "256Mi"
