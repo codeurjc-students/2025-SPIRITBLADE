@@ -93,7 +93,11 @@ public final class MatchMapper {
         }
 
         if (dataDragonService != null && entity.getChampionId() != null) {
-            dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(entity.getChampionId().longValue()));
+            try {
+                dto.setChampionIconUrl(dataDragonService.getChampionIconUrl(entity.getChampionId().longValue()));
+            } catch (Exception e) {
+                dto.setChampionIconUrl(null);
+            }
         }
 
         return dto;
