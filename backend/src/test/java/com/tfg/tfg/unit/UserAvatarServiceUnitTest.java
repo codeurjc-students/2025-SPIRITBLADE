@@ -21,7 +21,7 @@ import com.tfg.tfg.exception.UserNotFoundException;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.UserAvatarService;
-import com.tfg.tfg.service.storage.IStorageService;
+import com.tfg.tfg.service.interfaces.IStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class UserAvatarServiceUnitTest {

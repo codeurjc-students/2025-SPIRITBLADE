@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tfg.tfg.service.storage.IStorageService;
+import com.tfg.tfg.service.interfaces.IStorageService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +38,8 @@ public class FileController {
 
     /**
      * Upload a file (only PNG images allowed)
-     * @param file The file to upload
+     * 
+     * @param file   The file to upload
      * @param folder Optional folder to organize files
      * @return JSON response with file URL
      */
@@ -46,9 +47,8 @@ public class FileController {
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", required = false) String folder) {
-        
+
         try {
-            // Validate file type - only PNG allowed
             String contentType = file.getContentType();
             if (contentType == null || !ALLOWED_CONTENT_TYPE.equalsIgnoreCase(contentType)) {
                 Map<String, String> error = new HashMap<>();
@@ -56,15 +56,15 @@ public class FileController {
                 error.put(ERROR_KEY, "Invalid file type. Only PNG images are allowed");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
             }
-            
+
             String fileIdentifier = storageService.store(file, folder);
             String publicUrl = storageService.getPublicUrl(fileIdentifier);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put(SUCCESS_KEY, "true");
             response.put(FILE_ID_KEY, fileIdentifier);
             response.put("url", publicUrl);
-            
+
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
@@ -76,6 +76,7 @@ public class FileController {
 
     /**
      * Delete a file
+     * 
      * @param fileId The file identifier
      * @return Success response
      */
@@ -83,11 +84,11 @@ public class FileController {
     public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String fileId) {
         try {
             storageService.delete(fileId);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put(SUCCESS_KEY, "true");
             response.put(MESSAGE_KEY, "File deleted successfully");
-            
+
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             Map<String, String> error = new HashMap<>();
@@ -99,6 +100,7 @@ public class FileController {
 
     /**
      * Download/serve a file
+     * 
      * @param fileId The file identifier (path within storage)
      * @return The file as a stream
      */
@@ -106,20 +108,19 @@ public class FileController {
     public ResponseEntity<InputStreamResource> getFile(
             @PathVariable String folder,
             @PathVariable String filename) {
-        
+
         try {
-            // Only PNG images are allowed in MinIO
             String lowerFilename = filename.toLowerCase();
             if (!lowerFilename.endsWith(".png")) {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
             }
-            
+
             String fileId = folder + "/" + filename;
             InputStream inputStream = storageService.retrieve(fileId);
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(ALLOWED_CONTENT_TYPE));
-            
+
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new InputStreamResource(inputStream));
@@ -130,23 +131,23 @@ public class FileController {
 
     /**
      * Download/serve a file from root directory
+     * 
      * @param filename The filename
      * @return The file as a stream
      */
     @GetMapping("/{filename:.+}")
     public ResponseEntity<InputStreamResource> getFileFromRoot(@PathVariable String filename) {
         try {
-            // Only PNG images are allowed in MinIO
             String lowerFilename = filename.toLowerCase();
             if (!lowerFilename.endsWith(".png")) {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
             }
-            
+
             InputStream inputStream = storageService.retrieve(filename);
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(ALLOWED_CONTENT_TYPE));
-            
+
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new InputStreamResource(inputStream));

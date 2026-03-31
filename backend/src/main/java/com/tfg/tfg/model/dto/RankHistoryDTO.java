@@ -21,7 +21,7 @@ public class RankHistoryDTO {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
     
-    private String date; // Keep for backward compatibility
+    private String date;
     @Setter(AccessLevel.NONE)
     private String tier;
     @Setter(AccessLevel.NONE)
@@ -34,7 +34,6 @@ public class RankHistoryDTO {
     private String queueType;
     private Integer lpChange;
     
-    // Calculated fields
     private String formattedRank;
     private Double winRate;
     private Integer totalGames;
@@ -42,7 +41,6 @@ public class RankHistoryDTO {
     public RankHistoryDTO() {
     }
 
-    // Backward compatible constructor
     public RankHistoryDTO(String date, String tier, String rank, Integer leaguePoints, 
                          Integer wins, Integer losses) {
         this.date = date;

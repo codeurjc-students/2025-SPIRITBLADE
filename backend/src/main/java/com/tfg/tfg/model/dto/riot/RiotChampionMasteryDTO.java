@@ -16,7 +16,6 @@ public class RiotChampionMasteryDTO {
     private Boolean chestGranted;
     private Integer tokensEarned;
 
-    // Fields added by our service (not from Riot API)
     private String championName;
     private String championIconUrl;
 
@@ -24,10 +23,8 @@ public class RiotChampionMasteryDTO {
      * Empty constructor for serialization/deserialization
      */
     public RiotChampionMasteryDTO() {
-      // Empty constructor
     }
 
-    // Getters and Setters
     public String getPuuid() {
         return puuid;
     }

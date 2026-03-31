@@ -2,7 +2,7 @@ package com.tfg.tfg.model.mapper;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.dto.SummonerDTO;
-import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 
 /**
  * Mapper helper to convert between Summoner entity and SummonerDTO
@@ -11,7 +11,6 @@ import com.tfg.tfg.service.storage.IDataDragonService;
 public final class SummonerMapper {
 
     private SummonerMapper() {
-        // static helper
     }
 
     public static SummonerDTO toDTO(Summoner summoner, IDataDragonService dataDragonService) {
@@ -46,7 +45,6 @@ public final class SummonerMapper {
         summoner.setLp(dto.getLp());
         summoner.setWins(dto.getWins());
         summoner.setLosses(dto.getLosses());
-        // lastSearchedAt intentionally not set here (managed by service)
         return summoner;
     }
 }

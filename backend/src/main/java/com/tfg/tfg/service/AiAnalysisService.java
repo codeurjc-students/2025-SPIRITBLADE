@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,10 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.tfg.tfg.model.dto.AiAnalysisResponseDto;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
+import com.tfg.tfg.service.interfaces.IAiAnalysisService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 
 /**
  * Service for AI-powered performance analysis using Google Gemini API.
@@ -73,10 +74,8 @@ public class AiAnalysisService implements IAiAnalysisService {
 
         logger.info("Generating AI analysis for summoner: {} with {} matches", summoner.getName(), matches.size());
 
-        // Build statistics summary
         String statsPrompt = buildStatsPrompt(summoner, matches);
 
-        // Call Gemini API
         String analysis = callGeminiApi(statsPrompt);
 
         return new AiAnalysisResponseDto(
@@ -95,8 +94,6 @@ public class AiAnalysisService implements IAiAnalysisService {
         long losses = totalMatches - wins;
         double winRate = (wins * 100.0) / totalMatches;
 
-        // Build detailed match history with ALL available data from each match
-        // Guard against excessively large payloads by truncating to a reasonable max
         final int MAX_MATCH_DETAILS = 50;
         int detailLimit = Math.min(matches.size(), MAX_MATCH_DETAILS);
         StringBuilder matchDetails = new StringBuilder();
@@ -166,7 +163,6 @@ public class AiAnalysisService implements IAiAnalysisService {
 
         long durationMinutes = match.getGameDuration() != null ? match.getGameDuration() / 60 : 0;
 
-        // Get rank info from RankHistory
         String rankInfo = rankHistoryService.getRankForMatch(match.getId())
                 .map(rh -> String.format("%s %s (%d LP)",
                         rh.getTier(), rh.getRank(), rh.getLeaguePoints()))
@@ -236,10 +232,10 @@ public class AiAnalysisService implements IAiAnalysisService {
     private String buildGeminiRequest(String prompt) {
         JsonObject requestBody = new JsonObject();
 
-        com.google.gson.JsonArray contentsArray = new com.google.gson.JsonArray();
+        JsonArray contentsArray = new JsonArray();
         JsonObject contentItem = new JsonObject();
 
-        com.google.gson.JsonArray partsArray = new com.google.gson.JsonArray();
+        JsonArray partsArray = new JsonArray();
         JsonObject partItem = new JsonObject();
         partItem.addProperty("text", prompt);
         partsArray.add(partItem);
@@ -249,7 +245,6 @@ public class AiAnalysisService implements IAiAnalysisService {
 
         requestBody.add("contents", contentsArray);
 
-        // Add generation config
         JsonObject generationConfig = new JsonObject();
         generationConfig.addProperty("temperature", 0.7);
         generationConfig.addProperty("topK", 40);
@@ -257,8 +252,7 @@ public class AiAnalysisService implements IAiAnalysisService {
         generationConfig.addProperty("maxOutputTokens", 2048);
         requestBody.add("generationConfig", generationConfig);
 
-        // Add safety settings
-        com.google.gson.JsonArray safetySettings = new com.google.gson.JsonArray();
+        JsonArray safetySettings = new JsonArray();
         for (String category : new String[] { "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH",
                 "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT" }) {
             JsonObject setting = new JsonObject();
@@ -272,26 +266,21 @@ public class AiAnalysisService implements IAiAnalysisService {
     }
 
     private String parseGeminiResponse(String response) throws IOException {
-        // Parse response
         JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
 
-        // Log the full response for debugging at DEBUG level
         logger.debug("Gemini API response: {}", response);
 
-        // Check for error in response
         if (jsonResponse.has("error")) {
             JsonObject error = jsonResponse.getAsJsonObject("error");
             String errorMessage = error.has("message") ? error.get("message").getAsString() : "Unknown error";
             throw new IOException("Gemini API error: " + errorMessage);
         }
 
-        // Extract the generated text
         if (jsonResponse.has(CANDIDATES) && jsonResponse.getAsJsonArray(CANDIDATES) != null) {
             var candidates = jsonResponse.getAsJsonArray(CANDIDATES);
             if (candidates.size() > 0) {
                 var candidate = candidates.get(0).getAsJsonObject();
 
-                // Check finish reason
                 if (candidate.has("finishReason")) {
                     String finishReason = candidate.get("finishReason").getAsString();
                     if (!"STOP".equals(finishReason) && !"MAX_TOKENS".equals(finishReason)) {
@@ -308,7 +297,6 @@ public class AiAnalysisService implements IAiAnalysisService {
                             return parts.get(0).getAsJsonObject().get("text").getAsString();
                         }
                     }
-                    // Content exists but no parts - likely blocked or empty
                     logger.warn("Gemini returned content without parts. Full response: {}", response);
                     throw new IOException(
                             "Gemini returned empty content. This may be due to safety filters or content restrictions.");

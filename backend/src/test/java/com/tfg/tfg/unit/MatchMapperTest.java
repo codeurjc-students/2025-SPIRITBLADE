@@ -4,8 +4,8 @@ import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.MatchMapper;
-import com.tfg.tfg.service.storage.IDataDragonService;
-import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -6,7 +6,7 @@ import com.tfg.tfg.model.dto.ParticipantDTO;
 import com.tfg.tfg.model.dto.TeamDTO;
 import com.tfg.tfg.model.dto.riot.RiotMatchDTO;
 import com.tfg.tfg.model.mapper.RiotMatchMapper;
-import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

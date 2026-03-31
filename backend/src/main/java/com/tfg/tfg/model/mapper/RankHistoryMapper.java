@@ -9,7 +9,6 @@ import com.tfg.tfg.model.entity.RankHistory;
 public class RankHistoryMapper {
 
     private RankHistoryMapper() {
-        // Private constructor to prevent instantiation
     }
 
     /**

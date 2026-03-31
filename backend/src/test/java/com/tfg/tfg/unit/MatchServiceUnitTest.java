@@ -18,13 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
-import com.tfg.tfg.service.storage.IMatchService;
-import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 import com.tfg.tfg.service.MatchService;
 
 /**
  * Unit tests for MatchService.
- * Tests all repository delegations, filtering logic, and rank snapshot integration.
+ * Tests all repository delegations, filtering logic, and rank snapshot
+ * integration.
  */
 @ExtendWith(MockitoExtension.class)
 class MatchServiceUnitTest {
@@ -81,7 +81,8 @@ class MatchServiceUnitTest {
         when(matchRepository.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, queueId))
                 .thenReturn(matches);
 
-        List<MatchEntity> result = matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, queueId);
+        List<MatchEntity> result = matchService.findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner,
+                queueId);
 
         assertEquals(1, result.size());
         verify(matchRepository).findRankedMatchesBySummonerAndQueueIdOrderByTimestampDesc(testSummoner, queueId);
@@ -101,7 +102,7 @@ class MatchServiceUnitTest {
     @Test
     void testFindRecentMatchesFiltersAndSorts() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
-        
+
         MatchEntity oldMatch = new MatchEntity();
         oldMatch.setId(1L);
         oldMatch.setMatchId("OLD");
@@ -119,7 +120,7 @@ class MatchServiceUnitTest {
 
         List<MatchEntity> allMatches = Arrays.asList(recentMatch2, recentMatch1, oldMatch);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(allMatches);
-        
+
         // Mock RankHistory existence
         when(rankHistoryService.getLpForMatch(2L)).thenReturn(java.util.Optional.of(50));
         when(rankHistoryService.getLpForMatch(3L)).thenReturn(java.util.Optional.of(55));
@@ -134,7 +135,7 @@ class MatchServiceUnitTest {
     @Test
     void testFindRecentMatchesFiltersOutNullTimestamp() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
-        
+
         MatchEntity matchWithNullTimestamp = new MatchEntity();
         matchWithNullTimestamp.setId(10L);
         matchWithNullTimestamp.setMatchId("NULL_TIME");
@@ -158,7 +159,7 @@ class MatchServiceUnitTest {
     @Test
     void testFindRecentMatchesFiltersOutMatchesWithoutRankHistory() {
         LocalDateTime since = LocalDateTime.now().minusDays(5);
-        
+
         MatchEntity matchWithoutRankHistory = new MatchEntity();
         matchWithoutRankHistory.setId(20L);
         matchWithoutRankHistory.setMatchId("NO_RANK_HISTORY");

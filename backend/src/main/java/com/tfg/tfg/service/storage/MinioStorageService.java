@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.tfg.tfg.service.interfaces.IStorageService;
 import com.tfg.tfg.util.PngFileValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,12 +47,11 @@ public class MinioStorageService implements IStorageService {
     @PostConstruct
     public void init() {
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-        
+
         this.s3Client = AmazonS3ClientBuilder
                 .standard()
                 .withEndpointConfiguration(
-                    new AwsClientBuilder.EndpointConfiguration(minioEndpoint, region)
-                )
+                        new AwsClientBuilder.EndpointConfiguration(minioEndpoint, region))
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withPathStyleAccessEnabled(true) // Important for MinIO
                 .build();
@@ -75,14 +75,14 @@ public class MinioStorageService implements IStorageService {
         }
 
         String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null && originalFilename.contains(".") 
-            ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
-            : PngFileValidator.getPngExtension();
-        
+        String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : PngFileValidator.getPngExtension();
+
         String uniqueFileName = UUID.randomUUID().toString() + extension;
-        String key = folder != null && !folder.isEmpty() 
-            ? folder + "/" + uniqueFileName 
-            : uniqueFileName;
+        String key = folder != null && !folder.isEmpty()
+                ? folder + "/" + uniqueFileName
+                : uniqueFileName;
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(PngFileValidator.getAllowedContentType());

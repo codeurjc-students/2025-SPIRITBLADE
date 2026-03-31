@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.tfg.model.entity.Champion;
 import com.tfg.tfg.repository.ChampionRepository;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 
 /**
  * Service to interact with Riot's Data Dragon static data API
@@ -23,7 +22,6 @@ public class DataDragonService implements IDataDragonService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataDragonService.class);
 
-    // Data Dragon version - update periodically or fetch dynamically
     private static final String DATA_DRAGON_VERSION = "15.24.1";
     private static final String DATA_DRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
     private static final String CDN_BASE = DATA_DRAGON_BASE_URL + "/cdn/" + DATA_DRAGON_VERSION;
@@ -54,17 +52,14 @@ public class DataDragonService implements IDataDragonService {
 
             if (championsData != null && championsData.isObject()) {
                 int count = 0;
-                // We can't use forEachRemaining with a non-final variable inside lambda easily,
-                // so we use an iterator loop or just a simple counter wrapper if needed.
-                // Here we just iterate.
                 var fields = championsData.fields();
                 while (fields.hasNext()) {
                     var entry = fields.next();
-                    String championKey = entry.getKey(); // e.g., "Aatrox"
+                    String championKey = entry.getKey();
                     JsonNode championInfo = entry.getValue();
 
-                    String name = championInfo.get("name").asText(); // e.g., "Aatrox"
-                    long id = Long.parseLong(championInfo.get("key").asText()); // e.g., "266" -> 266
+                    String name = championInfo.get("name").asText();
+                    long id = Long.parseLong(championInfo.get("key").asText());
 
                     String imageUrl = CDN_BASE + "/img/champion/" + championKey + ".png";
 

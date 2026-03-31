@@ -20,9 +20,9 @@ import com.tfg.tfg.model.dto.SummonerDTO;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.model.mapper.UserMapper;
-import com.tfg.tfg.service.storage.IRiotService;
-import com.tfg.tfg.service.storage.IUserAvatarService;
-import com.tfg.tfg.service.storage.IUserService;
+import com.tfg.tfg.service.interfaces.IRiotService;
+import com.tfg.tfg.service.interfaces.IUserAvatarService;
+import com.tfg.tfg.service.interfaces.IUserService;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +43,8 @@ public class UserController {
     private final IRiotService riotService;
     private final IUserAvatarService userAvatarService;
 
-    public UserController(IUserService userService, 
-                         IRiotService riotService, IUserAvatarService userAvatarService) {
+    public UserController(IUserService userService,
+            IRiotService riotService, IUserAvatarService userAvatarService) {
         this.userService = userService;
         this.riotService = riotService;
         this.userAvatarService = userAvatarService;
@@ -75,49 +75,45 @@ public class UserController {
         }
 
         String username = auth.getName();
-        
-        // Check if user is active
+
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
-        
+
         return userService.updateUserProfile(username, userDTO)
-            .map(UserMapper::toDTO)
-            .map(dto -> ResponseEntity.ok((Object) dto))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(UserMapper::toDTO)
+                .map(dto -> ResponseEntity.ok((Object) dto))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
-    
+
     @GetMapping("/me")
     public ResponseEntity<Object> getMyProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            // Fallback: return first user if exists (for development)
             return userService.findFirstUser()
-                .map(UserMapper::toDTO)
-                .map(dto -> ResponseEntity.ok((Object) dto))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                    .map(UserMapper::toDTO)
+                    .map(dto -> ResponseEntity.ok((Object) dto))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
         }
 
         String username = auth.getName();
-        
-        // Check if user is active
+
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
-        
+
         return userService.findByName(username)
-            .map(user -> {
-                UserDTO dto = UserMapper.toDTO(user);
-                // Ensure avatarUrl is set (fallback to image field if avatarUrl is null)
-                if (dto.getAvatarUrl() == null && user.getImage() != null && !user.getImage().isEmpty()) {
-                    dto.setAvatarUrl(user.getImage());
-                }
-                return dto;
-            })
-            .map(dto -> ResponseEntity.ok((Object) dto))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(user -> {
+                    UserDTO dto = UserMapper.toDTO(user);
+                    if (dto.getAvatarUrl() == null && user.getImage() != null && !user.getImage().isEmpty()) {
+                        dto.setAvatarUrl(user.getImage());
+                    }
+                    return dto;
+                })
+                .map(dto -> ResponseEntity.ok((Object) dto))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -134,8 +130,7 @@ public class UserController {
         }
 
         String username = auth.getName();
-        
-        // Check if user is active
+
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
@@ -152,33 +147,30 @@ public class UserController {
         }
 
         if (region == null || region.isEmpty()) {
-            region = "EUW"; // Default region
+            region = "EUW";
         }
 
         try {
-            // Fetch summoner from Riot API
             SummonerDTO summoner = riotService.getSummonerByName(summonerName);
-            
+
             if (summoner == null) {
                 Map<String, Object> error = new HashMap<>();
                 error.put(SUCCESS_KEY, false);
                 error.put(MESSAGE_KEY, "Summoner not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
             }
-            
-            // Update user with linked summoner info through service
+
             userService.linkSummoner(username, summoner.getPuuid(), summoner.getName(), region)
-                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
+                    .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
 
             Map<String, Object> response = new HashMap<>();
             response.put(SUCCESS_KEY, true);
             response.put(MESSAGE_KEY, "Account linked successfully");
             response.put("linkedSummoner", Map.of(
-                "name", summoner.getName(),
-                "level", summoner.getLevel(),
-                "profileIcon", summoner.getProfileIconId(),
-                REGION_KEY, region
-            ));
+                    "name", summoner.getName(),
+                    "level", summoner.getLevel(),
+                    "profileIcon", summoner.getProfileIconId(),
+                    REGION_KEY, region));
 
             return ResponseEntity.ok(response);
 
@@ -204,16 +196,15 @@ public class UserController {
         }
 
         String username = auth.getName();
-        
-        // Check if user is active
+
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
-        
+
         try {
             userService.unlinkSummoner(username)
-                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
+                    .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
 
             Map<String, Object> response = new HashMap<>();
             response.put(SUCCESS_KEY, true);
@@ -243,19 +234,18 @@ public class UserController {
         }
 
         String username = auth.getName();
-        
-        // Check if user is active
+
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
-        
+
         try {
             UserModel user = userService.findByName(username)
-                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
-            
+                    .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND_MSG));
+
             Map<String, Object> response = new HashMap<>();
-            
+
             if (user.getLinkedSummonerPuuid() != null) {
                 response.put("linked", true);
                 response.put("summonerName", user.getLinkedSummonerName());
@@ -288,15 +278,13 @@ public class UserController {
 
         String username = auth.getName();
 
-        // Check if user is active
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
 
-        // Exceptions are handled by GlobalExceptionHandler
         String avatarUrl = userAvatarService.uploadAvatar(username, file);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put(SUCCESS_KEY, true);
         response.put(MESSAGE_KEY, "Avatar uploaded successfully");
@@ -319,15 +307,13 @@ public class UserController {
 
         String username = auth.getName();
 
-        // Check if user is active
         ResponseEntity<Object> activeCheck = checkUserActive(username);
         if (activeCheck != null) {
             return activeCheck;
         }
 
-        // Exceptions are handled by GlobalExceptionHandler
         userAvatarService.deleteAvatar(username);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put(SUCCESS_KEY, true);
         response.put(MESSAGE_KEY, "Avatar deleted successfully");

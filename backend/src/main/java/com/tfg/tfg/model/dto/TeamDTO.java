@@ -12,14 +12,12 @@ public class TeamDTO {
     private Boolean win;
     private List<ParticipantDTO> participants;
     
-    // Objectives
     private Integer baronKills;
     private Integer dragonKills;
     private Integer towerKills;
     private Integer inhibitorKills;
     private Integer riftHeraldKills;
     
-    // Bans
     private List<String> bans;
 
 }

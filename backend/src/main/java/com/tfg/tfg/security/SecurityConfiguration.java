@@ -24,8 +24,6 @@ import com.tfg.tfg.security.jwt.CustomAccessDeniedHandler;
 import com.tfg.tfg.service.RepositoryUserDetailsService;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -37,9 +35,9 @@ public class SecurityConfiguration {
 	private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
 	public SecurityConfiguration(JwtRequestFilter jwtRequestFilter,
-								RepositoryUserDetailsService userDetailsService,
-								UnauthorizedHandlerJwt unauthorizedHandlerJwt,
-								CustomAccessDeniedHandler customAccessDeniedHandler) {
+			RepositoryUserDetailsService userDetailsService,
+			UnauthorizedHandlerJwt unauthorizedHandlerJwt,
+			CustomAccessDeniedHandler customAccessDeniedHandler) {
 		this.jwtRequestFilter = jwtRequestFilter;
 		this.userDetailsService = userDetailsService;
 		this.unauthorizedHandlerJwt = unauthorizedHandlerJwt;
@@ -49,7 +47,7 @@ public class SecurityConfiguration {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
-	}  
+	}
 
 	@Bean
 	public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
@@ -81,59 +79,34 @@ public class SecurityConfiguration {
 
 	@Bean
 	public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-		
+
 		http.authenticationProvider(authenticationProvider());
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-	// Use explicit CorsConfigurationSource so Spring Security applies the same CORS rules
-	http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-		
-		http
-			.securityMatcher("/api/v1/**")
-			.exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt).accessDeniedHandler(customAccessDeniedHandler));
-		
-		http
-			.authorizeHttpRequests(authorize -> authorize
-					// Allow preflight requests
-					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					
-					// ========== PUBLIC ENDPOINTS (Home & Summoner pages) ==========
-					// Authentication endpoints (login/register)
-					.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-					// All GET summoner endpoints - public League of Legends data
-					// Used by: Home component (recent searches) & Summoner component (all queries)
-					.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
-					// File serving endpoints - public access to avatars and images
-					.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
-					// Swagger UI and OpenAPI documentation
-					.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-					
-					// ========== PROTECTED ENDPOINTS (Dashboard & Admin) ==========
-					// Dashboard endpoints - require authentication, user can only access their own data
-					// Backend services verify user ownership
-					.requestMatchers("/api/v1/dashboard/**").authenticated()
-					// User management endpoints - require authentication
-					.requestMatchers("/api/v1/users/**").authenticated()
-					// Admin panel - require authentication and ADMIN role
-					// Role-based authorization is handled by @PreAuthorize annotations in controller
-					.requestMatchers("/api/v1/admin/**").authenticated()
-					
-					// Any other request to /api/v1/** requires authentication
-					.anyRequest().authenticated()
-			);
-		
-        // Disable Form login Authentication
-        http.formLogin(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
+		http.securityMatcher("/api/v1/**")
+				.exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt)
+						.accessDeniedHandler(customAccessDeniedHandler));
 
-        // Disable CSRF protection (it is difficult to implement in REST APIs)
-        http.csrf(csrf -> csrf.disable());
+		http.authorizeHttpRequests(authorize -> authorize
+				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
+				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-        // Disable Basic Authentication
-        http.httpBasic(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
+				.requestMatchers("/api/v1/dashboard/**").authenticated()
+				.requestMatchers("/api/v1/users/**").authenticated()
+				.requestMatchers("/api/v1/admin/**").authenticated()
+				.anyRequest().authenticated());
 
-        // Stateless session
-        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.formLogin(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
 
-		// Add JWT Token filter
+		http.csrf(csrf -> csrf.disable());
+
+		http.httpBasic(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable);
+
+		http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
 		http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();

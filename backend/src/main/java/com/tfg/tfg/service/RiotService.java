@@ -1,6 +1,8 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IRiotService;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -50,27 +52,21 @@ public class RiotService implements IRiotService {
     private static final String RIOT_API_BASE_URL = "https://euw1.api.riotgames.com";
     private static final String RIOT_REGIONAL_BASE_URL = "https://europe.api.riotgames.com";
 
-    // Account-v1: Get PUUID by Riot ID (gameName#tagLine)
     private static final String ACCOUNT_BY_RIOT_ID_URL = RIOT_REGIONAL_BASE_URL
             + "/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}?api_key={apiKey}";
 
-    // Summoner-v4: Get summoner data by PUUID
     private static final String SUMMONER_BY_PUUID_URL = RIOT_API_BASE_URL
             + "/lol/summoner/v4/summoners/by-puuid/{encryptedPUUID}?api_key={apiKey}";
 
-    // League-v4: Get league entries by PUUID
     private static final String LEAGUE_BY_PUUID_URL = RIOT_API_BASE_URL
             + "/lol/league/v4/entries/by-puuid/{encryptedPUUID}?api_key={apiKey}";
 
-    // Champion-Mastery-v4: Get top champion masteries by PUUID
     private static final String CHAMPION_MASTERY_BY_PUUID_URL = RIOT_API_BASE_URL
             + "/lol/champion-mastery/v4/champion-masteries/by-puuid/{encryptedPUUID}/top?count={count}&api_key={apiKey}";
 
-    // Match-v5: Get match IDs by PUUID (uses regional endpoint)
     private static final String MATCH_IDS_BY_PUUID_URL = RIOT_REGIONAL_BASE_URL
             + "/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}&api_key={apiKey}";
 
-    // Match-v5: Get match details by match ID (uses regional endpoint)
     private static final String MATCH_BY_ID_URL = RIOT_REGIONAL_BASE_URL
             + "/lol/match/v5/matches/{matchId}?api_key={apiKey}";
 
@@ -107,34 +103,26 @@ public class RiotService implements IRiotService {
     @Cacheable(value = "summoners", key = "#riotId")
     public SummonerDTO getSummonerByName(String riotId) {
         try {
-            // Parse Riot ID (gameName#tagLine)
             String[] parts = parseRiotId(riotId);
             String gameName = parts[0];
             String tagLine = parts[1];
 
-            // Step 1: Get PUUID from Account API
             String puuid = fetchPuuidByRiotId(riotId, gameName, tagLine);
 
-            // Step 2: Get summoner data by PUUID
             RiotSummonerDTO riotSummoner = fetchSummonerByPuuid(riotId, puuid);
 
-            // Step 3: Get rank information by PUUID
             RiotLeagueEntryDTO rankedEntry = fetchRankedEntry(puuid);
 
-            // Map to SummonerDTO
             SummonerDTO dto = mapToSummonerDTO(riotSummoner, puuid, riotId, rankedEntry);
 
-            // Save to database for caching
             saveSummonerToDatabase(dto);
 
             return dto;
 
         } catch (HttpClientErrorException.NotFound e) {
-            // Summoner not found in Riot API
             logger.warn("Summoner not found in Riot API: {}", riotId);
             throw new SummonerNotFoundException("Summoner '" + riotId + "' not found in Riot API");
         } catch (SummonerNotFoundException e) {
-            // Try database fallback before giving up
             Optional<Summoner> found = summonerRepository.findByName(riotId);
             if (found.isPresent()) {
                 logger.info("Returning cached data for summoner (fallback): {}", riotId);
@@ -142,8 +130,6 @@ public class RiotService implements IRiotService {
             }
             throw e;
         } catch (HttpClientErrorException e) { // NOSONAR - Exception is logged and rethrown with context
-            // Handled: Log with context, try database fallback, then rethrow with specific
-            // context
             logger.error("Riot API error for summoner {}: {} (Status: {})", riotId, e.getMessage(),
                     e.getStatusCode().value(), e);
             Optional<Summoner> found = summonerRepository.findByName(riotId);
@@ -155,8 +141,6 @@ public class RiotService implements IRiotService {
                     "Riot API is currently unavailable for summoner '" + riotId + "'. Status: " + e.getStatusCode(),
                     e.getStatusCode().value());
         } catch (Exception e) { // NOSONAR - Exception is logged and rethrown with context
-            // Handled: Log unexpected error, try database fallback, then rethrow with
-            // context
             logger.error("Unexpected error fetching summoner {}: {}", riotId, e.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             Optional<Summoner> found = summonerRepository.findByName(riotId);
@@ -234,7 +218,7 @@ public class RiotService implements IRiotService {
         SummonerDTO dto = new SummonerDTO();
         dto.setRiotId(riotSummoner.getId());
         dto.setPuuid(puuid);
-        dto.setName(riotId); // Store full Riot ID (gameName#tagLine)
+        dto.setName(riotId);
         dto.setLevel(riotSummoner.getSummonerLevel());
         dto.setProfileIconId(riotSummoner.getProfileIconId());
         dto.setProfileIconUrl(dataDragonService.getProfileIconUrl(riotSummoner.getProfileIconId()));
@@ -266,7 +250,6 @@ public class RiotService implements IRiotService {
                 return;
             }
 
-            // Search by PUUID (unique identifier) instead of name
             Optional<Summoner> existing = summonerRepository.findByPuuid(dto.getPuuid());
             Summoner summoner;
 
@@ -274,12 +257,10 @@ public class RiotService implements IRiotService {
                 summoner = existing.get();
                 logger.debug("Updating existing summoner with PUUID: {}", dto.getPuuid());
             } else {
-                // Use mapper to create entity from DTO (keeps mapping centralised)
                 summoner = SummonerMapper.toEntity(dto);
                 logger.debug("Creating new summoner with PUUID: {}", dto.getPuuid());
             }
 
-            // Update fields from DTO on existing entity (only fields we care to persist)
             summoner.setRiotId(dto.getRiotId());
             summoner.setPuuid(dto.getPuuid());
             summoner.setName(dto.getName());
@@ -294,12 +275,9 @@ public class RiotService implements IRiotService {
 
             summonerRepository.save(summoner);
         } catch (DataAccessException dae) {
-            // Database-related exception: log at warn and return
             logger.warn("Failed to cache summoner data (DB error): {}", dae.getMessage());
             logger.debug(STACKTRACE_LOG_MESSAGE, dae);
         } catch (Exception e) {
-            // Generic fallback: log and swallow - caching failure should not affect main
-            // operation
             logger.warn("Failed to cache summoner data for {}: {}", dto.getName(), e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
@@ -336,7 +314,6 @@ public class RiotService implements IRiotService {
                 return Collections.emptyList();
             }
 
-            // Enrich with champion names and icon URLs from Data Dragon
             return Arrays.stream(masteries)
                     .map(mastery -> {
                         mastery.setChampionName(
@@ -351,7 +328,6 @@ public class RiotService implements IRiotService {
             logger.warn("Riot API error fetching champion masteries for PUUID {}: {}", puuid, hce.getMessage());
             return Collections.emptyList();
         } catch (Exception e) {
-            // Fully handled: log error and return empty list as fallback
             logger.error("Error fetching champion masteries for PUUID {}: {}", puuid, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
             return Collections.emptyList();
@@ -382,15 +358,12 @@ public class RiotService implements IRiotService {
                 if (matchDTO != null) {
                     matches.add(matchDTO);
 
-                    // Save match to database for future cache hits
                     saveMatchToDatabase(match, puuid);
                 }
             }
         } catch (HttpClientErrorException hce) {
             logger.warn("Riot API error fetching match {}: {}", matchId, hce.getMessage());
         } catch (Exception e) {
-            // Fully handled: log and continue - single match failure shouldn't stop
-            // processing
             logger.warn("Error fetching match {}: {}", matchId, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
@@ -405,7 +378,6 @@ public class RiotService implements IRiotService {
      */
     private void saveMatchToDatabase(RiotMatchDTO riotMatch, String puuid) {
         try {
-            // Find the summoner
             Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
             if (summonerOpt.isEmpty()) {
                 logger.debug("Summoner not found for PUUID {}, skipping match cache", puuid);
@@ -418,20 +390,17 @@ public class RiotService implements IRiotService {
                 return;
             }
 
-            // Check if match already exists
             if (matchRepository.findByMatchId(matchId).isPresent()) {
                 logger.debug("Match {} already in cache, skipping", matchId);
                 return;
             }
 
-            // Find participant data for this player
             RiotMatchDTO.ParticipantDTO participant = findParticipantByPuuid(riotMatch, puuid);
             if (participant == null) {
                 logger.warn("Participant not found for PUUID {} in match {}", puuid, matchId);
                 return;
             }
 
-            // Create and populate MatchEntity
             MatchEntity matchEntity = new MatchEntity();
             matchEntity.setMatchId(matchId);
             matchEntity.setSummoner(summonerOpt.get());
@@ -444,11 +413,11 @@ public class RiotService implements IRiotService {
             matchEntity.setAssists(participant.getAssists() != null ? participant.getAssists() : 0);
             matchEntity.setChampionName(participant.getChampionName());
             matchEntity.setChampionId(participant.getChampionId());
-            matchEntity.setRole(participant.getTeamPosition()); // teamPosition is the role
-            matchEntity.setLane(participant.getTeamPosition()); // Using teamPosition as lane
+            matchEntity.setRole(participant.getTeamPosition());
+            matchEntity.setLane(participant.getTeamPosition());
             matchEntity.setGameDuration(riotMatch.getInfo().getGameDuration());
             matchEntity.setGameMode(riotMatch.getInfo().getGameMode());
-            matchEntity.setQueueId(riotMatch.getInfo().getQueueId()); // Save queueId for filtering
+            matchEntity.setQueueId(riotMatch.getInfo().getQueueId());
             matchEntity.setTotalDamageDealt(participant.getTotalDamageDealtToChampions());
             matchEntity.setGoldEarned(participant.getGoldEarned());
             matchEntity.setChampLevel(participant.getChampLevel());
@@ -458,8 +427,6 @@ public class RiotService implements IRiotService {
             logger.debug("Saved match {} to database cache", matchId);
 
         } catch (Exception e) {
-            // Fully handled: log and swallow - match caching failure shouldn't stop
-            // processing
             logger.warn("Failed to save match to database for PUUID {}: {}", puuid, e.getMessage(), e);
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
@@ -502,12 +469,9 @@ public class RiotService implements IRiotService {
         try {
             logger.info("Fetching match history for PUUID: {}, start: {}, count: {}", puuid, start, count);
 
-            // STEP 1: Verify cache freshness - check if there are new matches
             if (!isCacheFresh(puuid)) {
                 logger.info("Cache is outdated, need to fetch new matches from API");
-                // Cache is outdated, proceed to fetch from API
             } else {
-                // STEP 2: Cache is fresh, try to use it
                 List<MatchHistoryDTO> cachedMatches = getCachedMatches(puuid, start, count);
                 if (cachedMatches.size() >= count) {
                     logger.info("Returning {} matches from fresh cache (no API call needed)", count);
@@ -515,15 +479,12 @@ public class RiotService implements IRiotService {
                 }
             }
 
-            // STEP 3: Get match IDs from Riot API (cache outdated or insufficient)
             String[] matchIds = fetchMatchIdsFromAPI(puuid, start, count);
             if (matchIds == null || matchIds.length == 0) {
-                // Fallback to cached matches if API returns nothing
                 List<MatchHistoryDTO> cachedMatches = getCachedMatches(puuid, start, count);
                 return cachedMatches.isEmpty() ? Collections.emptyList() : cachedMatches;
             }
 
-            // STEP 4: Get match details (from cache or API)
             return fetchMatchDetails(matchIds, puuid);
 
         } catch (HttpClientErrorException hce) {
@@ -546,7 +507,6 @@ public class RiotService implements IRiotService {
      */
     private boolean isCacheFresh(String puuid) {
         try {
-            // Get the summoner by PUUID from database
             Optional<Summoner> summonerOpt = summonerRepository.findByPuuid(puuid);
             if (summonerOpt.isEmpty()) {
                 logger.debug("No summoner found in DB for PUUID {}, cache not fresh", puuid);
@@ -566,7 +526,6 @@ public class RiotService implements IRiotService {
             String mostRecentCachedMatchId = recentMatches.get(0).getMatchId();
             logger.debug("Most recent cached match ID: {}", mostRecentCachedMatchId);
 
-            // Get only the most recent match ID from Riot API (lightweight call)
             ResponseEntity<String[]> matchIdsResponse = restTemplate.exchange(
                     MATCH_IDS_BY_PUUID_URL,
                     HttpMethod.GET,
@@ -580,20 +539,18 @@ public class RiotService implements IRiotService {
             String[] apiMatchIds = matchIdsResponse.getBody();
             if (apiMatchIds == null || apiMatchIds.length == 0) {
                 logger.debug("No matches returned from API, using cache");
-                return true; // API has no matches, cache is valid
+                return true;
             }
 
             String mostRecentApiMatchId = apiMatchIds[0];
             logger.debug("Most recent API match ID: {}", mostRecentApiMatchId);
 
-            // Compare: if IDs match, cache is fresh
             boolean isFresh = mostRecentCachedMatchId.equals(mostRecentApiMatchId);
-            logger.info("Cache freshness check: {}", isFresh ? "FRESH ✅" : "OUTDATED ⚠️");
+            logger.info("Cache freshness check: {}", isFresh ? "FRESH" : "OUTDATED");
             return isFresh;
 
         } catch (Exception e) {
             logger.warn("Error checking cache freshness for PUUID {}: {}", puuid, e.getMessage());
-            // On error, assume cache might be outdated (safe approach)
             return false;
         }
     }
@@ -624,7 +581,6 @@ public class RiotService implements IRiotService {
             cachedMatches.add(MatchMapper.toDTO(match, dataDragonService, rankHistoryService));
         }
 
-        // Return only the requested page
         if (cachedMatches.size() > start) {
             return cachedMatches.subList(start, Math.min(start + count, cachedMatches.size()));
         }
@@ -667,37 +623,31 @@ public class RiotService implements IRiotService {
             return false;
         }
 
-        // Add returned IDs, avoiding duplicates
         for (String id : ids) {
             if (id != null && !accumulated.contains(id)) {
                 accumulated.add(id);
             }
         }
 
-        // If Riot returned fewer than requested, assume no more results
         if (ids.length < toFetch) {
             logger.debug("Riot returned fewer IDs ({}) than requested ({}) in this batch, stopping.", ids.length,
                     toFetch);
             return false;
         }
 
-        return true; // More batches might be available
+        return true;
     }
 
     private String[] fetchMatchIdsFromAPI(String puuid, int start, int count) {
         logger.info("Cache insufficient, calling Riot API for match IDs: start={}, count={}", start, count);
 
-        // Riot may limit the number of IDs returned in a single call (or ignore large
-        // `count` values).
-        // To be robust, page through results in batches until we have `count` IDs or
-        // Riot returns no more.
-        final int MAX_BATCH = 50; // safe per-call batch size (Riot commonly allows up to 100)
+        final int MAX_BATCH = 50;
         List<String> accumulated = new ArrayList<>();
 
         try {
             while (accumulated.size() < count) {
                 if (!fetchMatchIdBatch(puuid, start, count, MAX_BATCH, accumulated)) {
-                    break; // No more results available
+                    break;
                 }
             }
         } catch (HttpClientErrorException hce) {
@@ -707,7 +657,6 @@ public class RiotService implements IRiotService {
             logger.debug(STACKTRACE_LOG_MESSAGE, e);
         }
 
-        // Return an empty array when no IDs could be fetched to keep return type stable
         return accumulated.isEmpty() ? new String[0] : accumulated.toArray(new String[0]);
     }
 

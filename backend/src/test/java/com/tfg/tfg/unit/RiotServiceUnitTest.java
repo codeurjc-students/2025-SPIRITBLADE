@@ -29,8 +29,8 @@ import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
-import com.tfg.tfg.service.storage.IDataDragonService;
-import com.tfg.tfg.service.storage.IRankHistoryService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 import com.tfg.tfg.service.RiotService;
 
 @ExtendWith(MockitoExtension.class)

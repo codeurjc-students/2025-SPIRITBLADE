@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-    "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
+        "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class HomeNavigationE2ETest {
 
@@ -58,7 +58,7 @@ class HomeNavigationE2ETest {
         options.addArguments("--disable-web-security");
         options.addArguments("--allow-running-insecure-content");
         options.addArguments("--ignore-certificate-errors");
-        
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         baseUrl = "https://localhost:" + port;
@@ -73,98 +73,57 @@ class HomeNavigationE2ETest {
     }
 
     @Test
-    void testHomePageLoads() {
+    void testHomePageLayoutAndResponsiveness() {
+        // Base viewport load
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
         driver.get(baseUrl);
-        
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        WebElement body = driver.findElement(By.tagName("body"));
-        assertNotNull(body);
-        
-        String pageTitle = driver.getTitle();
-        assertNotNull(pageTitle);
-        
-        log.info("Ã¢Å“â€œ Home page loads successfully");
-        log.info("  Page title: {}", pageTitle);
-        log.info("  URL: {}", driver.getCurrentUrl());
-    }
 
-    @Test
-    void testNavigationHeaderExists() {
-        driver.get(baseUrl);
-        
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+        assertNotNull(driver.findElement(By.tagName("body")));
+        assertNotNull(driver.getTitle());
+
         try {
             List<WebElement> headerElements = driver.findElements(By.tagName("header"));
             List<WebElement> navElements = driver.findElements(By.tagName("nav"));
-            
-            log.info("Ã¢Å“â€œ Navigation structure verified");
-            log.info("  Header elements found: {}", headerElements.size());
-            log.info("  Nav elements found: {}", navElements.size());
-            
-            assertTrue(true, "Navigation elements verified");
-            
-        } catch (Exception e) {
-            log.info("Note: Navigation structure may be dynamically loaded");
-            assertTrue(true, "Test completed with dynamic loading behavior");
-        }
-    }
-
-    @Test
-    void testFooterExists() {
-        driver.get(baseUrl);
-        
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        try {
             List<WebElement> footerElements = driver.findElements(By.tagName("footer"));
-            
-            log.info("Ã¢Å“â€œ Footer structure verified");
-            log.info("  Footer elements found: {}", footerElements.size());
-            
-            assertTrue(true, "Footer elements verified");
-            
-        } catch (Exception e) {
-            log.info("Note: Footer may be dynamically loaded");
-            assertTrue(true, "Test completed");
-        }
-    }
+            List<WebElement> summonerElements = driver
+                    .findElements(By.xpath("//*[contains(text(), 'Summoner') or contains(text(), 'summoner')]"));
 
-    @Test
-    void testPageResponsiveness() {
-        // Test different viewport sizes
+            log.info("✓ Structure verified: {} headers, {} navs, {} footers",
+                    headerElements.size(), navElements.size(), footerElements.size());
+            if (!summonerElements.isEmpty()) {
+                log.info("✓ Summoner-related content found");
+            }
+        } catch (Exception e) {
+            log.info("Note: Some structure elements may be dynamically loaded");
+        }
+
+        // Test different viewport sizes in same session to check responsiveness
         int[][] viewportSizes = {
-            {1920, 1080}, // Desktop
-            {768, 1024},  // Tablet
-            {375, 667}    // Mobile
+                { 768, 1024 }, // Tablet
+                { 375, 667 } // Mobile
         };
-        
+
         for (int[] size : viewportSizes) {
             driver.manage().window().setSize(new org.openqa.selenium.Dimension(size[0], size[1]));
-            driver.get(baseUrl);
-            
             wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-            
-            WebElement body = driver.findElement(By.tagName("body"));
-            assertNotNull(body);
-            
-            log.info("Ã¢Å“â€œ Page loads at {}x{}", size[0], size[1]);
+            assertNotNull(driver.findElement(By.tagName("body")));
+            log.info("✓ Page maintains structure at {}x{}", size[0], size[1]);
         }
-        
-        log.info("Ã¢Å“â€œ Responsive design verified");
+
+        log.info("✓ Responsive design and layout verified");
     }
 
     @Test
     void testErrorPageHandling() {
         // Test error page navigation
         driver.get(baseUrl + ERROR_PATH);
-        
+
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
-        
+
         log.info("Ã¢Å“â€œ Error page is accessible");
         log.info("  URL: {}", driver.getCurrentUrl());
     }
@@ -174,22 +133,21 @@ class HomeNavigationE2ETest {
         // Access the Angular app root first
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         // Test that invalid routes redirect to home
         driver.get(baseUrl + "/nonexistent-page-12345");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String currentUrl = driver.getCurrentUrl();
-        
+
         // Angular wildcard route should handle this
         assertTrue(
-            currentUrl.equals(baseUrl + "/") || 
-            currentUrl.contains(ERROR_PATH) ||
-            currentUrl.endsWith("/") ||
-            currentUrl.contains("/nonexistent-page-12345"),
-            "Invalid routes should be handled by Angular routing"
-        );
-        
+                currentUrl.equals(baseUrl + "/") ||
+                        currentUrl.contains(ERROR_PATH) ||
+                        currentUrl.endsWith("/") ||
+                        currentUrl.contains("/nonexistent-page-12345"),
+                "Invalid routes should be handled by Angular routing");
+
         log.info("Ã¢Å“â€œ Invalid route handling verified");
         log.info("  Redirected to: {}", currentUrl);
     }
@@ -197,16 +155,16 @@ class HomeNavigationE2ETest {
     @Test
     void testMultiplePageTransitions() {
         // Test navigation between multiple pages
-        String[] pages = {"/", "/login", "/", ERROR_PATH, "/"};
-        
+        String[] pages = { "/", "/login", "/", ERROR_PATH, "/" };
+
         for (String page : pages) {
             driver.get(baseUrl + page);
             wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-            
+
             WebElement body = driver.findElement(By.tagName("body"));
             assertNotNull(body);
         }
-        
+
         log.info("Ã¢Å“â€œ Multiple page transitions verified");
         log.info("  Successfully navigated through {} pages", pages.length);
     }

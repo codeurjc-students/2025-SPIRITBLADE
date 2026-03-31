@@ -1,7 +1,5 @@
 package com.tfg.tfg.service;
 
-import com.tfg.tfg.service.storage.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +15,7 @@ import com.tfg.tfg.model.entity.RankHistory;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.RankHistoryMapper;
 import com.tfg.tfg.repository.RankHistoryRepository;
+import com.tfg.tfg.service.interfaces.IRankHistoryService;
 
 /**
  * Service for managing rank history operations.
@@ -38,29 +37,28 @@ public class RankHistoryService implements IRankHistoryService {
      * Records a rank snapshot after a match.
      * Automatically calculates LP change from previous entry.
      * 
-     * @param summoner The summoner
-     * @param match The match that triggered this snapshot
-     * @param tier The tier at the time of the match
-     * @param rank The rank at the time of the match
+     * @param summoner     The summoner
+     * @param match        The match that triggered this snapshot
+     * @param tier         The tier at the time of the match
+     * @param rank         The rank at the time of the match
      * @param leaguePoints The LP at the time of the match
      * @return The created RankHistory entry
      */
     @Transactional
-    public RankHistory recordRankSnapshot(Summoner summoner, MatchEntity match, 
-                                          String tier, String rank, Integer leaguePoints) {
+    public RankHistory recordRankSnapshot(Summoner summoner, MatchEntity match,
+            String tier, String rank, Integer leaguePoints) {
         if (summoner == null || match == null) {
             logger.warn("Cannot record rank snapshot: summoner or match is null");
             return null;
         }
 
-        // Skip if no rank data provided
         if (tier == null) {
             logger.debug("Skipping rank snapshot: no rank data provided for match {}", match.getMatchId());
             return null;
         }
 
         String queueType = determineQueueType(match.getQueueId());
-        
+
         RankHistory rankHistory = new RankHistory();
         rankHistory.setSummoner(summoner);
         rankHistory.setTriggeringMatch(match);
@@ -70,18 +68,17 @@ public class RankHistoryService implements IRankHistoryService {
         rankHistory.setLeaguePoints(leaguePoints);
         rankHistory.setQueueType(queueType);
 
-        // Calculate LP change from previous entry
         Optional<RankHistory> previousEntry = rankHistoryRepository
                 .findFirstBySummonerAndQueueTypeOrderByTimestampDesc(summoner, queueType);
 
         if (previousEntry.isPresent()) {
             Integer previousLp = previousEntry.get().getLeaguePoints();
-            
+
             if (previousLp != null && leaguePoints != null) {
                 int lpChange = leaguePoints - previousLp;
                 rankHistory.setLpChange(lpChange);
-                logger.debug("Rank snapshot: {} LP change for {} ({} -> {})", 
-                        lpChange > 0 ? "+" + lpChange : lpChange, 
+                logger.debug("Rank snapshot: {} LP change for {} ({} -> {})",
+                        lpChange > 0 ? "+" + lpChange : lpChange,
                         summoner.getName(), previousLp, leaguePoints);
             }
         } else {
@@ -89,9 +86,9 @@ public class RankHistoryService implements IRankHistoryService {
         }
 
         RankHistory saved = rankHistoryRepository.save(rankHistory);
-        logger.info("Recorded rank snapshot for {}: {} {} ({} LP)", 
+        logger.info("Recorded rank snapshot for {}: {} {} ({} LP)",
                 summoner.getName(), saved.getTier(), saved.getRank(), saved.getLeaguePoints());
-        
+
         return saved;
     }
 
@@ -120,13 +117,13 @@ public class RankHistoryService implements IRankHistoryService {
      * Gets rank progression data (ordered chronologically for charts).
      * 
      * @param summonerId The summoner ID
-     * @param queueType The queue type
+     * @param queueType  The queue type
      * @return List of rank history entries in chronological order
      */
     public List<RankHistoryDTO> getRankProgression(Long summonerId, String queueType) {
         List<RankHistory> history = rankHistoryRepository
                 .findRankProgressionBySummonerAndQueue(summonerId, queueType);
-        
+
         return history.stream()
                 .map(RankHistoryMapper::toDTO)
                 .toList();
@@ -135,7 +132,7 @@ public class RankHistoryService implements IRankHistoryService {
     /**
      * Gets the peak rank (highest LP) ever reached by a summoner.
      * 
-     * @param summoner The summoner
+     * @param summoner  The summoner
      * @param queueType The queue type
      * @return Optional containing the peak rank history DTO
      */
@@ -153,9 +150,9 @@ public class RankHistoryService implements IRankHistoryService {
      */
     private String determineQueueType(Integer queueId) {
         if (queueId == null) {
-            return RANKED_SOLO_QUEUE; // Default
+            return RANKED_SOLO_QUEUE;
         }
-        
+
         return switch (queueId) {
             case 420 -> RANKED_SOLO_QUEUE;
             case 440 -> "RANKED_FLEX_SR";

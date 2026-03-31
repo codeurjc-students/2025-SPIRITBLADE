@@ -17,8 +17,8 @@ import com.tfg.tfg.repository.MatchRepository;
 import com.tfg.tfg.repository.SummonerRepository;
 import com.tfg.tfg.repository.UserModelRepository;
 import com.tfg.tfg.service.DataInitializer;
-import com.tfg.tfg.service.storage.IDataDragonService;
-import com.tfg.tfg.service.storage.IStorageService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IStorageService;
 
 @ExtendWith(MockitoExtension.class)
 class DataInitializerUnitTest {

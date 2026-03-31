@@ -83,25 +83,20 @@ class AdminControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void testListUsersWithRoleFilter() throws Exception {
+    void testListUsersWithVariousFilters() throws Exception {
+        // Test role filter
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("role", "USER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", notNullValue()));
-    }
 
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void testListUsersWithActiveFilter() throws Exception {
+        // Test active filter
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("active", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", notNullValue()));
-    }
 
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void testListUsersWithSearchFilter() throws Exception {
+        // Test search filter
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("search", "test"))
                 .andExpect(status().isOk())

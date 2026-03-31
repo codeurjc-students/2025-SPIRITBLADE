@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tfg.tfg.model.dto.UserDTO;
 import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.model.mapper.UserMapper;
-import com.tfg.tfg.service.storage.IUserService;
+import com.tfg.tfg.service.interfaces.IUserService;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -48,7 +48,6 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
         Page<UserModel> usersPage;
         
-        // Apply filters using service layer
         if (search != null && !search.trim().isEmpty()) {
             usersPage = userService.findBySearch(search, pageable);
         } else if (role != null && active != null) {
@@ -68,7 +67,6 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/users")
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        // Exceptions are handled by GlobalExceptionHandler
         UserModel createdUser = userService.createUser(userDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toDTO(createdUser));
     }
@@ -78,14 +76,12 @@ public class AdminController {
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         UserModel user = userService.getUserById(id);
         
-        // Prevent actions on admin users
         if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(403).build(); // Forbidden
+            return ResponseEntity.status(403).build();
         }
         
-        // Prevent username from being changed by admin
         if (userDTO.getName() != null && !userDTO.getName().equals(user.getName())) {
-            return ResponseEntity.status(400).build(); // Username cannot be changed
+            return ResponseEntity.status(400).build();
         }
         
         UserModel updatedUser = userService.updateUserOrThrow(id, userDTO);
@@ -97,9 +93,8 @@ public class AdminController {
     public ResponseEntity<UserDTO> toggleUserActive(@PathVariable Long id) {
         UserModel user = userService.getUserById(id);
         
-        // Prevent actions on admin users
         if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(403).build(); // Forbidden
+            return ResponseEntity.status(403).build();
         }
         
         Optional<UserModel> updatedUserOpt = userService.toggleUserActive(id);
@@ -115,9 +110,8 @@ public class AdminController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         UserModel user = userService.getUserById(id);
         
-        // Prevent deletion of admin users
         if (user.getRols() != null && user.getRols().contains(ROLE_ADMIN)) {
-            return ResponseEntity.status(403).build(); // Forbidden
+            return ResponseEntity.status(403).build();
         }
         
         userService.deleteUserOrThrow(id);

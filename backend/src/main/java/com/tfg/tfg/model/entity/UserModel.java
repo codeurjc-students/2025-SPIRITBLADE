@@ -42,18 +42,14 @@ public class UserModel{
 	@ElementCollection(fetch = FetchType.EAGER)
 	private List<String> rols;
 
-    // Linked League of Legends account
     private String linkedSummonerPuuid;
     private String linkedSummonerName;
     private String linkedSummonerRegion;
 
-    // Avatar URL (from file storage service)
     private String avatarUrl;
 
-    // AI Analysis cooldown tracking
     private java.time.LocalDateTime lastAiAnalysisRequest;
 
-    // Favorite summoners for quick access
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "user_favorite_summoners",

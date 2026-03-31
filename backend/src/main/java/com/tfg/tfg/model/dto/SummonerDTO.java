@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.mapper.SummonerMapper;
-import com.tfg.tfg.service.storage.IDataDragonService;
+import com.tfg.tfg.service.interfaces.IDataDragonService;
 
 import java.time.LocalDateTime;
 
@@ -20,7 +20,7 @@ public class SummonerDTO {
     private String name;
     private Integer level;
     private Integer profileIconId;
-    private String profileIconUrl; // URL to profile icon image from Data Dragon
+    private String profileIconUrl;
     private String tier;
     private String rank;
     private Integer lp;

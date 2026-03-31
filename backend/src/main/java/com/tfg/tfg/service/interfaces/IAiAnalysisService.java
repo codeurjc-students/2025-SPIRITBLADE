@@ -1,4 +1,4 @@
-package com.tfg.tfg.service.storage;
+package com.tfg.tfg.service.interfaces;
 
 import java.io.IOException;
 import java.util.List;

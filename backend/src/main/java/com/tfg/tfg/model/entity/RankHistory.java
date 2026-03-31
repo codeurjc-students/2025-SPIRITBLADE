@@ -42,27 +42,23 @@ public class RankHistory {
 
     private LocalDateTime timestamp;
 
-    // Rank information
-    private String tier;           // IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER, CHALLENGER
+    private String tier;
     
     @Column(name = "division_rank")
-    private String rank;           // I, II, III, IV (null for MASTER+)
+    private String rank;
     
-    private Integer leaguePoints;  // 0-100 (or higher for MASTER+)
+    private Integer leaguePoints;
 
-    // Stats at that moment
     private Integer wins;
     private Integer losses;
 
-    private String queueType;      // RANKED_SOLO_5x5, RANKED_FLEX_SR
+    private String queueType;
 
-    // Relation to match that triggered this snapshot (1:1 relationship)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "match_id")
     private MatchEntity triggeringMatch;
 
-    // LP change from previous entry (calculated)
-    private Integer lpChange;      // +18, -15, etc. (null for first entry)
+    private Integer lpChange;
 
     /**
      * Calculates total games played at this snapshot.
@@ -85,7 +81,7 @@ public class RankHistory {
      */
     public String getFormattedRank() {
         if (tier == null) return "Unranked";
-        if (rank == null || rank.isEmpty()) return tier; // For MASTER, GRANDMASTER, CHALLENGER
+        if (rank == null || rank.isEmpty()) return tier;
         return tier + " " + rank;
     }
 

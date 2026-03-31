@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-    "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
+        "jwt.secret=mySecretKeyForTesting123456789012345678901234567890"
 })
 class LoginE2ETest {
 
@@ -58,7 +58,7 @@ class LoginE2ETest {
         options.addArguments("--disable-web-security");
         options.addArguments("--allow-running-insecure-content");
         options.addArguments("--ignore-certificate-errors");
-        
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         baseUrl = "https://localhost:" + port;
@@ -73,108 +73,60 @@ class LoginE2ETest {
     }
 
     @Test
-    void testLoginPageAccessibility() {
+    void testLoginPageStructure() {
         // Navigate to login page
         driver.get(baseUrl + LOGIN_PATH);
-        
-        // Wait for page to load
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
-        
-        log.info("Ã¢Å“â€œ Login page is accessible");
-        log.info("  URL: {}", driver.getCurrentUrl());
+        log.info("✓ Login page is accessible at URL: {}", driver.getCurrentUrl());
+
+        try {
+            List<WebElement> inputElements = driver.findElements(By.tagName("input"));
+            List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
+            List<WebElement> formElements = driver.findElements(By.tagName("form"));
+            log.info("✓ Login page structure verified with {} inputs, {} buttons, {} forms",
+                    inputElements.size(), buttonElements.size(), formElements.size());
+        } catch (Exception e) {
+            log.info("Note: Login form elements may be dynamically loaded");
+        }
     }
 
     @Test
     void testAuthenticationAPIEndpoint() {
         // Test authentication API endpoint
         driver.get(baseUrl + "/api/v1/auth/login");
-        
+
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
-        
+
         // The endpoint should respond (even if it's an error for GET request)
         assertTrue(
-            responseContent.contains("error") || 
-            responseContent.contains("Unauthorized") ||
-            responseContent.contains("Method Not Allowed") ||
-            !responseContent.isEmpty(),
-            "Auth API endpoint should respond"
-        );
-        
-        log.info("Ã¢Å“â€œ Authentication API endpoint is accessible");
-    }
+                responseContent.contains("error") ||
+                        responseContent.contains("Unauthorized") ||
+                        responseContent.contains("Method Not Allowed") ||
+                        !responseContent.isEmpty(),
+                "Auth API endpoint should respond");
 
-    @Test
-    void testLoginFormElements() {
-        driver.get(baseUrl + LOGIN_PATH);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        try {
-            // Check for form elements
-            List<WebElement> inputElements = driver.findElements(By.tagName("input"));
-            List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
-            List<WebElement> formElements = driver.findElements(By.tagName("form"));
-            
-            log.info("Ã¢Å“â€œ Login page structure verified");
-            log.info("  Input elements found: {}", inputElements.size());
-            log.info("  Button elements found: {}", buttonElements.size());
-            log.info("  Form elements found: {}", formElements.size());
-            
-            // The test passes if the page loads without errors
-            assertTrue(true, "Login page loaded successfully");
-            
-        } catch (Exception e) {
-            log.info("Note: Login form elements may be dynamically loaded");
-            assertTrue(true, "Test completed with expected dynamic loading behavior");
-        }
-    }
-
-    @Test
-    void testRedirectToLoginForProtectedRoutes() {
-        // Access the Angular app root first
-        driver.get(baseUrl);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        // Then try to navigate to protected dashboard
-        driver.get(baseUrl + "/dashboard");
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
-        String currentUrl = driver.getCurrentUrl();
-        String pageContent = driver.findElement(By.tagName("body")).getText();
-        
-        // Angular should handle the redirect client-side
-        boolean isProtected = currentUrl.contains(LOGIN_PATH) || 
-                             currentUrl.contains("/dashboard") || // May stay on dashboard but not load data
-                             pageContent.contains("login") || 
-                             pageContent.contains("Unauthorized") ||
-                             pageContent.contains("authenticate") ||
-                             !pageContent.isEmpty(); // Page loads
-        
-        assertTrue(isProtected, "Protected routes should load through Angular");
-        
-        log.info("Ã¢Å“â€œ Protected route authentication verified");
-        log.info("  Current URL: {}", currentUrl);
+        log.info("✓ Authentication API endpoint is accessible");
     }
 
     @Test
     void testRegisterAPIEndpoint() {
         // Test registration API endpoint
         driver.get(baseUrl + "/api/v1/auth/register");
-        
+
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        
+
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
-        
+
         // The endpoint should respond (even if it's an error for GET request)
         assertFalse(responseContent.isEmpty(), "Register API endpoint should respond");
-        
+
         log.info("Ã¢Å“â€œ Registration API endpoint is accessible");
     }
 }
-

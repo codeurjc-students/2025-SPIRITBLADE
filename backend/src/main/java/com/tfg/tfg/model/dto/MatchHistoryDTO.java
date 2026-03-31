@@ -13,10 +13,10 @@ public class MatchHistoryDTO {
     private Integer kills;
     private Integer deaths;
     private Integer assists;
-    private Long gameDuration; // in seconds
+    private Long gameDuration;
     private Long gameTimestamp;
-    private Integer lpAtMatch; // Approximate LP at this match (calculated)
-    private Integer queueId; // 420=Solo/Duo, 440=Flex, etc.
+    private Integer lpAtMatch;
+    private Integer queueId;
     private Integer visionScore;
 
     public String getKda() {

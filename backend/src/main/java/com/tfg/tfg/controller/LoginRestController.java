@@ -16,7 +16,7 @@ import com.tfg.tfg.security.jwt.AuthResponse;
 import com.tfg.tfg.security.jwt.AuthResponse.Status;
 import com.tfg.tfg.security.jwt.LoginRequest;
 import com.tfg.tfg.security.jwt.UserLoginService;
-import com.tfg.tfg.service.storage.IUserService;
+import com.tfg.tfg.service.interfaces.IUserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,65 +33,39 @@ import jakarta.validation.Valid;
 public class LoginRestController {
 
 	private final IUserService userService;
-    private final UserLoginService userLoginService;
+	private final UserLoginService userLoginService;
 
-    public LoginRestController(IUserService userService, UserLoginService userLoginService) {
-        this.userService = userService;
-        this.userLoginService = userLoginService;
-    }
+	public LoginRestController(IUserService userService, UserLoginService userLoginService) {
+		this.userService = userService;
+		this.userLoginService = userLoginService;
+	}
 
-	@Operation(
-		summary = "User login",
-		description = "Authenticates a user with username and password, returns JWT token"
-	)
+	@Operation(summary = "User login", description = "Authenticates a user with username and password, returns JWT token")
 	@ApiResponses(value = {
-		@ApiResponse(
-			responseCode = "200",
-			description = "Login successful",
-			content = @Content(schema = @Schema(implementation = AuthResponse.class))
-		),
-		@ApiResponse(
-			responseCode = "401",
-			description = "Invalid credentials"
-		)
+			@ApiResponse(responseCode = "200", description = "Login successful", content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+			@ApiResponse(responseCode = "401", description = "Invalid credentials")
 	})
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(
 			@RequestBody LoginRequest loginRequest,
 			HttpServletResponse response) {
-		
+
 		return userLoginService.login(loginRequest);
 	}
 
-	@Operation(
-		summary = "User logout",
-		description = "Logs out the current user and invalidates the refresh token"
-	)
+	@Operation(summary = "User logout", description = "Logs out the current user and invalidates the refresh token")
 	@ApiResponses(value = {
-		@ApiResponse(
-			responseCode = "200",
-			description = "Logout successful",
-			content = @Content(schema = @Schema(implementation = AuthResponse.class))
-		)
+			@ApiResponse(responseCode = "200", description = "Logout successful", content = @Content(schema = @Schema(implementation = AuthResponse.class)))
 	})
 	@PostMapping("/logout")
 	public ResponseEntity<AuthResponse> logOut(HttpServletResponse response) {
 		return ResponseEntity.ok(new AuthResponse(Status.SUCCESS, userLoginService.logout(response)));
 	}
 
-	@Operation(
-		summary = "User registration",
-		description = "Registers a new user in the system"
-	)
+	@Operation(summary = "User registration", description = "Registers a new user in the system")
 	@ApiResponses(value = {
-		@ApiResponse(
-			responseCode = "201",
-			description = "User registered successfully"
-		),
-		@ApiResponse(
-			responseCode = "400",
-			description = "Invalid user data or username already exists"
-		)
+			@ApiResponse(responseCode = "201", description = "User registered successfully"),
+			@ApiResponse(responseCode = "400", description = "Invalid user data or username already exists")
 	})
 	@PostMapping("/register")
 	public ResponseEntity<Map<String, String>> register(@Valid @RequestBody UserDTO userDTO) {
@@ -104,19 +78,10 @@ public class LoginRestController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
-	@Operation(
-		summary = "Get current user info",
-		description = "Returns basic information about the currently authenticated user"
-	)
+	@Operation(summary = "Get current user info", description = "Returns basic information about the currently authenticated user")
 	@ApiResponses(value = {
-		@ApiResponse(
-			responseCode = "200",
-			description = "User information retrieved successfully"
-		),
-		@ApiResponse(
-			responseCode = "401",
-			description = "User not authenticated"
-		)
+			@ApiResponse(responseCode = "200", description = "User information retrieved successfully"),
+			@ApiResponse(responseCode = "401", description = "User not authenticated")
 	})
 	@GetMapping("/me")
 	public ResponseEntity<Map<String, Object>> me() {
@@ -125,7 +90,6 @@ public class LoginRestController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 
-		// Build a simple user info response with username and roles
 		Map<String, Object> resp = new HashMap<>();
 		String username = auth.getName();
 		resp.put("username", username);
