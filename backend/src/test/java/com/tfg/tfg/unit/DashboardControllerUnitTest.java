@@ -2,6 +2,7 @@ package com.tfg.tfg.unit;
 
 import com.tfg.tfg.controller.DashboardController;
 import com.tfg.tfg.model.dto.SummonerDTO;
+import com.tfg.tfg.model.dto.MatchHistoryDTO;
 import com.tfg.tfg.model.entity.MatchEntity;
 import com.tfg.tfg.model.entity.Summoner;
 import com.tfg.tfg.model.entity.UserModel;

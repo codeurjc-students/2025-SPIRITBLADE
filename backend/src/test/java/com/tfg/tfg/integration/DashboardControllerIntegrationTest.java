@@ -209,7 +209,7 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetPersonalStatsWithLinkedSummonerExecutesAllPrivateMethods() {
+    void testGetPersonalStatsWithLinkedSummonerExecutesAllPrivateMethods() throws Exception {
         mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentRank", equalTo("GOLD III")))
