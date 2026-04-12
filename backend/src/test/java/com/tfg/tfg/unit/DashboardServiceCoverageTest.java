@@ -113,7 +113,7 @@ class DashboardServiceCoverageTest {
     lenient().when(riotService.getMatchHistory(eq(s.getPuuid()), anyInt(), anyInt())).thenReturn(List.of(newest, older));
 
         // No existing matches in DB
-    lenient().when(matchService.findExistingMatchesByMatchIds(anyList())).thenReturn(new HashMap<>());
+    lenient().when(matchService.findExistingMatchesByMatchIdsAndSummoner(anyList(), any())).thenReturn(new HashMap<>());
 
     lenient().when(dataDragonService.getChampionIconUrl(anyLong())).thenReturn("http://img/champ.png");
 

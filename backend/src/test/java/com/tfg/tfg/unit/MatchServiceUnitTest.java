@@ -215,12 +215,12 @@ class MatchServiceUnitTest {
     }
 
     @Test
-    void testFindExistingMatchesByMatchIds() {
+    void testFindExistingMatchesByMatchIdsAndSummoner() {
         List<String> matchIds = Arrays.asList("EUW1_123", "EUW1_124", "EUW1_125");
         List<MatchEntity> matches = Arrays.asList(matchWithRank, matchWithoutRank, matchWithLane);
-        when(matchRepository.findByMatchIdIn(matchIds)).thenReturn(matches);
+        when(matchRepository.findByMatchIdInAndSummoner(matchIds, testSummoner)).thenReturn(matches);
 
-        Map<String, MatchEntity> result = matchService.findExistingMatchesByMatchIds(matchIds);
+        Map<String, MatchEntity> result = matchService.findExistingMatchesByMatchIdsAndSummoner(matchIds, testSummoner);
 
         assertEquals(3, result.size());
         assertTrue(result.containsKey("EUW1_123"));

@@ -17,7 +17,7 @@ public interface IMatchService {
 
     List<MatchEntity> findRecentMatchesForRoleAnalysis(Summoner summoner, int limit);
 
-    Map<String, MatchEntity> findExistingMatchesByMatchIds(List<String> matchIds);
+    Map<String, MatchEntity> findExistingMatchesByMatchIdsAndSummoner(List<String> matchIds, Summoner summoner);
 
     MatchEntity save(MatchEntity match);
 

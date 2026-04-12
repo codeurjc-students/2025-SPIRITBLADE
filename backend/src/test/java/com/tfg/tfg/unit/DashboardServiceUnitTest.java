@@ -207,7 +207,7 @@ class DashboardServiceUnitTest {
         apiMatch.setGameTimestamp(System.currentTimeMillis() / 1000);
         
         when(riotService.getMatchHistory("puuid123", 0, 10)).thenReturn(List.of(apiMatch));
-        when(matchService.findExistingMatchesByMatchIds(any())).thenReturn(java.util.Map.of());
+        when(matchService.findExistingMatchesByMatchIdsAndSummoner(any(), any())).thenReturn(java.util.Map.of());
         when(matchService.saveAll(any())).thenReturn(List.of());
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = dashboardService.getRankedMatchesWithLP(s, null, 0, 10);

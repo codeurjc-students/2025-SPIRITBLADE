@@ -363,8 +363,8 @@ class RiotServiceUnitTest {
         )).thenReturn(ResponseEntity.ok(matchIds));
         
         // Mock match not in cache
-        when(matchRepository.findByMatchId("EUW1_123")).thenReturn(Optional.empty());
-        when(matchRepository.findByMatchId("EUW1_456")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_123", "puuid1")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_456", "puuid1")).thenReturn(Optional.empty());
         
         // Mock API call for match details
         RiotMatchDTO riotMatch = new RiotMatchDTO();
@@ -647,7 +647,7 @@ class RiotServiceUnitTest {
         Summoner summoner = new Summoner();
         summoner.setPuuid("test-puuid");
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.of(new MatchEntity()));
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.of(new MatchEntity()));
 
         // When - Use reflection to invoke private method
         try {
@@ -681,7 +681,7 @@ class RiotServiceUnitTest {
         Summoner summoner = new Summoner();
         summoner.setPuuid("test-puuid");
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.empty());
 
         // When - Use reflection to invoke private method
         try {
@@ -737,7 +737,7 @@ class RiotServiceUnitTest {
         summoner.setId(1L);
 
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.empty());
         when(matchRepository.save(any(MatchEntity.class))).thenReturn(new MatchEntity());
 
         // When - Use reflection to invoke private method
@@ -821,7 +821,7 @@ class RiotServiceUnitTest {
         )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_NEW"}));
         
         // Mock match not in cache
-        when(matchRepository.findByMatchId("EUW1_NEW")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_NEW", puuid)).thenReturn(Optional.empty());
         
         // Mock match details
         RiotMatchDTO riotMatch = new RiotMatchDTO();
