@@ -72,16 +72,15 @@ class MatchMapperTest {
         MatchHistoryDTO dto = new MatchHistoryDTO();
         dto.setMatchId("EUW1_123456789");
         dto.setChampionName("TestChampion");
-        // Leave win, kills, deaths, assists null
 
         MatchEntity result = MatchMapper.toEntity(dto, summoner);
 
         assertNotNull(result);
         assertEquals("TestChampion", result.getChampionName());
-        assertFalse(result.isWin()); // null should become false
-        assertEquals(0, result.getKills()); // null should become 0
-        assertEquals(0, result.getDeaths()); // null should become 0
-        assertEquals(0, result.getAssists()); // null should become 0
+        assertFalse(result.isWin());
+        assertEquals(0, result.getKills());
+        assertEquals(0, result.getDeaths());
+        assertEquals(0, result.getAssists());
     }
 
     @Test
@@ -101,8 +100,8 @@ class MatchMapperTest {
         MatchEntity result = MatchMapper.toEntity(existing, dto, summoner);
 
         assertNotNull(result);
-        assertEquals(100L, result.getId()); // Should preserve existing ID
-        assertEquals("EUW1_123456789", result.getMatchId()); // Should update
+        assertEquals(100L, result.getId());
+        assertEquals("EUW1_123456789", result.getMatchId());
         assertEquals(summoner, result.getSummoner());
         assertEquals("TestChampion", result.getChampionName());
         assertTrue(result.isWin());
@@ -178,7 +177,7 @@ class MatchMapperTest {
 
         assertNotNull(result);
         assertEquals("TestChampion", result.getChampionName());
-        // Should not throw exception, icon URL should be null or empty
+
     }
 
     @Test

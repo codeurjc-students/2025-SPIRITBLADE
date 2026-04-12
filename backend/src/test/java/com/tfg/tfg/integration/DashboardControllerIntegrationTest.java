@@ -35,18 +35,7 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 
 /**
- * Strategic Integration Tests for DashboardController
- * 
- * These tests cover ALL private methods by creating realistic data scenarios:
- * - populateSummonerStats() - Line 115+
- * - calculateLPGainedLast7Days() - Line 160+
- * - calculateMainRole() - Line 200+
- * - getFavoriteChampion() - Line 140+
- * - formatLaneName() - Line 228+
- * - calculateLPProgression() - Line 370+
- * - buildProgressionFromCalculation() - Line 430+
- * - calculateLPChange() - Line 520+
- * - saveMatchesToDatabase() - Line 620+
+ * Integration Tests for DashboardController
  * 
  * Strategy: Use real database with @Transactional, mock only external API
  * (RiotService)
@@ -93,18 +82,16 @@ class DashboardControllerIntegrationTest {
 
     @BeforeEach
     void setupRealisticData() {
-        // Clean up
+
         userRepository.deleteAll();
         rankHistoryRepository.deleteAll();
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
 
-        // Reset mocks
         Mockito.reset(matchService);
         Mockito.reset(riotService);
         Mockito.reset(aiAnalysisService);
 
-        // Create summoner WITH realistic data
         testSummoner = new Summoner();
         testSummoner.setName(TEST_PLAYER);
         testSummoner.setPuuid("test-puuid-12345");
@@ -116,32 +103,28 @@ class DashboardControllerIntegrationTest {
         testSummoner.setLevel(200);
         testSummoner = summonerRepository.save(testSummoner);
 
-        // Create realistic match history (30 matches over last 14 days)
         LocalDateTime now = LocalDateTime.now();
 
-        // Last 7 days - 15 matches with LP progression
-        // Start with LP 65 seven days ago, progress forward in time
-        int lpTracker = 65; // Starting LP (7 days ago)
-        for (int i = 14; i >= 0; i--) { // Reverse order - oldest first (14 days ago to now)
+        int lpTracker = 65;
+        for (int i = 14; i >= 0; i--) {
             MatchEntity match = new MatchEntity();
             match.setMatchId("EUW1_recent_" + i);
             match.setSummoner(testSummoner);
             match.setChampionName(getChampionName(i));
             match.setChampionId(getChampionId(i));
-            boolean won = i % 3 != 0; // 66% winrate
+            boolean won = i % 3 != 0;
             match.setWin(won);
             match.setKills(6 + i);
             match.setDeaths(4);
             match.setAssists(8 + i);
             match.setGameDuration(1850L + i * 50L);
-            match.setQueueId(420); // Ranked Solo/Duo
+            match.setQueueId(420);
             match.setGameMode("RANKED");
-            match.setLane(getLane(i)); // Varied lanes
-            // Ensure chronological ordering: i runs 14..0 so this gives 14 days ago -> now
+            match.setLane(getLane(i));
+
             match.setTimestamp(now.minusDays(i));
             MatchEntity savedMatch = matchRepository.save(match);
 
-            // Create RankHistory for LP tracking
             RankHistory rankHistory = new RankHistory();
             rankHistory.setSummoner(testSummoner);
             rankHistory.setTriggeringMatch(savedMatch);
@@ -153,7 +136,6 @@ class DashboardControllerIntegrationTest {
             rankHistory.setLpChange(won ? 20 : -15);
             rankHistoryRepository.save(rankHistory);
 
-            // Update LP for next match (moving forward in time)
             lpTracker += won ? 20 : -15;
             if (lpTracker > 100) {
                 lpTracker = 100;
@@ -162,12 +144,11 @@ class DashboardControllerIntegrationTest {
             }
         }
 
-        // Older matches (7-14 days) - 15 matches
         for (int i = 15; i < 30; i++) {
             MatchEntity match = new MatchEntity();
             match.setMatchId("EUW1_old_" + i);
             match.setSummoner(testSummoner);
-            match.setChampionName("Ahri"); // Consistent champion
+            match.setChampionName("Ahri");
             match.setChampionId(103);
             match.setWin(i % 2 == 0);
             match.setKills(5 + i);
@@ -176,19 +157,17 @@ class DashboardControllerIntegrationTest {
             match.setGameDuration(1900L);
             match.setQueueId(420);
             match.setGameMode("RANKED");
-            match.setLane("MIDDLE"); // Consistent lane for main role
+            match.setLane("MIDDLE");
             match.setTimestamp(now.minusDays(7 + (long) (i - 15)));
             matchRepository.save(match);
         }
 
-        // Create user linked to summoner
         testUser = new UserModel("testplayer", "password123", "USER");
         testUser.setEmail("testplayer@example.com");
         testUser.setActive(true);
         testUser.setLinkedSummonerName(TEST_PLAYER);
         testUser = userRepository.save(testUser);
 
-        // Mock RiotService to return champion mastery
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
         mastery.setChampionName("Ahri");
         mastery.setChampionLevel(7);
@@ -196,8 +175,6 @@ class DashboardControllerIntegrationTest {
         when(riotService.getTopChampionMasteries(anyString(), anyInt()))
                 .thenReturn(List.of(mastery));
 
-        // Default mock for MatchService - return ranked matches from setup for normal
-        // tests
         List<MatchEntity> allMatches = matchRepository.findBySummonerOrderByTimestampDesc(testSummoner);
         List<MatchEntity> rankedMatches = allMatches.stream()
                 .filter(m -> m.getQueueId() != null && (m.getQueueId() == 420 || m.getQueueId() == 440))
@@ -220,7 +197,7 @@ class DashboardControllerIntegrationTest {
     }
 
     private String getLane(int index) {
-        // Create varied distribution with MIDDLE being most common
+
         if (index % 5 == 0 || index % 5 == 1)
             return "MIDDLE";
         if (index % 5 == 2)
@@ -232,42 +209,30 @@ class DashboardControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
-    void testGetPersonalStatsWithLinkedSummonerExecutesAllPrivateMethods() {
-        // This test triggers:
-        // - populateSummonerStats()
-        // - formatRank()
-        // - calculateLPGainedLast7Days()
-        // - calculateMainRole()
-        // - formatLaneName()
-        // - getFavoriteChampion()
-
-        try {
-            mockMvc.perform(get(STATS_URL))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.currentRank", equalTo("GOLD III")))
-                    .andExpect(jsonPath(JSON_LP_7_DAYS, notNullValue())) // Should have LP calculation
-                    .andExpect(jsonPath(JSON_MAIN_ROLE, not(equalTo("Unknown")))) // Should detect Mid Lane
-                    .andExpect(jsonPath("$.favoriteChampion", equalTo("Ahri"))) // Mocked
-                    .andExpect(jsonPath("$.linkedSummoner", equalTo(TEST_PLAYER)))
-                    .andExpect(jsonPath("$.username", equalTo("testplayer")));
-        } catch (Exception e) {
-            // If test fails, still counts as executing the methods
-        }
+    void testGetPersonalStatsWithLinkedSummonerExecutesAllPrivateMethods() throws Exception {
+        mockMvc.perform(get(STATS_URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentRank", equalTo("GOLD III")))
+                .andExpect(jsonPath(JSON_LP_7_DAYS, notNullValue()))
+                .andExpect(jsonPath(JSON_MAIN_ROLE, not(equalTo("Unknown"))))
+                .andExpect(jsonPath("$.favoriteChampion", equalTo("Ahri")))
+                .andExpect(jsonPath("$.linkedSummoner", equalTo(TEST_PLAYER)))
+                .andExpect(jsonPath("$.username", equalTo("testplayer")));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGetPersonalStatsCalculatesLp7Days() throws Exception {
-        // Specifically test calculateLPGainedLast7Days logic
+
         mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(JSON_LP_7_DAYS, notNullValue())); // LP change can be positive or negative
+                .andExpect(jsonPath(JSON_LP_7_DAYS, notNullValue()));
     }
 
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGetPersonalStatsCalculatesMainRole() throws Exception {
-        // Specifically test calculateMainRole and formatLaneName logic
+
         mockMvc.perform(get(STATS_URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(JSON_MAIN_ROLE, anyOf(
@@ -280,13 +245,6 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGetRankedMatchesExecutesSaveMatchesToDatabase() throws Exception {
-        // This test triggers:
-        // - saveMatchesToDatabase()
-        // - addApproximateLPToMatches()
-        // - convertMatchEntityToDTO()
-        // - demoteDivision()
-        // - canDemote()
-
         mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "0")
                 .param("size", "20"))
@@ -311,12 +269,10 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testFavoritesCompleteFlow() throws Exception {
-        // 1. Initial empty state
         mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        // Create target summoner to add
         Summoner favorite = new Summoner();
         favorite.setName("ProPlayer");
         favorite.setPuuid("pro-puuid-123");
@@ -325,30 +281,25 @@ class DashboardControllerIntegrationTest {
         favorite.setLp(1500);
         summonerRepository.save(favorite);
 
-        // 2. Add Favorite Success
         mockMvc.perform(post("/api/v1/dashboard/me/favorites/ProPlayer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
                 .andExpect(jsonPath(JSON_MESSAGE, containsString("added to favorites")));
 
-        // 3. Verify it was added
         mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].name", equalTo("ProPlayer")));
 
-        // 4. Remove Favorite
         mockMvc.perform(delete("/api/v1/dashboard/me/favorites/ProPlayer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(JSON_SUCCESS, equalTo(true)))
                 .andExpect(jsonPath(JSON_MESSAGE, containsString("removed from favorites")));
 
-        // 5. Verify it was removed
         mockMvc.perform(get("/api/v1/dashboard/me/favorites"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        // 6. Test Error Cases
         mockMvc.perform(delete("/api/v1/dashboard/me/favorites/NotInFavorites"))
                 .andExpect(status().isNotFound());
 
@@ -366,7 +317,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "guestuser", roles = "USER")
     void testGetPersonalStatsWithoutLinkedSummonerReturnsDefaults() throws Exception {
-        // Create user without linked summoner
+
         UserModel guest = new UserModel("guestuser", "pass", "USER");
         guest.setEmail("guest@example.com");
         userRepository.save(guest);
@@ -388,7 +339,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGetRankedMatchesPagination() throws Exception {
-        // Test pagination logic
+
         mockMvc.perform(get(RANKED_MATCHES_URL)
                 .param("page", "0")
                 .param("size", "5"))
@@ -404,7 +355,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGetFavoritesAfterAddingMultiple() throws Exception {
-        // Add multiple favorites
+
         for (int i = 0; i < 3; i++) {
             Summoner fav = new Summoner();
             fav.setName("Favorite" + i);
@@ -421,23 +372,19 @@ class DashboardControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].name", notNullValue()));
     }
 
-    // ===== AI ANALYSIS TESTS =====
-
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisSuccess() throws Exception {
-        // Given - User has sufficient ranked matches
+
         AiAnalysisResponseDto mockResponse = new AiAnalysisResponseDto();
         mockResponse.setAnalysis("Great performance! Your win rate is excellent.");
         when(aiAnalysisService.analyzePerformance(any(), any())).thenReturn(mockResponse);
 
-        // When & Then
         mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis")
                 .param("matchCount", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.analysis", equalTo("Great performance! Your win rate is excellent.")));
 
-        // Verify cooldown was set
         UserModel updatedUser = userRepository.findByName("testplayer").orElseThrow();
         assertNotNull(updatedUser.getLastAiAnalysisRequest());
     }
@@ -455,12 +402,11 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisMatchCountCappedAt10() throws Exception {
-        // Given - Request 15 matches, should be capped at 10
+
         AiAnalysisResponseDto mockResponse = new AiAnalysisResponseDto();
         mockResponse.setAnalysis("Analysis with 10 matches");
         when(aiAnalysisService.analyzePerformance(any(), any())).thenReturn(mockResponse);
 
-        // When & Then
         mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis")
                 .param("matchCount", "15"))
                 .andExpect(status().isOk())
@@ -476,7 +422,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "guestuser", roles = "USER")
     void testGenerateAiAnalysisGuestUser() throws Exception {
-        // Create guest user (no linked summoner)
+
         UserModel guest = new UserModel("guestuser", "pass", "USER");
         userRepository.save(guest);
 
@@ -489,7 +435,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisUserNotFound() throws Exception {
-        // Delete the test user
+
         userRepository.delete(testUser);
 
         mockMvc.perform(post("/api/v1/dashboard/me/ai-analysis"))
@@ -501,7 +447,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisCooldownActive() throws Exception {
-        // Set cooldown to 2 minutes ago (still active)
+
         testUser.setLastAiAnalysisRequest(LocalDateTime.now().minusMinutes(3));
         userRepository.save(testUser);
 
@@ -516,7 +462,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisNoLinkedSummoner() throws Exception {
-        // Remove linked summoner
+
         testUser.setLinkedSummonerName(null);
         userRepository.save(testUser);
 
@@ -529,7 +475,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisLinkedSummonerNotFound() throws Exception {
-        // Change linked summoner to non-existent one
+
         testUser.setLinkedSummonerName("NonExistentSummoner");
         userRepository.save(testUser);
 
@@ -542,7 +488,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisAiServiceNotConfigured() throws Exception {
-        // Mock AI service to throw IllegalStateException
+
         when(aiAnalysisService.analyzePerformance(any(), any()))
                 .thenThrow(new IllegalStateException("AI service not configured"));
 
@@ -555,7 +501,7 @@ class DashboardControllerIntegrationTest {
     @Test
     @WithMockUser(username = "testplayer", roles = "USER")
     void testGenerateAiAnalysisGenericException() throws Exception {
-        // Mock AI service to throw generic exception
+
         when(aiAnalysisService.analyzePerformance(any(), any()))
                 .thenThrow(new RuntimeException("Database connection failed"));
 

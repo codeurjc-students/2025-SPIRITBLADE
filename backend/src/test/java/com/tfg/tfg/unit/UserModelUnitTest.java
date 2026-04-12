@@ -108,7 +108,7 @@ class UserModelUnitTest {
 
     @Test
     void testActiveStatusToggle() {
-        assertTrue(userModel.isActive()); // Default is true
+        assertTrue(userModel.isActive());
         
         userModel.setActive(false);
         assertFalse(userModel.isActive());

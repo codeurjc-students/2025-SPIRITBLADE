@@ -18,12 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas de integraciÃ³n para el servicio de Riot API.
- * Verifica la integraciÃ³n entre:
- * - RiotService
- * - SummonerRepository
- * - MatchRepository
- * - API de Riot (mocked en test profile)
+ * Integration tests for RiotService and related repositories.
  */
 @SpringBootTest
 @Transactional
@@ -45,7 +40,7 @@ class RiotServiceIntegrationTest {
 
     @BeforeEach
     void setup() {
-        // Create test user
+
         testUser = new UserModel("testuser", "password", "USER");
         testUser = userRepository.save(testUser);
     }
@@ -63,7 +58,7 @@ class RiotServiceIntegrationTest {
 
     @Test
     void testSummonerRepositoryCoreOperations() {
-        // Test save and retrieve
+
         Summoner summoner = new Summoner();
         summoner.setName("TestSummoner");
         summoner.setPuuid("unique-puuid-123");
@@ -74,11 +69,9 @@ class RiotServiceIntegrationTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getName()).isEqualTo("TestSummoner");
 
-        // Test retrieve by PUUID
         Summoner foundByPuuid = summonerRepository.findByPuuid("unique-puuid-123").orElse(null);
         assertThat(foundByPuuid).isNotNull();
 
-        // Test case insensitive findByName
         Summoner foundByName = summonerRepository.findByName("testsummoner").orElse(null);
         assertThat(foundByName).isNotNull();
         assertThat(foundByName.getName()).isEqualTo("TestSummoner");
@@ -92,7 +85,6 @@ class RiotServiceIntegrationTest {
         summoner1.setRiotId("Summoner1#EUW");
         summonerRepository.save(summoner1);
 
-        // Trying to save another summoner with same PUUID should fail
         Summoner summoner2 = new Summoner();
         summoner2.setName("Summoner2");
         summoner2.setPuuid("duplicate-puuid");
@@ -100,7 +92,7 @@ class RiotServiceIntegrationTest {
 
         assertThrows(Exception.class, () -> {
             summonerRepository.save(summoner2);
-            summonerRepository.flush(); // Force DB constraint check
+            summonerRepository.flush();
         });
     }
 
@@ -122,7 +114,7 @@ class RiotServiceIntegrationTest {
 
     @Test
     void testUserRepositoryFavoritesFlow() {
-        // Setup initial favorite
+
         Summoner favorite = new Summoner();
         favorite.setName("FavoriteSummoner");
         favorite.setPuuid("favorite-puuid");
@@ -130,7 +122,6 @@ class RiotServiceIntegrationTest {
         favorite = summonerRepository.save(favorite);
         summonerRepository.flush();
 
-        // Test Add Favorite
         testUser = userRepository.findById(testUser.getId()).orElseThrow();
         testUser.addFavoriteSummoner(favorite);
         testUser = userRepository.save(testUser);
@@ -142,7 +133,6 @@ class RiotServiceIntegrationTest {
         assertThat(foundWithFav.getFavoriteSummoners().stream()
                 .anyMatch(s -> s.getName().equals("FavoriteSummoner"))).isTrue();
 
-        // Test Remove Favorite
         testUser = userRepository.findById(testUser.getId()).orElseThrow();
         testUser.removeFavoriteSummoner(favorite);
         testUser = userRepository.save(testUser);
@@ -164,7 +154,6 @@ class RiotServiceIntegrationTest {
         summoner.setLastSearchedAt(firstSearch);
         summoner = summonerRepository.save(summoner);
 
-        // Update with a later timestamp
         java.time.LocalDateTime secondSearch = firstSearch.plusSeconds(1);
         summoner.setLastSearchedAt(secondSearch);
         summoner = summonerRepository.save(summoner);

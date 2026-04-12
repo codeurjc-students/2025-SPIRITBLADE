@@ -390,8 +390,8 @@ public class RiotService implements IRiotService {
                 return;
             }
 
-            if (matchRepository.findByMatchId(matchId).isPresent()) {
-                logger.debug("Match {} already in cache, skipping", matchId);
+            if (matchRepository.findByMatchIdAndSummonerPuuid(matchId, puuid).isPresent()) {
+                logger.debug("Match {} already in cache for summoner {}, skipping", matchId, puuid);
                 return;
             }
 
@@ -668,13 +668,13 @@ public class RiotService implements IRiotService {
     private List<MatchHistoryDTO> fetchMatchDetails(String[] matchIds, String puuid) {
         List<MatchHistoryDTO> matches = new ArrayList<>();
         for (String matchId : matchIds) {
-            Optional<MatchEntity> cachedMatch = matchRepository.findByMatchId(matchId);
+            Optional<MatchEntity> cachedMatch = matchRepository.findByMatchIdAndSummonerPuuid(matchId, puuid);
 
             if (cachedMatch.isPresent()) {
-                logger.debug("Match {} found in cache", matchId);
+                logger.debug("Match {} found in cache for summoner {}", matchId, puuid);
                 matches.add(MatchMapper.toDTO(cachedMatch.get(), dataDragonService, rankHistoryService));
             } else {
-                logger.debug("Match {} not in cache, fetching from API", matchId);
+                logger.debug("Match {} not in cache for summoner {}, fetching from API", matchId, puuid);
                 fetchAndAddMatchToHistory(matchId, puuid, matches);
             }
         }

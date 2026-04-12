@@ -68,17 +68,15 @@ class UserControllerUnitTest {
 
     @Test
     void testGetMyProfileUserFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
 
-        // Act
         ResponseEntity<Object> response = controller.getMyProfile();
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof UserDTO);
@@ -89,34 +87,30 @@ class UserControllerUnitTest {
 
     @Test
     void testGetMyProfileUserNotFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "nonexistent", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userService.findByName("nonexistent")).thenReturn(Optional.empty());
 
-        // Act
         ResponseEntity<Object> response = controller.getMyProfile();
 
-        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(userService, times(2)).findByName("nonexistent");
     }
 
     @Test
     void testGetMyProfileUserDeactivated() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "inactiveuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userService.findByName("inactiveuser")).thenReturn(Optional.of(testUserInactive));
 
-        // Act
         ResponseEntity<Object> response = controller.getMyProfile();
 
-        // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof Map);
@@ -129,7 +123,7 @@ class UserControllerUnitTest {
 
     @Test
     void testUploadAvatarSuccess() {
-        // Arrange
+
         MockMultipartFile file = new MockMultipartFile(
             "file", 
             "avatar.png", 
@@ -143,10 +137,8 @@ class UserControllerUnitTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userAvatarService.uploadAvatar("testuser", file)).thenReturn("http://avatar.url");
 
-        // Act
         ResponseEntity<Object> response = controller.uploadAvatar(file);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof Map);
@@ -158,7 +150,7 @@ class UserControllerUnitTest {
 
     @Test
     void testUploadAvatarUserNotFound() {
-        // Arrange
+
         MockMultipartFile file = new MockMultipartFile(
             "file", 
             "avatar.png", 
@@ -172,7 +164,6 @@ class UserControllerUnitTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userAvatarService.uploadAvatar(eq("nonexistent"), any())).thenThrow(new RuntimeException("User not found"));
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             controller.uploadAvatar(file);
         });
@@ -182,7 +173,7 @@ class UserControllerUnitTest {
 
     @Test
     void testUploadAvatarUserDeactivated() {
-        // Arrange
+
         MockMultipartFile file = new MockMultipartFile(
             "file", 
             "avatar.png", 
@@ -196,10 +187,8 @@ class UserControllerUnitTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(userService.findByName("inactiveuser")).thenReturn(Optional.of(testUserInactive));
 
-        // Act
         ResponseEntity<Object> response = controller.uploadAvatar(file);
 
-        // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof Map);
@@ -213,7 +202,7 @@ class UserControllerUnitTest {
 
     @Test
     void testUpdateMyProfileSuccess() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
@@ -230,10 +219,8 @@ class UserControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userService.updateUserProfile(eq("testuser"), any(UserDTO.class))).thenReturn(Optional.of(updatedUser));
 
-        // Act
         ResponseEntity<Object> response = controller.updateMyProfile(updateDto);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         UserDTO resultDto = (UserDTO) response.getBody();
         assertEquals("newemail@example.com", resultDto.getEmail());
@@ -241,7 +228,7 @@ class UserControllerUnitTest {
 
     @Test
     void testLinkSummonerSuccess() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
@@ -261,10 +248,8 @@ class UserControllerUnitTest {
         when(riotService.getSummonerByName("TestSummoner#EUW")).thenReturn(summonerDto);
         when(userService.linkSummoner("testuser", "test-puuid", "TestSummoner#EUW", "EUW")).thenReturn(Optional.of(testUser));
 
-        // Act
         ResponseEntity<Object> response = controller.linkSummoner(request);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -273,7 +258,7 @@ class UserControllerUnitTest {
 
     @Test
     void testUnlinkSummonerSuccess() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
@@ -281,10 +266,8 @@ class UserControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userService.unlinkSummoner("testuser")).thenReturn(Optional.of(testUser));
 
-        // Act
         ResponseEntity<Object> response = controller.unlinkSummoner();
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -293,7 +276,7 @@ class UserControllerUnitTest {
 
     @Test
     void testGetLinkedSummonerSuccess() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
@@ -308,10 +291,8 @@ class UserControllerUnitTest {
         
         when(userService.findByName("testuser")).thenReturn(Optional.of(linkedUser));
 
-        // Act
         ResponseEntity<Object> response = controller.getLinkedSummoner();
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -321,7 +302,7 @@ class UserControllerUnitTest {
 
     @Test
     void testDeleteAvatarSuccess() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
@@ -329,41 +310,37 @@ class UserControllerUnitTest {
         when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         doNothing().when(userAvatarService).deleteAvatar("testuser");
 
-        // Act
         ResponseEntity<Object> response = controller.deleteAvatar();
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userAvatarService).deleteAvatar("testuser");
     }
 
     @Test
     void testUpdateMyProfileUserNotFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser)); // Active check passes
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         
         UserDTO updateDto = new UserDTO();
         when(userService.updateUserProfile(eq("testuser"), any(UserDTO.class))).thenReturn(Optional.empty());
 
-        // Act
         ResponseEntity<Object> response = controller.updateMyProfile(updateDto);
 
-        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void testLinkSummonerUserNotFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser)); // Active check passes
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         
         Map<String, String> request = new HashMap<>();
         request.put("summonerName", "TestSummoner#EUW");
@@ -376,11 +353,9 @@ class UserControllerUnitTest {
         when(riotService.getSummonerByName("TestSummoner#EUW")).thenReturn(summonerDto);
         when(userService.linkSummoner("testuser", "test-puuid", "TestSummoner#EUW", "EUW")).thenReturn(Optional.empty());
 
-        // Act
         ResponseEntity<Object> response = controller.linkSummoner(request);
 
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()); // Controller catches exception and returns BAD_REQUEST
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertTrue(((String)body.get("message")).contains("User not found"));
@@ -388,18 +363,16 @@ class UserControllerUnitTest {
 
     @Test
     void testUnlinkSummonerUserNotFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser)); // Active check passes
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser));
         when(userService.unlinkSummoner("testuser")).thenReturn(Optional.empty());
 
-        // Act
         ResponseEntity<Object> response = controller.unlinkSummoner();
 
-        // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -408,25 +381,23 @@ class UserControllerUnitTest {
 
     @Test
     void testGetLinkedSummonerUserNotFound() {
-        // Arrange
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
             "testuser", null, Collections.emptyList()
         );
         when(securityContext.getAuthentication()).thenReturn(auth);
-        // First call for active check succeeds
-        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser))
-                                                .thenReturn(Optional.empty()); // Second call fails
 
-        // Act
+        when(userService.findByName("testuser")).thenReturn(Optional.of(testUser))
+                                                .thenReturn(Optional.empty());
+
         ResponseEntity<Object> response = controller.getLinkedSummoner();
 
-        // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
-    void testGetMyProfile_nullAuthentication_returnsFirstUser() {
-        // Covers auth==null path in getMyProfile (delegates to findFirstUser)
+    void testGetMyProfilenullAuthenticationreturnsFirstUser() {
+
         when(securityContext.getAuthentication()).thenReturn(null);
         UserModel firstUser = new UserModel();
         firstUser.setName("admin");
@@ -440,8 +411,8 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetMyProfile_withImageFallbackWhenAvatarUrlNull() {
-        // Covers the uncovered new line: avatarUrl==null but image field set → dto.setAvatarUrl(user.getImage())
+    void testGetMyProfilewithImageFallbackWhenAvatarUrlNull() {
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "testuser", null, java.util.Collections.emptyList()
         );
@@ -462,8 +433,8 @@ class UserControllerUnitTest {
     }
 
     @Test
-    void testGetLinkedSummoner_notLinked_returnsLinkedFalse() {
-        // Covers the else branch: linkedSummonerPuuid == null → response.put("linked", false)
+    void testGetLinkedSummonernotLinkedreturnsLinkedFalse() {
+
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "testuser", null, java.util.Collections.emptyList()
         );

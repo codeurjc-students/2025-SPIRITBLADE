@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import jakarta.validation.Validator;
 
 import com.tfg.tfg.model.dto.UserDTO;
 
@@ -138,7 +139,7 @@ class UserDTOUnitTest {
 
     @Test
     void testActiveStatusHandling() {
-        assertFalse(userDTO.isActive()); // Default is false
+        assertFalse(userDTO.isActive());
         
         userDTO.setActive(true);
         assertTrue(userDTO.isActive());
@@ -157,7 +158,6 @@ class UserDTOUnitTest {
         userDTO.setRoles(List.of("USER", "ADMIN"));
         userDTO.setActive(true);
 
-        // Verify all fields are set correctly
         assertEquals(42L, userDTO.getId());
         assertEquals("Complete User", userDTO.getName());
         assertEquals("complete@example.com", userDTO.getEmail());
@@ -171,18 +171,15 @@ class UserDTOUnitTest {
 
     @Test
     void testValidation() {
-        jakarta.validation.Validator validator = jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator();
-        
-        // Valid user
+        Validator validator = jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator();
+
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("123456");
         assertTrue(validator.validate(userDTO).isEmpty());
-        
-        // Invalid email
+
         userDTO.setEmail("invalid-email");
         assertFalse(validator.validate(userDTO).isEmpty());
-        
-        // Invalid password (too short)
+
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("12345");
         assertFalse(validator.validate(userDTO).isEmpty());

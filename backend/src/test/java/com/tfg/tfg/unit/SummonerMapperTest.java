@@ -108,14 +108,13 @@ class SummonerMapperTest {
         assertEquals(75, result.getLp());
         assertEquals(100, result.getWins());
         assertEquals(80, result.getLosses());
-        assertNull(result.getLastSearchedAt()); // Should not be set
+        assertNull(result.getLastSearchedAt());
     }
 
     @Test
     void testToEntityWithNullFields() {
         SummonerDTO dto = new SummonerDTO();
         dto.setName("TestSummoner");
-        // Leave other fields null
 
         Summoner result = SummonerMapper.toEntity(dto);
 

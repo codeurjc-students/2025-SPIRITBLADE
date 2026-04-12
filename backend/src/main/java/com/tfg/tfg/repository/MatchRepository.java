@@ -19,15 +19,15 @@ public interface MatchRepository extends JpaRepository<MatchEntity, Long> {
     List<MatchEntity> findBySummonerOrderByTimestampDesc(Summoner summoner);
 
     /**
-     * Find a specific match by matchId
+     * Find a specific match by matchId and Summoner PUUID
      */
-    Optional<MatchEntity> findByMatchId(String matchId);
+    Optional<MatchEntity> findByMatchIdAndSummonerPuuid(String matchId, String puuid);
 
     /**
-     * Find multiple matches by their matchIds (for batch loading)
+     * Find multiple matches by their matchIds and Summoner (for batch loading)
      */
-    @Query("SELECT m FROM MatchEntity m WHERE m.matchId IN :matchIds")
-    List<MatchEntity> findByMatchIdIn(@Param("matchIds") List<String> matchIds);
+    @Query("SELECT m FROM MatchEntity m WHERE m.matchId IN :matchIds AND m.summoner = :summoner")
+    List<MatchEntity> findByMatchIdInAndSummoner(@Param("matchIds") List<String> matchIds, @Param("summoner") Summoner summoner);
 
     /**
      * Find ranked matches by queueId (420 = Solo/Duo, 440 = Flex)

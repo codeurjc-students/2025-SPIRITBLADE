@@ -58,7 +58,7 @@ class DashboardServiceUnitTest {
     }
 
     @Test
-    void testCalculateLPGainedLast7Days_emptyAnd_values() {
+    void testCalculateLPGainedLast7DaysemptyAndvalues() {
         Summoner s = new Summoner();
         s.setName("player1");
         s.setLp(120);
@@ -72,14 +72,13 @@ class DashboardServiceUnitTest {
         when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.of(100));
         assertEquals(20, dashboardService.calculateLPGainedLast7Days(s));
 
-        // No RankHistory should return 0
         when(rankHistoryService.getLpForMatch(1L)).thenReturn(java.util.Optional.empty());
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m));
         assertEquals(0, dashboardService.calculateLPGainedLast7Days(s));
     }
 
     @Test
-    void testCalculateMainRole_variations() {
+    void testCalculateMainRolevariations() {
         Summoner s = new Summoner();
         s.setName("roleTest");
 
@@ -94,10 +93,10 @@ class DashboardServiceUnitTest {
     }
 
     @Test
-    void testGetFavoriteChampion_and_errorPath() {
+    void testGetFavoriteChampionanderrorPath() {
         Summoner s = new Summoner();
         s.setName("fav");
-        // no puuid -> no champion
+
         s.setPuuid(null);
         assertNull(dashboardService.getFavoriteChampion(s));
 
@@ -107,24 +106,21 @@ class DashboardServiceUnitTest {
         when(riotService.getTopChampionMasteries(eq("puuid-1"), eq(1))).thenReturn(List.of(dto));
         assertEquals("Zed", dashboardService.getFavoriteChampion(s));
 
-        // exception path
         when(riotService.getTopChampionMasteries(eq("puuid-1"), eq(1))).thenThrow(new RuntimeException("boom"));
         assertNull(dashboardService.getFavoriteChampion(s));
     }
 
     @Test
-    void testCalculateBackwardsLpChange_and_demote_logic() throws Exception {
-        // call private method via reflection to cover demotion logic
+    void testCalculateBackwardsLpChangeanddemotelogic() throws Exception {
+
         Method m = DashboardService.class.getDeclaredMethod("calculateBackwardsLpChange", int.class, boolean.class, String.class, String.class);
         m.setAccessible(true);
 
-        // Case: winning (so backwards subtracts 20), causing negative LP and demotion
         Object res = m.invoke(dashboardService, 10, true, "GOLD", "I");
         assertTrue(res instanceof Integer);
         int val = (Integer) res;
         assertTrue(val >= 0);
 
-        // Case: cannot demote (MASTER) -> clamp
         Object res2 = m.invoke(dashboardService, 5, true, "MASTER", "I");
         assertTrue(res2 instanceof Integer);
         int val2 = (Integer) res2;
@@ -135,15 +131,13 @@ class DashboardServiceUnitTest {
     void testCalculateAverageVisionScore() {
         Summoner s = new Summoner();
         s.setName("visionTest");
-        
-        // No matches
+
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of());
         assertEquals(0.0, dashboardService.calculateAverageVisionScore(s));
-        
-        // Matches with vision score
+
         MatchEntity m1 = new MatchEntity(); m1.setQueueId(420); m1.setVisionScore(20);
         MatchEntity m2 = new MatchEntity(); m2.setQueueId(440); m2.setVisionScore(30);
-        MatchEntity m3 = new MatchEntity(); m3.setQueueId(450); m3.setVisionScore(100); // Ignored (ARAM)
+        MatchEntity m3 = new MatchEntity(); m3.setQueueId(450); m3.setVisionScore(100);
         
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m1, m2, m3));
         assertEquals(25.0, dashboardService.calculateAverageVisionScore(s));
@@ -153,22 +147,20 @@ class DashboardServiceUnitTest {
     void testCalculateAverageKDA() {
         Summoner s = new Summoner();
         s.setName("kdaTest");
-        
-        // No matches
+
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of());
         assertEquals("0/0/0", dashboardService.calculateAverageKDA(s));
-        
-        // Matches with KDA
+
         MatchEntity m1 = new MatchEntity(); m1.setQueueId(420); m1.setKills(5); m1.setDeaths(2); m1.setAssists(10);
         MatchEntity m2 = new MatchEntity(); m2.setQueueId(440); m2.setKills(10); m2.setDeaths(4); m2.setAssists(5);
         
         when(matchService.findRecentMatches(eq(s), any(LocalDateTime.class))).thenReturn(List.of(m1, m2));
-        // Total: 15/6/15 -> Avg: 7/3/7 (integer division)
+
         assertEquals("7/3/7", dashboardService.calculateAverageKDA(s));
     }
 
     @Test
-    void testGetRankedMatchesWithLP_Cached() {
+    void testGetRankedMatchesWithLPCached() {
         Summoner s = new Summoner();
         s.setName("ranked");
         s.setPuuid("puuid");
@@ -178,8 +170,7 @@ class DashboardServiceUnitTest {
         m.setTimestamp(LocalDateTime.now());
         
         when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(s)).thenReturn(List.of(m));
-        // Mock checkIfCacheNeedsUpdate logic (via riotService)
-        // If I mock riotService.getMatchHistory to return empty or same match ID, it won't update
+
         when(riotService.getMatchHistory(eq("puuid"), eq(0), eq(1))).thenReturn(List.of());
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = dashboardService.getRankedMatchesWithLP(s, null, 0, 1);
@@ -188,18 +179,16 @@ class DashboardServiceUnitTest {
     }
 
     @Test
-    void testGetRankedMatchesWithLP_NeedsUpdate() {
+    void testGetRankedMatchesWithLPNeedsUpdate() {
         Summoner s = new Summoner();
         s.setName("needsUpdate");
         s.setPuuid("puuid123");
         s.setTier("GOLD");
         s.setRank("II");
         s.setLp(50);
-        
-        // Empty cache forces update
+
         when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(s)).thenReturn(List.of());
-        
-        // Mock API response
+
         com.tfg.tfg.model.dto.MatchHistoryDTO apiMatch = new com.tfg.tfg.model.dto.MatchHistoryDTO();
         apiMatch.setMatchId("NEW_MATCH");
         apiMatch.setQueueId(420);
@@ -207,7 +196,7 @@ class DashboardServiceUnitTest {
         apiMatch.setGameTimestamp(System.currentTimeMillis() / 1000);
         
         when(riotService.getMatchHistory("puuid123", 0, 10)).thenReturn(List.of(apiMatch));
-        when(matchService.findExistingMatchesByMatchIds(any())).thenReturn(java.util.Map.of());
+        when(matchService.findExistingMatchesByMatchIdsAndSummoner(any(), any())).thenReturn(java.util.Map.of());
         when(matchService.saveAll(any())).thenReturn(List.of());
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = dashboardService.getRankedMatchesWithLP(s, null, 0, 10);
@@ -215,7 +204,7 @@ class DashboardServiceUnitTest {
     }
 
     @Test
-    void testGetRankedMatchesWithLP_WithQueueIdFilter() {
+    void testGetRankedMatchesWithLPWithQueueIdFilter() {
         Summoner s = new Summoner();
         s.setName("queueFilter");
         s.setPuuid("puuid456");
@@ -233,7 +222,7 @@ class DashboardServiceUnitTest {
 
     @Test
     void testFormatLaneName() throws Exception {
-        // Test private formatLaneName method via reflection
+
         java.lang.reflect.Method method = DashboardService.class.getDeclaredMethod("formatLaneName", String.class);
         method.setAccessible(true);
         
@@ -253,8 +242,7 @@ class DashboardServiceUnitTest {
         
         MatchEntity cachedMatch = new MatchEntity();
         cachedMatch.setMatchId("OLD_MATCH");
-        
-        // Mock API returning different match (needs update)
+
         com.tfg.tfg.model.dto.MatchHistoryDTO newMatch = new com.tfg.tfg.model.dto.MatchHistoryDTO();
         newMatch.setMatchId("NEW_MATCH");
         when(riotService.getMatchHistory("test-puuid", 0, 1)).thenReturn(List.of(newMatch));
@@ -267,7 +255,7 @@ class DashboardServiceUnitTest {
     }
 
     @Test
-    void testCheckIfCacheNeedsUpdate_EmptyCache() throws Exception {
+    void testCheckIfCacheNeedsUpdateEmptyCache() throws Exception {
         java.lang.reflect.Method method = DashboardService.class.getDeclaredMethod("checkIfCacheNeedsUpdate", List.class, String.class);
         method.setAccessible(true);
         
@@ -279,16 +267,13 @@ class DashboardServiceUnitTest {
     void testCanDemote() throws Exception {
         java.lang.reflect.Method method = DashboardService.class.getDeclaredMethod("canDemote", String.class, String.class);
         method.setAccessible(true);
-        
-        // Cannot demote from Master+
+
         assertFalse((boolean) method.invoke(dashboardService, "MASTER", "I"));
         assertFalse((boolean) method.invoke(dashboardService, "GRANDMASTER", "I"));
         assertFalse((boolean) method.invoke(dashboardService, "CHALLENGER", "I"));
-        
-        // Cannot demote from Iron IV
+
         assertFalse((boolean) method.invoke(dashboardService, "IRON", "IV"));
-        
-        // Can demote from other divisions
+
         assertTrue((boolean) method.invoke(dashboardService, "GOLD", "II"));
         assertTrue((boolean) method.invoke(dashboardService, "SILVER", "I"));
     }
@@ -306,15 +291,14 @@ class DashboardServiceUnitTest {
 
     @Test
     void testPopulateLpFromHistory() throws Exception {
-        // Test private populateLpFromHistory method via reflection
+
         java.lang.reflect.Method method = DashboardService.class.getDeclaredMethod(
             "populateLpFromHistory", 
             List.class, 
             Map.class
         );
         method.setAccessible(true);
-        
-        // Create test data
+
         com.tfg.tfg.model.dto.MatchHistoryDTO match1 = new com.tfg.tfg.model.dto.MatchHistoryDTO();
         match1.setMatchId("MATCH_1");
         
@@ -338,11 +322,9 @@ class DashboardServiceUnitTest {
         when(rankHistoryService.getLpForMatch(2L)).thenReturn(java.util.Optional.of(95));
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = List.of(match1, match2);
-        
-        // When
+
         method.invoke(dashboardService, matches, existingMatches);
-        
-        // Then
+
         assertEquals(120, match1.getLpAtMatch());
         assertEquals(95, match2.getLpAtMatch());
     }
@@ -368,11 +350,9 @@ class DashboardServiceUnitTest {
         when(rankHistoryService.getLpForMatch(999L)).thenReturn(java.util.Optional.empty());
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = List.of(match);
-        
-        // When
+
         method.invoke(dashboardService, matches, existingMatches);
-        
-        // Then - LP should not be set when not found in history
+
         assertNull(match.getLpAtMatch());
     }
 
@@ -390,11 +370,9 @@ class DashboardServiceUnitTest {
         
         Map<String, MatchEntity> existingMatches = Map.of();
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = List.of(match);
-        
-        // When - should not throw exception
+
         method.invoke(dashboardService, matches, existingMatches);
-        
-        // Then - LP should remain null
+
         assertNull(match.getLpAtMatch());
     }
 
@@ -430,11 +408,9 @@ class DashboardServiceUnitTest {
         
         Map<String, MatchEntity> existingMatches = Map.of("SAVE_1", existingEntity);
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = List.of(match1, match2);
-        
-        // When
+
         method.invoke(dashboardService, matches, existingMatches, summoner);
-        
-        // Then - Verify matchService.save was called for each match
+
         verify(matchService, times(2)).save(any(MatchEntity.class));
     }
 
@@ -453,20 +429,18 @@ class DashboardServiceUnitTest {
         
         Map<String, MatchEntity> existingMatches = Map.of();
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = List.of();
-        
-        // When
+
         method.invoke(dashboardService, matches, existingMatches, summoner);
-        
-        // Then - save should not be called
+
         verify(matchService, never()).save(any(MatchEntity.class));
     }
 
     @Test
-    void testCalculateLPGainedLast7Days_nullCurrentLP_returnsZero() {
-        // Covers the condition branch: currentLP == null
+    void testCalculateLPGainedLast7DaysnullCurrentLPreturnsZero() {
+
         Summoner s = new Summoner();
         s.setName("nullLpPlayer");
-        s.setLp(null); // LP is null
+        s.setLp(null);
 
         MatchEntity m = new MatchEntity();
         m.setId(10L);
@@ -475,7 +449,6 @@ class DashboardServiceUnitTest {
 
         int result = dashboardService.calculateLPGainedLast7Days(s);
 
-        // LP is null so result must be 0
         assertEquals(0, result);
     }
 }

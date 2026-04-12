@@ -64,7 +64,7 @@ class RankHistoryServiceUnitTest {
         MatchEntity m = new MatchEntity();
         m.setMatchId("M2");
         m.setTimestamp(LocalDateTime.of(2025, 1, 1, 12, 0));
-        m.setQueueId(null); // should default to RANKED_SOLO_5x5
+        m.setQueueId(null);
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), anyString()))
             .thenReturn(Optional.empty());
@@ -144,7 +144,7 @@ class RankHistoryServiceUnitTest {
     }
 
     @Test
-    void getPeakRank_notFound() {
+    void getPeakRanknotFound() {
         Summoner s = new Summoner();
 
         when(repo.findPeakRank(eq(s), eq("RANKED_SOLO_5x5")))
@@ -163,7 +163,7 @@ class RankHistoryServiceUnitTest {
         MatchEntity m = new MatchEntity();
         m.setMatchId("FLEX_M");
         m.setTimestamp(LocalDateTime.now());
-        m.setQueueId(440); // Flex queue
+        m.setQueueId(440);
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_FLEX_SR")))
             .thenReturn(Optional.empty());
@@ -182,7 +182,7 @@ class RankHistoryServiceUnitTest {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
         m.setTimestamp(LocalDateTime.now());
-        m.setQueueId(999); // Unknown queue
+        m.setQueueId(999);
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), eq("RANKED_SOLO_5x5")))
             .thenReturn(Optional.empty());
@@ -200,7 +200,7 @@ class RankHistoryServiceUnitTest {
     void recordRankSnapshotnullTimestampUsesNow() {
         Summoner s = new Summoner();
         MatchEntity m = new MatchEntity();
-        m.setTimestamp(null); // null timestamp
+        m.setTimestamp(null);
         m.setQueueId(420);
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), anyString()))
@@ -223,7 +223,7 @@ class RankHistoryServiceUnitTest {
         m.setQueueId(420);
 
         RankHistory previous = new RankHistory();
-        previous.setLeaguePoints(null); // null LP in previous
+        previous.setLeaguePoints(null);
 
         when(repo.findFirstBySummonerAndQueueTypeOrderByTimestampDesc(eq(s), anyString()))
             .thenReturn(Optional.of(previous));

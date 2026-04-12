@@ -62,11 +62,7 @@ class SummonerControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        // Clean up in correct order due to foreign key constraints
-        // user_favorite_summoners (many-to-many) -> rank_history -> matches ->
-        // summoners -> users
 
-        // Clear favorite summoners relationships
         userModelRepository.findAll().forEach(user -> {
             user.getFavoriteSummoners().clear();
             userModelRepository.save(user);
@@ -76,19 +72,17 @@ class SummonerControllerIntegrationTest {
         matchRepository.deleteAll();
         summonerRepository.deleteAll();
 
-        // Mock DataDragonService
         when(riotService.getDataDragonService()).thenReturn(dataDragonService);
     }
 
     @Test
     @WithMockUser
     void testRecentSearchesFlow() throws Exception {
-        // 1. Initially Empty Database
+
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        // 2. Add summoner WITHOUT date (should be filtered)
         Summoner withoutDate = new Summoner();
         withoutDate.setName("WithoutDate");
         withoutDate.setPuuid("puuid-filtered");
@@ -96,7 +90,6 @@ class SummonerControllerIntegrationTest {
         withoutDate.setLastSearchedAt(null);
         summonerRepository.save(withoutDate);
 
-        // 3. Add summoners WITH date
         for (int i = 0; i < 12; i++) {
             Summoner s = new Summoner();
             s.setName("Recent" + i);
@@ -106,12 +99,10 @@ class SummonerControllerIntegrationTest {
             summonerRepository.save(s);
         }
 
-        // 4. Verify results (should return only 9 most recent, filtering out the one
-        // without date)
         mockMvc.perform(get("/api/v1/summoners/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(9)))
-                .andExpect(jsonPath("$[0].name", equalTo("Recent0"))) // Most recent
+                .andExpect(jsonPath("$[0].name", equalTo("Recent0")))
                 .andExpect(jsonPath("$[8].name", equalTo("Recent8")));
     }
 
@@ -199,8 +190,6 @@ class SummonerControllerIntegrationTest {
 
         when(riotService.getSummonerByName("NoPuuid")).thenReturn(mockSummoner);
 
-        // If PUUID is null the service should not proceed; mock the subsequent call to
-        // throw so controller returns 404
         when(riotService.getMatchHistory(isNull(), anyInt(), anyInt()))
                 .thenThrow(new com.tfg.tfg.exception.SummonerNotFoundException("Summoner not found"));
 

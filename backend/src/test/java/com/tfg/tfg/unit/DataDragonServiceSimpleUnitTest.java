@@ -33,7 +33,6 @@ class DataDragonServiceSimpleUnitTest {
     void setUp() throws Exception {
         service = new DataDragonService(championRepository);
 
-        // Inject mocked RestTemplate
         Field restTemplateField = DataDragonService.class.getDeclaredField("restTemplate");
         restTemplateField.setAccessible(true);
         restTemplateField.set(service, restTemplate);
@@ -41,7 +40,7 @@ class DataDragonServiceSimpleUnitTest {
 
     @Test
     void testUpdateChampionDatabaseSuccess() {
-        // Given
+
         String mockJson = """
                 {
                     "data": {
@@ -59,35 +58,29 @@ class DataDragonServiceSimpleUnitTest {
 
         when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mockJson);
 
-        // When
         service.updateChampionDatabase();
 
-        // Then
         verify(championRepository, times(2)).save(any(Champion.class));
     }
 
     @Test
     void testGetChampionNameByIdFound() {
-        // Given
+
         Champion champion = new Champion(266L, "Aatrox", "Aatrox", "url");
         when(championRepository.findById(266L)).thenReturn(Optional.of(champion));
 
-        // When
         String name = service.getChampionNameById(266L);
 
-        // Then
         assertEquals("Aatrox", name);
     }
 
     @Test
     void testGetChampionNameByIdNotFound() {
-        // Given
+
         when(championRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When
         String name = service.getChampionNameById(999L);
 
-        // Then
         assertEquals("Champion 999", name);
     }
 
@@ -99,26 +92,22 @@ class DataDragonServiceSimpleUnitTest {
 
     @Test
     void testGetChampionIconUrlFound() {
-        // Given
+
         Champion champion = new Champion(266L, "Aatrox", "Aatrox", "http://example.com/Aatrox.png");
         when(championRepository.findById(266L)).thenReturn(Optional.of(champion));
 
-        // When
         String url = service.getChampionIconUrl(266L);
 
-        // Then
         assertEquals("http://example.com/Aatrox.png", url);
     }
 
     @Test
     void testGetChampionIconUrlNotFound() {
-        // Given
+
         when(championRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When
         String url = service.getChampionIconUrl(999L);
 
-        // Then
         assertEquals("", url);
     }
 
@@ -136,27 +125,23 @@ class DataDragonServiceSimpleUnitTest {
 
     @Test
     void testUpdateChampionDatabaseApiError() {
-        // Given
+
         when(restTemplate.getForObject(anyString(), eq(String.class)))
                 .thenThrow(new RuntimeException("API Error"));
 
-        // When
         assertDoesNotThrow(service::updateChampionDatabase);
 
-        // Then
         verify(championRepository, never()).save(any(Champion.class));
     }
 
     @Test
     void testUpdateChampionDatabaseInvalidJson() {
-        // Given
+
         when(restTemplate.getForObject(anyString(), eq(String.class)))
                 .thenReturn("invalid json");
 
-        // When
         assertDoesNotThrow(service::updateChampionDatabase);
 
-        // Then
         verify(championRepository, never()).save(any(Champion.class));
     }
 }

@@ -391,7 +391,7 @@ public class DashboardService implements IDashboardService {
                     .map(MatchHistoryDTO::getMatchId)
                     .toList();
 
-            Map<String, MatchEntity> existingMatches = matchService.findExistingMatchesByMatchIds(matchIds);
+            Map<String, MatchEntity> existingMatches = matchService.findExistingMatchesByMatchIdsAndSummoner(matchIds, summoner);
 
             long matchesNeedingLP = countMatchesNeedingLP(matches, existingMatches);
 

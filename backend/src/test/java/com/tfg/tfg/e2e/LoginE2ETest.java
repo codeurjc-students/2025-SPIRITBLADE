@@ -24,9 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el flujo de autenticaciÃƒÂ³n y login.
- * Verifica que los usuarios puedan acceder al sistema de login y que
- * los endpoints de autenticaciÃƒÂ³n respondan correctamente.
+ * End-to-end tests for the login interface and API endpoints.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -74,7 +72,7 @@ class LoginE2ETest {
 
     @Test
     void testLoginPageStructure() {
-        // Navigate to login page
+
         driver.get(baseUrl + LOGIN_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
@@ -89,13 +87,13 @@ class LoginE2ETest {
             log.info("✓ Login page structure verified with {} inputs, {} buttons, {} forms",
                     inputElements.size(), buttonElements.size(), formElements.size());
         } catch (Exception e) {
-            log.info("Note: Login form elements may be dynamically loaded");
+            log.info("Login form elements may be dynamically loaded");
         }
     }
 
     @Test
     void testAuthenticationAPIEndpoint() {
-        // Test authentication API endpoint
+
         driver.get(baseUrl + "/api/v1/auth/login");
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -103,7 +101,6 @@ class LoginE2ETest {
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
 
-        // The endpoint should respond (even if it's an error for GET request)
         assertTrue(
                 responseContent.contains("error") ||
                         responseContent.contains("Unauthorized") ||
@@ -116,7 +113,7 @@ class LoginE2ETest {
 
     @Test
     void testRegisterAPIEndpoint() {
-        // Test registration API endpoint
+
         driver.get(baseUrl + "/api/v1/auth/register");
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -124,9 +121,8 @@ class LoginE2ETest {
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
 
-        // The endpoint should respond (even if it's an error for GET request)
         assertFalse(responseContent.isEmpty(), "Register API endpoint should respond");
 
-        log.info("Ã¢Å“â€œ Registration API endpoint is accessible");
+        log.info("✓ Registration API endpoint is accessible");
     }
 }

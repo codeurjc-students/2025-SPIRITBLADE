@@ -148,7 +148,7 @@ class PngFileValidatorTest {
 
     @Test
     void testValidatePngFileMultipartFileInvalidMagicBytes() {
-        byte[] invalidContent = new byte[100]; // All zeros
+        byte[] invalidContent = new byte[100];
         
         MultipartFile file = new MockMultipartFile(
             "file",

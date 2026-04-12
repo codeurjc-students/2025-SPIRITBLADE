@@ -21,12 +21,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Sistema de pruebas para bÃºsqueda y gestiÃ³n de invocadores.
- * Verifica:
- * - BÃºsqueda de invocadores por nombre
- * - Listado de invocadores recientes
- * - ObtenciÃ³n de datos de invocador especÃ­fico
- * - PaginaciÃ³n de resultados
+ * Testing system for search functionalities, including summoner search and match history retrieval.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SearchSystemTest {
@@ -53,16 +48,14 @@ class SearchSystemTest {
 
     @BeforeEach
     void authenticate() {
-        // Clear any existing test user
+
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
 
-        // Create test user with known password
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
         userRepository.save(user);
 
-        // Mock RiotService to avoid calling real API
         SummonerDTO mockDto = new SummonerDTO();
         mockDto.setName("TestSummoner#EUW");
         mockDto.setPuuid("mock-puuid");
@@ -70,11 +63,9 @@ class SearchSystemTest {
         mockDto.setTier("GOLD");
         mockDto.setRank("I");
 
-        // Setup mocks - specific cases first
         when(riotService.getSummonerByName("TestSummoner#EUW")).thenReturn(mockDto);
         when(riotService.getSummonerByName("Test Summoner#EUW")).thenReturn(mockDto);
 
-        // For "Faker#LCK" test case - should throw SummonerNotFoundException
         when(riotService.getSummonerByName("Faker#LCK")).thenThrow(new SummonerNotFoundException("Summoner not found"));
 
         authToken = given()
@@ -116,22 +107,21 @@ class SearchSystemTest {
                 .when()
                 .get("/api/v1/summoners/name/TestSummoner#EUW")
                 .then()
-                .statusCode(anyOf(is(200), is(404))); // 200 (found or handled gracefully), 404 (not found)
+                .statusCode(anyOf(is(200), is(404)));
     }
 
     @Test
     void testSearchSummonerEdgeCases() {
-        // Empty Name
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
                 .contentType(ContentType.JSON)
                 .when()
-                .get("/api/v1/summoners/name/%20") // URL encoded space
+                .get("/api/v1/summoners/name/%20")
                 .then()
                 .statusCode(anyOf(is(200), is(400), is(404)));
 
-        // Special Characters
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -152,6 +142,6 @@ class SearchSystemTest {
                 .get("/api/v1/summoners/name/Faker#LCK")
                 .then()
                 .statusCode(anyOf(is(200), is(404)));
-        // Response may be empty (404) if summoner not found in Riot API
+
     }
 }

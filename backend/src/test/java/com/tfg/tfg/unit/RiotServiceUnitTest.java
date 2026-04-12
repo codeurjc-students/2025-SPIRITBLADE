@@ -56,13 +56,11 @@ class RiotServiceUnitTest {
     @BeforeEach
     void setUp() throws Exception {
         riotService = new RiotService(summonerRepository, matchRepository, dataDragonService, rankHistoryService);
-        
-        // Inject mocked RestTemplate using reflection
+
         Field restTemplateField = RiotService.class.getDeclaredField("restTemplate");
         restTemplateField.setAccessible(true);
         restTemplateField.set(riotService, restTemplate);
-        
-        // Inject API key
+
         Field apiKeyField = RiotService.class.getDeclaredField("apiKey");
         apiKeyField.setAccessible(true);
         apiKeyField.set(riotService, "test-api-key");
@@ -70,7 +68,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameUpdateExisting() {
-        // Given
+
         String riotId = "TestPlayer#EUW";
         String puuid = "test-puuid-123";
         
@@ -127,11 +125,9 @@ class RiotServiceUnitTest {
         when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
         when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.of(existingSummoner));
         when(summonerRepository.save(any(Summoner.class))).thenAnswer(i -> i.getArguments()[0]);
-        
-        // When
+
         SummonerDTO result = riotService.getSummonerByName(riotId);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(riotId, result.getName());
         verify(summonerRepository).save(any(Summoner.class));
@@ -139,10 +135,9 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameInvalidRiotIdFormat() {
-        // Given - Riot ID without # separator
+
         String invalidRiotId = "TestPlayer";
-        
-        // When & Then - Should throw SummonerNotFoundException when not found in database
+
         SummonerNotFoundException exception = assertThrows(
             SummonerNotFoundException.class,
             () -> riotService.getSummonerByName(invalidRiotId)
@@ -154,7 +149,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameDatabaseFallback() {
-        // Given - Invalid Riot ID format, but exists in database
+
         String invalidRiotId = "TestPlayer";
         Summoner summonerEntity = new Summoner();
         summonerEntity.setName("TestPlayer");
@@ -162,11 +157,9 @@ class RiotServiceUnitTest {
         summonerEntity.setLevel(50);
         
         when(summonerRepository.findByName(invalidRiotId)).thenReturn(Optional.of(summonerEntity));
-        
-        // When
+
         SummonerDTO result = riotService.getSummonerByName(invalidRiotId);
-        
-        // Then - Should return DTO from database
+
         assertNotNull(result);
         assertEquals("TestPlayer", result.getName());
         verify(summonerRepository).findByName(invalidRiotId);
@@ -174,7 +167,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameGenericException() {
-        // Given
+
         String riotId = "TestPlayer#EUW";
         
         when(restTemplate.exchange(
@@ -186,8 +179,7 @@ class RiotServiceUnitTest {
             anyString(),
             anyString()
         )).thenThrow(new RuntimeException("Network error"));
-        
-        // When & Then - Should throw RiotApiException
+
         assertThrows(com.tfg.tfg.exception.RiotApiException.class, () -> {
             riotService.getSummonerByName(riotId);
         });
@@ -195,7 +187,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetMatchHistoryWithNullMatchIds() {
-        // Given
+
         String puuid = "test-puuid";
         
         when(restTemplate.exchange(
@@ -208,18 +200,16 @@ class RiotServiceUnitTest {
             anyInt(),
             anyString()
         )).thenReturn(ResponseEntity.ok((String[]) null));
-        
-        // When
+
         var result = riotService.getMatchHistory(puuid, 0, 10);
-        
-        // Then - Should return empty list when matchIds is null
+
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetTopChampionMasteriesSuccess() {
-        // Given
+
         String puuid = "test-puuid";
         RiotChampionMasteryDTO mastery = new RiotChampionMasteryDTO();
         mastery.setChampionId(103L);
@@ -239,11 +229,9 @@ class RiotServiceUnitTest {
         
         when(dataDragonService.getChampionNameById(103L)).thenReturn("Ahri");
         when(dataDragonService.getChampionIconUrl(103L)).thenReturn("http://example.com/ahri.png");
-        
-        // When
+
         List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 5);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(103L, result.get(0).getChampionId());
@@ -252,7 +240,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetTopChampionMasteriesGenericException() {
-        // Given
+
         String puuid = "test-puuid";
         
         when(restTemplate.exchange(
@@ -264,28 +252,25 @@ class RiotServiceUnitTest {
             anyInt(),
             anyString()
         )).thenThrow(new RuntimeException("Network error"));
-        
-        // When
+
         List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 5);
-        
-        // Then - Returns empty list on generic exception
+
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetDataDragonService() {
-        // When
+
         IDataDragonService result = riotService.getDataDragonService();
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(dataDragonService, result);
     }
 
     @Test
     void testGetMatchHistoryCacheFresh() {
-        // Given
+
         String puuid = "test-puuid";
         Summoner summoner = new Summoner();
         summoner.setPuuid(puuid);
@@ -295,8 +280,7 @@ class RiotServiceUnitTest {
         
         when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.of(summoner));
         when(matchRepository.findRecentMatchesBySummoner(any(), any())).thenReturn(List.of(recentMatch));
-        
-        // Mock the API call for freshness check - same match ID
+
         when(restTemplate.exchange(
             anyString(),
             eq(HttpMethod.GET),
@@ -307,18 +291,16 @@ class RiotServiceUnitTest {
             eq(1),
             anyString()
         )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_123"}));
-        
-        // When
+
         var result = riotService.getMatchHistory(puuid, 0, 5);
-        
-        // Then - Should return cached matches without API call for details
+
         assertNotNull(result);
-        // Since cache is fresh, it should use cached matches
+
     }
 
     @Test
     void testGetMatchHistoryEmptyResult() {
-        // Given
+
         String puuid = "test-puuid";
         String[] emptyMatchIds = {};
         
@@ -332,25 +314,21 @@ class RiotServiceUnitTest {
             anyInt(),
             anyString()
         )).thenReturn(ResponseEntity.ok(emptyMatchIds));
-        
-        // When
+
         var result = riotService.getMatchHistory(puuid, 0, 10);
-        
-        // Then
+
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetMatchHistoryFetchFromAPI() {
-        // Given
+
         String puuid = "test-puuid";
         String[] matchIds = {"EUW1_123", "EUW1_456"};
-        
-        // Mock cache as not fresh (no summoner in DB)
+
         when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.empty());
-        
-        // Mock API call for match IDs
+
         when(restTemplate.exchange(
             contains("/lol/match/v5/matches/by-puuid/"),
             eq(HttpMethod.GET),
@@ -361,19 +339,17 @@ class RiotServiceUnitTest {
             eq(10),
             anyString()
         )).thenReturn(ResponseEntity.ok(matchIds));
-        
-        // Mock match not in cache
-        when(matchRepository.findByMatchId("EUW1_123")).thenReturn(Optional.empty());
-        when(matchRepository.findByMatchId("EUW1_456")).thenReturn(Optional.empty());
-        
-        // Mock API call for match details
+
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_123", puuid)).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_456", puuid)).thenReturn(Optional.empty());
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_123");
         riotMatch.setMetadata(metadata);
         
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
-        info.setGameCreation(1640995200000L); // Some timestamp
+        info.setGameCreation(1640995200000L);
         info.setGameDuration(1800L);
         info.setGameMode("CLASSIC");
         info.setQueueId(420);
@@ -403,8 +379,7 @@ class RiotServiceUnitTest {
             eq("EUW1_123"),
             anyString()
         )).thenReturn(ResponseEntity.ok(riotMatch));
-        
-        // Mock for second match
+
         RiotMatchDTO riotMatch2 = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata2 = new RiotMatchDTO.MetadataDTO();
         metadata2.setMatchId("EUW1_456");
@@ -441,19 +416,17 @@ class RiotServiceUnitTest {
             eq("EUW1_456"),
             anyString()
         )).thenReturn(ResponseEntity.ok(riotMatch2));
-        
-        // When
+
         var result = riotService.getMatchHistory(puuid, 0, 10);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(2, result.size());
-        // Verify that fetchMatchDetails and fetchAndAddMatchToHistory were called
+
     }
 
     @Test
     void testGetMatchDetailsNullBody() {
-        // Given
+
         String matchId = "EUW1_123";
         
         when(restTemplate.exchange(
@@ -464,17 +437,15 @@ class RiotServiceUnitTest {
             anyString(),
             anyString()
         )).thenReturn(ResponseEntity.ok(null));
-        
-        // When
+
         var result = riotService.getMatchDetails(matchId);
-        
-        // Then
+
         assertNull(result);
     }
 
     @Test
     void testMapSummonerEntityToDTO() {
-        // Given
+
         Summoner summoner = new Summoner();
         summoner.setName("TestPlayer#EUW");
         summoner.setPuuid("test-puuid");
@@ -487,8 +458,7 @@ class RiotServiceUnitTest {
         summoner.setLosses(90);
         
         when(dataDragonService.getProfileIconUrl(1)).thenReturn("http://example.com/icon.png");
-        
-        // When - Using reflection to call private method
+
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "mapSummonerEntityToDTO", 
@@ -496,8 +466,7 @@ class RiotServiceUnitTest {
             );
             method.setAccessible(true);
             SummonerDTO result = (SummonerDTO) method.invoke(riotService, summoner);
-            
-            // Then
+
             assertNotNull(result);
             assertEquals("TestPlayer#EUW", result.getName());
             assertEquals(100, result.getLevel());
@@ -511,7 +480,7 @@ class RiotServiceUnitTest {
     
     @Test
     void testFindParticipantByPuuidFound() {
-        // Given
+
         String targetPuuid = "target-puuid";
         
         RiotMatchDTO matchDTO = new RiotMatchDTO();
@@ -526,8 +495,7 @@ class RiotServiceUnitTest {
         
         info.setParticipants(List.of(participant1, participant2));
         matchDTO.setInfo(info);
-        
-        // When - Using reflection to call private method
+
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "findParticipantByPuuid",
@@ -540,8 +508,7 @@ class RiotServiceUnitTest {
                 matchDTO, 
                 targetPuuid
             );
-            
-            // Then
+
             assertNotNull(result);
             assertEquals("Ahri", result.getChampionName());
         } catch (Exception e) {
@@ -551,7 +518,7 @@ class RiotServiceUnitTest {
     
     @Test
     void testFindParticipantByPuuidNotFound() {
-        // Given
+
         RiotMatchDTO matchDTO = new RiotMatchDTO();
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
         
@@ -560,8 +527,7 @@ class RiotServiceUnitTest {
         
         info.setParticipants(List.of(participant));
         matchDTO.setInfo(info);
-        
-        // When - Using reflection to call private method
+
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "findParticipantByPuuid",
@@ -574,8 +540,7 @@ class RiotServiceUnitTest {
                 matchDTO, 
                 "non-existent-puuid"
             );
-            
-            // Then
+
             assertNull(result);
         } catch (Exception e) {
             fail("Failed to invoke findParticipantByPuuid: " + e.getMessage());
@@ -584,7 +549,7 @@ class RiotServiceUnitTest {
     
     @Test
     void testSaveMatchToDatabaseSummonerNotFound() {
-        // Given - Mock summoner not found scenario
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_12345");
@@ -592,7 +557,6 @@ class RiotServiceUnitTest {
 
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.empty());
 
-        // When - Use reflection to invoke private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveMatchToDatabase", 
@@ -602,7 +566,6 @@ class RiotServiceUnitTest {
             method.setAccessible(true);
             method.invoke(riotService, riotMatch, "test-puuid");
 
-            // Then - Should not save anything
             verify(matchRepository, never()).save(any());
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
@@ -611,15 +574,14 @@ class RiotServiceUnitTest {
 
     @Test
     void testSaveMatchToDatabaseNullMatchId() {
-        // Given - Mock match with null matchId
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
-        riotMatch.setMetadata(null);  // Null metadata means null matchId
+        riotMatch.setMetadata(null);
 
         Summoner summoner = new Summoner();
         summoner.setPuuid("test-puuid");
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
 
-        // When - Use reflection to invoke private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveMatchToDatabase", 
@@ -629,7 +591,6 @@ class RiotServiceUnitTest {
             method.setAccessible(true);
             method.invoke(riotService, riotMatch, "test-puuid");
 
-            // Then - Should not save anything
             verify(matchRepository, never()).save(any());
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
@@ -638,7 +599,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testSaveMatchToDatabaseMatchAlreadyExists() {
-        // Given - Mock match already exists scenario
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_12345");
@@ -647,9 +608,8 @@ class RiotServiceUnitTest {
         Summoner summoner = new Summoner();
         summoner.setPuuid("test-puuid");
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.of(new MatchEntity()));
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.of(new MatchEntity()));
 
-        // When - Use reflection to invoke private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveMatchToDatabase",
@@ -659,7 +619,6 @@ class RiotServiceUnitTest {
             method.setAccessible(true);
             method.invoke(riotService, riotMatch, "test-puuid");
 
-            // Then - Should not save anything
             verify(matchRepository, never()).save(any());
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
@@ -668,22 +627,21 @@ class RiotServiceUnitTest {
 
     @Test
     void testSaveMatchToDatabaseParticipantNotFound() {
-        // Given - Mock participant not found scenario
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_12345");
         riotMatch.setMetadata(metadata);
 
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
-        info.setParticipants(Collections.emptyList()); // No participants
+        info.setParticipants(Collections.emptyList());
         riotMatch.setInfo(info);
 
         Summoner summoner = new Summoner();
         summoner.setPuuid("test-puuid");
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.empty());
 
-        // When - Use reflection to invoke private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveMatchToDatabase",
@@ -693,7 +651,6 @@ class RiotServiceUnitTest {
             method.setAccessible(true);
             method.invoke(riotService, riotMatch, "test-puuid");
 
-            // Then - Should not save anything
             verify(matchRepository, never()).save(any());
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
@@ -702,19 +659,18 @@ class RiotServiceUnitTest {
 
     @Test
     void testSaveMatchToDatabaseSuccess() {
-        // Given - Mock successful save scenario
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_12345");
         riotMatch.setMetadata(metadata);
 
         RiotMatchDTO.InfoDTO info = new RiotMatchDTO.InfoDTO();
-        info.setGameCreation(1640995200000L); // Some timestamp
+        info.setGameCreation(1640995200000L);
         info.setGameDuration(1800L);
         info.setGameMode("CLASSIC");
         info.setQueueId(420);
 
-        // Create participant for the PUUID
         RiotMatchDTO.ParticipantDTO participant = new RiotMatchDTO.ParticipantDTO();
         participant.setPuuid("test-puuid");
         participant.setWin(true);
@@ -737,10 +693,9 @@ class RiotServiceUnitTest {
         summoner.setId(1L);
 
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.of(summoner));
-        when(matchRepository.findByMatchId("EUW1_12345")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_12345", "test-puuid")).thenReturn(Optional.empty());
         when(matchRepository.save(any(MatchEntity.class))).thenReturn(new MatchEntity());
 
-        // When - Use reflection to invoke private method
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveMatchToDatabase",
@@ -750,7 +705,6 @@ class RiotServiceUnitTest {
             method.setAccessible(true);
             method.invoke(riotService, riotMatch, "test-puuid");
 
-            // Then - Should save the match
             verify(matchRepository).save(any(MatchEntity.class));
         } catch (Exception e) {
             fail("Failed to invoke saveMatchToDatabase: " + e.getMessage());
@@ -759,15 +713,14 @@ class RiotServiceUnitTest {
 
     @Test
     void testSaveSummonerToDatabaseDataAccessException() {
-        // Given
+
         SummonerDTO dto = new SummonerDTO();
         dto.setPuuid("test-puuid");
         dto.setName("TestPlayer#EUW");
         
         when(summonerRepository.findByPuuid("test-puuid")).thenReturn(Optional.empty());
         when(summonerRepository.save(any(Summoner.class))).thenThrow(new org.springframework.dao.DataAccessException("DB Error") {});
-        
-        // When - Use reflection to invoke private method
+
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "saveSummonerToDatabase", 
@@ -775,8 +728,7 @@ class RiotServiceUnitTest {
             );
             method.setAccessible(true);
             method.invoke(riotService, dto);
-            
-            // Then - Should not throw, just log
+
             verify(summonerRepository).save(any(Summoner.class));
         } catch (Exception e) {
             fail("Should not throw exception: " + e.getMessage());
@@ -785,7 +737,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetMatchHistoryCacheStale() {
-        // Given
+
         String puuid = "test-puuid";
         Summoner summoner = new Summoner();
         summoner.setPuuid(puuid);
@@ -795,8 +747,7 @@ class RiotServiceUnitTest {
         
         when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.of(summoner));
         when(matchRepository.findRecentMatchesBySummoner(any(), any())).thenReturn(List.of(oldMatch));
-        
-        // Mock the API call for freshness check - different match ID (cache is stale)
+
         when(restTemplate.exchange(
             anyString(),
             eq(HttpMethod.GET),
@@ -807,8 +758,7 @@ class RiotServiceUnitTest {
             eq(1),
             anyString()
         )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_NEW"}));
-        
-        // Mock the full match list call
+
         when(restTemplate.exchange(
             contains("/lol/match/v5/matches/by-puuid/"),
             eq(HttpMethod.GET),
@@ -819,11 +769,9 @@ class RiotServiceUnitTest {
             eq(5),
             anyString()
         )).thenReturn(ResponseEntity.ok(new String[]{"EUW1_NEW"}));
-        
-        // Mock match not in cache
-        when(matchRepository.findByMatchId("EUW1_NEW")).thenReturn(Optional.empty());
-        
-        // Mock match details
+
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_NEW", puuid)).thenReturn(Optional.empty());
+
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_NEW");
@@ -856,17 +804,15 @@ class RiotServiceUnitTest {
             anyString(),
             anyString()
         )).thenReturn(ResponseEntity.ok(riotMatch));
-        
-        // When
+
         var result = riotService.getMatchHistory(puuid, 0, 5);
-        
-        // Then - Should fetch new matches from API
+
         assertNotNull(result);
     }
 
     @Test
     void testFetchAndAddMatchToHistoryHttpException() {
-        // Given
+
         String matchId = "EUW1_ERROR";
         String puuid = "test-puuid";
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> matches = new java.util.ArrayList<>();
@@ -879,8 +825,7 @@ class RiotServiceUnitTest {
             eq(matchId),
             anyString()
         )).thenThrow(new org.springframework.web.client.HttpClientErrorException(org.springframework.http.HttpStatus.NOT_FOUND));
-        
-        // When - Use reflection to invoke private method
+
         try {
             java.lang.reflect.Method method = RiotService.class.getDeclaredMethod(
                 "fetchAndAddMatchToHistory",
@@ -890,8 +835,7 @@ class RiotServiceUnitTest {
             );
             method.setAccessible(true);
             method.invoke(riotService, matchId, puuid, matches);
-            
-            // Then - Should log warning and not add to matches
+
             assertTrue(matches.isEmpty());
         } catch (Exception e) {
             fail("Should handle exception gracefully: " + e.getMessage());
@@ -900,7 +844,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameSaveToDatabaseException() {
-        // Given
+
         String riotId = "TestPlayer#EUW";
         String puuid = "test-puuid-123";
         
@@ -943,18 +887,16 @@ class RiotServiceUnitTest {
         when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
         when(summonerRepository.findByPuuid(puuid)).thenReturn(Optional.empty());
         when(summonerRepository.save(any(Summoner.class))).thenThrow(new RuntimeException("DB Save Error"));
-        
-        // When - Should still return DTO even if save fails
+
         SummonerDTO result = riotService.getSummonerByName(riotId);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(riotId, result.getName());
     }
 
     @Test
     void testGetTopChampionMasteriesEmptyResponse() {
-        // Given
+
         String puuid = "test-puuid";
         
         when(restTemplate.exchange(
@@ -966,18 +908,16 @@ class RiotServiceUnitTest {
             anyInt(),
             anyString()
         )).thenReturn(ResponseEntity.ok(new RiotChampionMasteryDTO[]{}));
-        
-        // When
+
         List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 5);
-        
-        // Then
+
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetSummonerByNameWithRankedData() {
-        // Given
+
         String riotId = "Player#EUW";
         String puuid = "puuid-with-rank";
         
@@ -1004,11 +944,9 @@ class RiotServiceUnitTest {
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotLeagueEntryDTO[].class), eq(puuid), anyString()))
             .thenReturn(ResponseEntity.ok(new RiotLeagueEntryDTO[]{rankedEntry}));
         when(dataDragonService.getProfileIconUrl(5)).thenReturn("http://icon.png");
-        
-        // When
+
         SummonerDTO result = riotService.getSummonerByName(riotId);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals("Player#EUW", result.getName());
         assertEquals("DIAMOND", result.getTier());
@@ -1020,7 +958,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetSummonerByNameUnranked() {
-        // Given
+
         String riotId = "Unranked#NA";
         String puuid = "puuid-unranked";
         
@@ -1039,11 +977,9 @@ class RiotServiceUnitTest {
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotLeagueEntryDTO[].class), eq(puuid), anyString()))
             .thenReturn(ResponseEntity.ok(new RiotLeagueEntryDTO[]{}));
         when(dataDragonService.getProfileIconUrl(1)).thenReturn("http://icon.png");
-        
-        // When
+
         SummonerDTO result = riotService.getSummonerByName(riotId);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals("Unranked#NA", result.getName());
         assertEquals("UNRANKED", result.getTier());
@@ -1055,7 +991,7 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetMatchDetailsWithCompleteData() {
-        // Given
+
         String matchId = "EUW1_COMPLETE";
         
         RiotMatchDTO riotMatch = new RiotMatchDTO();
@@ -1091,11 +1027,9 @@ class RiotServiceUnitTest {
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
             .thenReturn(ResponseEntity.ok(riotMatch));
         when(dataDragonService.getChampionIconUrl(103L)).thenReturn("http://champion.png");
-        
-        // When
+
         var result = riotService.getMatchDetails(matchId);
-        
-        // Then
+
         assertNotNull(result);
         assertEquals(matchId, result.getMatchId());
         assertEquals(420, result.getQueueId());
@@ -1105,44 +1039,40 @@ class RiotServiceUnitTest {
 
     @Test
     void testGetMatchDetailsHttpError() {
-        // Given
+
         String matchId = "EUW1_ERROR";
         
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
             .thenThrow(new org.springframework.web.client.HttpClientErrorException(
                 org.springframework.http.HttpStatus.NOT_FOUND, "Match not found"));
-        
-        // When
+
         var result = riotService.getMatchDetails(matchId);
-        
-        // Then
+
         assertNull(result);
     }
 
     @Test
     void testGetMatchDetailsNullInfo() {
-        // Given
+
         String matchId = "EUW1_NULL_INFO";
         
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId(matchId);
         riotMatch.setMetadata(metadata);
-        riotMatch.setInfo(null); // Null info
+        riotMatch.setInfo(null);
         
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), eq(RiotMatchDTO.class), eq(matchId), anyString()))
             .thenReturn(ResponseEntity.ok(riotMatch));
-        
-        // When
+
         var result = riotService.getMatchDetails(matchId);
-        
-        // Then
+
         assertNull(result);
     }
 
     @Test
-    void testGetTopChampionMasteries_httpClientErrorException_returnsEmpty() {
-        // Given - HttpClientErrorException specifically (separate catch block from generic Exception)
+    void testGetTopChampionMasterieshttpClientErrorExceptionreturnsEmpty() {
+
         String puuid = "test-puuid";
 
         when(restTemplate.exchange(
@@ -1156,17 +1086,15 @@ class RiotServiceUnitTest {
         )).thenThrow(new org.springframework.web.client.HttpClientErrorException(
                 org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, "Rate limited"));
 
-        // When
         List<RiotChampionMasteryDTO> result = riotService.getTopChampionMasteries(puuid, 3);
 
-        // Then - Returns empty list on HttpClientErrorException
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void testGetSummonerByName_httpClientErrorException_withDatabaseFallback() {
-        // Given - API returns HttpClientErrorException but summoner is in DB
+    void testGetSummonerByNamehttpClientErrorExceptionwithDatabaseFallback() {
+
         String riotId = "TestPlayer#EUW";
         String puuid = "test-puuid";
 
@@ -1189,10 +1117,8 @@ class RiotServiceUnitTest {
         when(summonerRepository.findByName(riotId)).thenReturn(Optional.of(cachedSummoner));
         when(dataDragonService.getProfileIconUrl(anyInt())).thenReturn("http://example.com/icon.png");
 
-        // When
         SummonerDTO result = riotService.getSummonerByName(riotId);
 
-        // Then - Should return cached data
         assertNotNull(result);
         assertEquals(riotId, result.getName());
         verify(summonerRepository).findByName(riotId);

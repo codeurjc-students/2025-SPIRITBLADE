@@ -16,14 +16,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para gestiÃ³n de usuarios por administradores.
- * Verifica:
- * - Listado de usuarios con filtros
- * - CreaciÃ³n de usuarios
- * - ActualizaciÃ³n de roles
- * - ActivaciÃ³n/desactivaciÃ³n de usuarios
- * - EliminaciÃ³n de usuarios
- * - BÃºsqueda de usuarios
+ * Comprehensive system tests for admin functionalities, including user management and access control.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdminSystemTest {
@@ -48,11 +41,10 @@ class AdminSystemTest {
 
     @BeforeEach
     void authenticate() {
-        // Clear any existing test users
+
         userRepository.findByName("testadmin").ifPresent(u -> userRepository.delete(u));
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
 
-        // Create test users with known passwords
         UserModel admin = new UserModel("testadmin", passwordEncoder.encode("admin123"), "ADMIN");
         admin.setEmail("testadmin@example.com");
         admin.setActive(true);
@@ -63,7 +55,6 @@ class AdminSystemTest {
         user.setActive(true);
         userRepository.save(user);
 
-        // Login as admin
         adminToken = given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -80,7 +71,6 @@ class AdminSystemTest {
                 .extract()
                 .path("accessToken");
 
-        // Login as regular user
         userToken = given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -142,7 +132,7 @@ class AdminSystemTest {
 
     @Test
     void testGetAllUsersWithVariousFilters() {
-        // Test search filter
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + adminToken)
@@ -154,7 +144,6 @@ class AdminSystemTest {
                 .statusCode(200)
                 .body("content", notNullValue());
 
-        // Test role filter
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + adminToken)
@@ -166,7 +155,6 @@ class AdminSystemTest {
                 .statusCode(200)
                 .body("content", notNullValue());
 
-        // Test active filter
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + adminToken)

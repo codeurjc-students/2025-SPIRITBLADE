@@ -59,21 +59,20 @@ class UserMapperTest {
         UserModel result = UserMapper.toEntity(dto);
 
         assertNotNull(result);
-        assertNull(result.getId()); // ID should not be set
+        assertNull(result.getId());
         assertEquals("testuser", result.getName());
         assertEquals("test@example.com", result.getEmail());
         assertEquals("image.jpg", result.getImage());
         assertEquals(Arrays.asList("ROLE_USER"), result.getRols());
         assertTrue(result.isActive());
         assertEquals("avatar.jpg", result.getAvatarUrl());
-        assertNull(result.getEncodedPassword()); // Password should not be set
+        assertNull(result.getEncodedPassword());
     }
 
     @Test
     void testToEntityWithNullFields() {
         UserDTO dto = new UserDTO();
         dto.setName("testuser");
-        // Leave other fields null
 
         UserModel result = UserMapper.toEntity(dto);
 
@@ -82,7 +81,7 @@ class UserMapperTest {
         assertNull(result.getEmail());
         assertNull(result.getImage());
         assertNull(result.getRols());
-        assertFalse(result.isActive()); // Should be false when not set
+        assertFalse(result.isActive());
         assertNull(result.getAvatarUrl());
     }
 }

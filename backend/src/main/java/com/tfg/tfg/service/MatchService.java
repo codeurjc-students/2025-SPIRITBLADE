@@ -51,8 +51,8 @@ public class MatchService implements IMatchService {
                 .toList();
     }
 
-    public Map<String, MatchEntity> findExistingMatchesByMatchIds(List<String> matchIds) {
-        return matchRepository.findByMatchIdIn(matchIds)
+    public Map<String, MatchEntity> findExistingMatchesByMatchIdsAndSummoner(List<String> matchIds, Summoner summoner) {
+        return matchRepository.findByMatchIdInAndSummoner(matchIds, summoner)
                 .stream()
                 .collect(Collectors.toMap(MatchEntity::getMatchId, m -> m));
     }
