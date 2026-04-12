@@ -340,8 +340,8 @@ class RiotServiceUnitTest {
             anyString()
         )).thenReturn(ResponseEntity.ok(matchIds));
 
-        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_123", "puuid1")).thenReturn(Optional.empty());
-        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_456", "puuid1")).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_123", puuid)).thenReturn(Optional.empty());
+        when(matchRepository.findByMatchIdAndSummonerPuuid("EUW1_456", puuid)).thenReturn(Optional.empty());
 
         RiotMatchDTO riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
