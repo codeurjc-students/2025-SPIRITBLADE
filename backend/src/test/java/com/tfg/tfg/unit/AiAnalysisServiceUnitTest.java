@@ -39,14 +39,12 @@ class AiAnalysisServiceUnitTest {
     @BeforeEach
     void setUp() {
         service = new AiAnalysisService(rankHistoryService);
-        
-        // Setup test summoner
+
         testSummoner = new Summoner();
         testSummoner.setId(1L);
         testSummoner.setName("TestPlayer");
         testSummoner.setPuuid("test-puuid");
-        
-        // Setup test matches
+
         testMatches = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             MatchEntity match = new MatchEntity();
@@ -58,8 +56,8 @@ class AiAnalysisServiceUnitTest {
             match.setKills(5 + i);
             match.setDeaths(3);
             match.setAssists(7 + i);
-            match.setWin(i % 3 != 0); // Win rate ~66%
-            match.setGameDuration(1800L); // 30 minutes
+            match.setWin(i % 3 != 0);
+            match.setGameDuration(1800L);
             match.setTimestamp(LocalDateTime.now().minusDays(i));
             testMatches.add(match);
         }
@@ -67,10 +65,9 @@ class AiAnalysisServiceUnitTest {
     
     @Test
     void testAnalyzePerformanceWithoutApiKey() {
-        // API key not set
+
         ReflectionTestUtils.setField(service, "geminiApiKey", "");
-        
-        // Should throw exception when API key is missing
+
         assertThrows(IllegalStateException.class, () -> {
             service.analyzePerformance(testSummoner, testMatches);
         });
@@ -78,7 +75,7 @@ class AiAnalysisServiceUnitTest {
     
     @Test
     void testAnalyzePerformanceWithEmptyMatches() throws IOException {
-        // Set a dummy API key
+
         ReflectionTestUtils.setField(service, "geminiApiKey", "test-key");
         
         List<MatchEntity> emptyMatches = new ArrayList<>();
@@ -95,14 +92,12 @@ class AiAnalysisServiceUnitTest {
     
     @Test
     void testBuildStatsPromptLogic() throws IOException {
-        // We can't test the actual API call without a real key,
-        // but we can verify the service doesn't crash with empty matches
+
         ReflectionTestUtils.setField(service, "geminiApiKey", "test-key");
         
         List<MatchEntity> emptyMatches = new ArrayList<>();
         AiAnalysisResponseDto result = service.analyzePerformance(testSummoner, emptyMatches);
-        
-        // Should return a fallback message for empty matches
+
         assertNotNull(result);
         assertFalse(result.getAnalysis().isEmpty());
     }
@@ -149,7 +144,7 @@ class AiAnalysisServiceUnitTest {
 
     @Test
     void testBuildStatsPromptWithMatchesUsesAllFields() throws Exception {
-        // Call private buildStatsPrompt to exercise the large prompt-building logic
+
         java.lang.reflect.Method m = AiAnalysisService.class.getDeclaredMethod("buildStatsPrompt", Summoner.class, List.class);
         m.setAccessible(true);
 
@@ -158,16 +153,16 @@ class AiAnalysisServiceUnitTest {
         assertNotNull(prompt);
         assertTrue(prompt.contains("TestPlayer"));
         assertTrue(prompt.contains("Total Matches"));
-        // Should include at least the first match block and a champion name
+
         assertTrue(prompt.contains("MATCH 1"));
         assertTrue(prompt.contains("Champion0") || prompt.contains("Champion1"));
-        // KDA appears formatted
+
         assertTrue(prompt.contains("KDA") || prompt.toLowerCase().contains("kda"));
     }
 
     @Test
     void testCallGeminiApi_successAndErrorPaths() throws Exception {
-        // Prepare a mock WebClient chain
+
         WebClient webClient = mock(WebClient.class);
         WebClient.RequestBodyUriSpec uriSpec = mock(WebClient.RequestBodyUriSpec.class);
         WebClient.RequestHeadersSpec<?> headersSpec = mock(WebClient.RequestHeadersSpec.class);
@@ -176,11 +171,10 @@ class AiAnalysisServiceUnitTest {
         doReturn(uriSpec).when(webClient).post();
         doReturn(uriSpec).when(uriSpec).uri(anyString());
         doReturn(uriSpec).when(uriSpec).header(anyString(), anyString());
-        // Use doReturn to avoid generic capture issues with Mockito
+
         doReturn(headersSpec).when(uriSpec).bodyValue(any());
         doReturn(responseSpec).when(headersSpec).retrieve();
 
-        // Successful response
         String successJson = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"AI-OUT\"}]},\"finishReason\":\"STOP\"}]}";
     doReturn(Mono.just(successJson)).when(responseSpec).bodyToMono(String.class);
 
@@ -193,7 +187,6 @@ class AiAnalysisServiceUnitTest {
         String out = (String) m.invoke(service, "prompt");
         assertEquals("AI-OUT", out);
 
-        // Error response should throw IOException
         String errJson = "{\"error\":{\"message\":\"bad key\"}}";
     doReturn(Mono.just(errJson)).when(responseSpec).bodyToMono(String.class);
 
@@ -201,7 +194,7 @@ class AiAnalysisServiceUnitTest {
             try {
                 m.invoke(service, "prompt2");
             } catch (java.lang.reflect.InvocationTargetException ite) {
-                // unwrap
+
                 throw ite.getCause();
             }
         });

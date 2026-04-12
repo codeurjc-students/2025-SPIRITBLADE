@@ -15,8 +15,7 @@ class RiotMatchDTOTest {
     @Test
     void testParticipantDTORemainingFields() {
         RiotMatchDTO.ParticipantDTO participant = new RiotMatchDTO.ParticipantDTO();
-        
-        // Test fields not covered in previous tests
+
         participant.setRiotIdGameName("TestPlayer");
         participant.setRiotIdTagline("EUW");
         participant.setChampLevel(18);
@@ -27,8 +26,7 @@ class RiotMatchDTOTest {
         participant.setItem4(3036);
         participant.setItem5(3046);
         participant.setItem6(3363);
-        
-        // Assert
+
         assertEquals("TestPlayer", participant.getRiotIdGameName());
         assertEquals("EUW", participant.getRiotIdTagline());
         assertEquals(18, participant.getChampLevel());
@@ -102,7 +100,6 @@ class RiotMatchDTOTest {
         assertEquals(238, team.getBans().get(1).getChampionId());
     }
 
-    
     @Test
     void testObjectiveDTO() {
         RiotMatchDTO.ObjectiveDTO objective = new RiotMatchDTO.ObjectiveDTO();

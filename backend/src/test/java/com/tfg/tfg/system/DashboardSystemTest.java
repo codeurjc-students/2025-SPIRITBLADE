@@ -16,12 +16,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para el Dashboard y estadÃ­sticas personales.
- * Verifica funcionalidades de:
- * - EstadÃ­sticas personales (rank, LP, rol principal)
- * - Historial de partidas ranqueadas
- * - ProgresiÃ³n de LP
- * - GestiÃ³n de favoritos
+ * Testing system for dashboard functionalities, including recent summoner activity and match history display.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DashboardSystemTest {
@@ -45,16 +40,14 @@ class DashboardSystemTest {
 
     @BeforeEach
     void authenticate() {
-        // Clear any existing test user
+
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
 
-        // Create test user with known password
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
         userRepository.save(user);
 
-        // Login to get auth token
         authToken = given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -84,7 +77,7 @@ class DashboardSystemTest {
                 .statusCode(200)
                 .body("currentRank", notNullValue())
                 .body("mainRole", notNullValue());
-        // favoriteChampion can be null without linked summoner
+
     }
 
     @Test
@@ -116,7 +109,7 @@ class DashboardSystemTest {
 
     @Test
     void testGetRankedMatchesByQueue() {
-        // Solo/Duo queue
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -127,7 +120,6 @@ class DashboardSystemTest {
                 .then()
                 .statusCode(200);
 
-        // Flex queue
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -154,7 +146,7 @@ class DashboardSystemTest {
 
     @Test
     void testFavoritesFlow() {
-        // Add
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -162,9 +154,8 @@ class DashboardSystemTest {
                 .when()
                 .post("/api/v1/dashboard/me/favorites/TestSummoner")
                 .then()
-                .statusCode(anyOf(is(200), is(404))); // 404 if not found in db
+                .statusCode(anyOf(is(200), is(404)));
 
-        // Remove
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -192,7 +183,7 @@ class DashboardSystemTest {
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
                 .contentType(ContentType.JSON)
-                .queryParam("queueId", 999) // Invalid queue
+                .queryParam("queueId", 999)
                 .when()
                 .get("/api/v1/dashboard/me/ranked-matches")
                 .then()
@@ -202,8 +193,7 @@ class DashboardSystemTest {
 
     @Test
     void testGetPersonalStatsContainsExpectedFields() {
-        // winRate can be null without matches, currentRank and mainRole should always
-        // be present
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)

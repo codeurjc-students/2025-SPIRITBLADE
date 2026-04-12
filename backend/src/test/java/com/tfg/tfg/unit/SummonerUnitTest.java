@@ -55,23 +55,19 @@ class SummonerUnitTest {
         assertEquals(1500, summoner.getLp());
     }
 
-    // Tests for matches and championStats removed - data now fetched from Riot API in real-time
-
     @Test
     void testRankTierCombinations() {
-        // Test unranked player
+
         summoner.setTier(null);
         summoner.setRank(null);
         assertNull(summoner.getTier());
         assertNull(summoner.getRank());
-        
-        // Test ranked player
+
         summoner.setTier("SILVER");
         summoner.setRank("II");
         assertEquals("SILVER", summoner.getTier());
         assertEquals("II", summoner.getRank());
-        
-        // Test high tier without rank (Master, Grandmaster, Challenger)
+
         summoner.setTier("MASTER");
         summoner.setRank(null);
         assertEquals("MASTER", summoner.getTier());
@@ -114,7 +110,7 @@ class SummonerUnitTest {
         summoner.setLp(100);
         assertEquals(100, summoner.getLp());
         
-        summoner.setLp(-1); // Edge case
+        summoner.setLp(-1);
         assertEquals(-1, summoner.getLp());
         
         summoner.setLp(null);

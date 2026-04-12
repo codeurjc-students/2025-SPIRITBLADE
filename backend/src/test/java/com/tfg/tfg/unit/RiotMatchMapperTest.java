@@ -33,11 +33,10 @@ class RiotMatchMapperTest {
 
     @BeforeEach
     void setUp() {
-        // Setup mock DataDragonService with lenient stubbing
+
         lenient().when(dataDragonService.getChampionIconUrl(anyLong())).thenReturn("http://example.com/champion.png");
         lenient().when(dataDragonService.getChampionNameById(anyLong())).thenReturn("TestChampion");
 
-        // Create test data
         riotMatch = new RiotMatchDTO();
         RiotMatchDTO.MetadataDTO metadata = new RiotMatchDTO.MetadataDTO();
         metadata.setMatchId("EUW1_123456789");
@@ -235,9 +234,9 @@ class RiotMatchMapperTest {
         assertTrue(result.getWin());
         assertEquals(1, result.getBaronKills());
         assertEquals(3, result.getDragonKills());
-        assertEquals(0, result.getTowerKills()); // Not set in test data
-        assertEquals(0, result.getInhibitorKills()); // Not set in test data
-        assertEquals(0, result.getRiftHeraldKills()); // Not set in test data
+        assertEquals(0, result.getTowerKills());
+        assertEquals(0, result.getInhibitorKills());
+        assertEquals(0, result.getRiftHeraldKills());
         assertEquals(1, result.getParticipants().size());
         assertEquals(Arrays.asList("TestChampion"), result.getBans());
     }
@@ -288,7 +287,7 @@ class RiotMatchMapperTest {
 
     @Test
     void testGetObjectiveKillsNull() {
-        // This is a private method, but we can test it indirectly through toTeamDTO
+
         team.getObjectives().setBaron(null);
         List<ParticipantDTO> participants = Collections.emptyList();
 

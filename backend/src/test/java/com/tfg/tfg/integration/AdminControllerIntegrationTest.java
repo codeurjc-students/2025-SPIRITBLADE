@@ -46,10 +46,9 @@ class AdminControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Clean database before each test
+
         userRepository.deleteAll();
 
-        // Create test users
         UserModel admin = new UserModel("admin", "password", "ADMIN");
         admin.setEmail("admin@example.com");
         admin.setActive(true);
@@ -84,19 +83,17 @@ class AdminControllerIntegrationTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void testListUsersWithVariousFilters() throws Exception {
-        // Test role filter
+
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("role", "USER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", notNullValue()));
 
-        // Test active filter
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("active", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", notNullValue()));
 
-        // Test search filter
         mockMvc.perform(get(API_ADMIN_USERS)
                 .param("search", "test"))
                 .andExpect(status().isOk())

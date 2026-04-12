@@ -45,17 +45,14 @@ class FileControllerIntegrationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        // Mock the storage service methods for testing
-        // Configure store() method to return file identifiers
+
         when(storageService.store(any(), isNull())).thenReturn(TEST_FILENAME);
         when(storageService.store(any(), eq(TEST_FOLDER))).thenReturn(TEST_FOLDER + "/" + TEST_FILENAME);
 
-        // Configure getPublicUrl() method
         when(storageService.getPublicUrl(TEST_FILENAME)).thenReturn("http://example.com/" + TEST_FILENAME);
         when(storageService.getPublicUrl(TEST_FOLDER + "/" + TEST_FILENAME))
                 .thenReturn("http://example.com/" + TEST_FOLDER + "/" + TEST_FILENAME);
 
-        // Configure retrieve() method for successful cases
         when(storageService.retrieve(TEST_FILENAME))
                 .thenReturn(new ByteArrayInputStream("test image content".getBytes()));
         when(storageService.retrieve(TEST_FOLDER + "/" + TEST_FILENAME))
@@ -63,12 +60,9 @@ class FileControllerIntegrationTest {
         when(storageService.retrieve(TEST_FOLDER + "/test.PNG"))
                 .thenReturn(new ByteArrayInputStream("test image content".getBytes()));
 
-        // Configure retrieve() method to throw IOException for non-existent files
         when(storageService.retrieve("nonexistent.png")).thenThrow(new IOException("File not found"));
         when(storageService.retrieve(TEST_FOLDER + "/nonexistent.png")).thenThrow(new IOException("File not found"));
 
-        // Configure delete() method - do nothing for success, throw exception for
-        // failure
         doNothing().when(storageService).delete(anyString());
         doThrow(new IOException("File not found")).when(storageService).delete("nonexistent.png");
     }
@@ -143,17 +137,15 @@ class FileControllerIntegrationTest {
 
     @Test
     void testGetFilesSuccessfully() throws Exception {
-        // Get file from folder
+
         mockMvc.perform(get(API_FILES + "/{folder}/{filename}", TEST_FOLDER, TEST_FILENAME))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("image/png"));
 
-        // Get file without folder
         mockMvc.perform(get(API_FILES + "/{filename}", TEST_FILENAME))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("image/png"));
 
-        // Get file with case insensitive extension
         mockMvc.perform(get(API_FILES + "/{folder}/{filename}", TEST_FOLDER, "test.PNG"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("image/png"));
@@ -162,13 +154,12 @@ class FileControllerIntegrationTest {
     @Test
     @WithMockUser
     void testDeleteFileOperations() throws Exception {
-        // Test basic delete
+
         mockMvc.perform(delete(API_FILES + "/delete/" + TEST_FILENAME))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value("true"))
                 .andExpect(jsonPath("$.message").value("File deleted successfully"));
 
-        // Test delete with path encoding
         String encodedFileId = "testfile.png";
         mockMvc.perform(delete(API_FILES + "/delete/" + encodedFileId))
                 .andExpect(status().isOk())

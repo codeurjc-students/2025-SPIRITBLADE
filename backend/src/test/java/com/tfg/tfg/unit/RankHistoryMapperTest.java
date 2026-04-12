@@ -81,13 +81,13 @@ class RankHistoryMapperTest {
         RankHistoryDTO result = RankHistoryMapper.toSimpleDTO(entity);
 
         assertNotNull(result);
-        assertEquals("2023-01-01T12:00", result.getDate()); // String representation
+        assertEquals("2023-01-01T12:00", result.getDate());
         assertEquals("GOLD", result.getTier());
         assertEquals("II", result.getRank());
         assertEquals(75, result.getLeaguePoints());
         assertEquals(50, result.getWins());
         assertEquals(30, result.getLosses());
-        // Other fields should be null
+
         assertNull(result.getId());
         assertNull(result.getSummonerName());
         assertNull(result.getQueueType());

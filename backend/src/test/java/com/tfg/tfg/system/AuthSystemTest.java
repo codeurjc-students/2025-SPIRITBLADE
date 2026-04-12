@@ -16,13 +16,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para autenticaciÃ³n y gestiÃ³n de sesiones.
- * Verifica:
- * - Login con credenciales vÃ¡lidas/invÃ¡lidas
- * - Registro de nuevos usuarios
- * - Refresh de tokens JWT
- * - Logout
- * - VerificaciÃ³n de usuario autenticado
+ * Comprehensive system tests for authentication and session management.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AuthSystemTest {
@@ -44,17 +38,15 @@ class AuthSystemTest {
 
     @BeforeEach
     void createTestUsers() {
-        // Clear any existing test users
+
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
         userRepository.findByName("admin").ifPresent(u -> userRepository.delete(u));
 
-        // Create test users with known passwords
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
         userRepository.save(user);
 
-        // Create admin user
         UserModel admin = new UserModel("admin", passwordEncoder.encode("admin"), "ADMIN");
         admin.setEmail("admin@example.com");
         admin.setActive(true);
@@ -82,7 +74,7 @@ class AuthSystemTest {
 
     @Test
     void testLoginWithInvalidCredentials() {
-        // Invalid password
+
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -97,7 +89,6 @@ class AuthSystemTest {
                 .then()
                 .statusCode(401);
 
-        // Non-existent user
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -112,7 +103,6 @@ class AuthSystemTest {
                 .then()
                 .statusCode(401);
 
-        // Empty username
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -151,7 +141,7 @@ class AuthSystemTest {
 
     @Test
     void testRegisterWithInvalidData() {
-        // Existing username
+
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -167,7 +157,6 @@ class AuthSystemTest {
                 .then()
                 .statusCode(anyOf(is(409), is(400), is(500)));
 
-        // Invalid email
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -186,7 +175,7 @@ class AuthSystemTest {
 
     @Test
     void testGetMeWithValidTokenReturnsUserInfo() {
-        // First login to get token
+
         String token = given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -203,7 +192,6 @@ class AuthSystemTest {
                 .extract()
                 .path("accessToken");
 
-        // Then get user info
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + token)
@@ -218,7 +206,7 @@ class AuthSystemTest {
 
     @Test
     void testGetMeWithInvalidTokens() {
-        // Without token
+
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -227,7 +215,6 @@ class AuthSystemTest {
                 .then()
                 .statusCode(401);
 
-        // With invalid token
         given()
                 .port(port)
                 .header("Authorization", "Bearer invalid_token_here")
@@ -240,7 +227,7 @@ class AuthSystemTest {
 
     @Test
     void testLogoutWithValidTokenReturnsSuccess() {
-        // First login
+
         String token = given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -257,7 +244,6 @@ class AuthSystemTest {
                 .extract()
                 .path("accessToken");
 
-        // Then logout
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + token)
@@ -270,8 +256,7 @@ class AuthSystemTest {
 
     @Test
     void testLoginReturnsUserWithCorrectRole() {
-        // Login response contains accessToken but not roles (roles are in JWT token
-        // itself)
+
         given()
                 .port(port)
                 .contentType(ContentType.JSON)

@@ -196,12 +196,11 @@ class RankHistoryUnitTest {
     }
 
     @Test
-    void testGetWinRate_nullWinsNonZeroLosses() {
-        // This covers the condition where wins is null but losses is set
+    void testGetWinRatenullWinsNonZeroLosses() {
+
         rankHistory.setWins(null);
         rankHistory.setLosses(50);
 
-        // total = 0 + 50 = 50, wins = 0
         assertEquals(0.0, rankHistory.getWinRate(), 0.01);
     }
 }

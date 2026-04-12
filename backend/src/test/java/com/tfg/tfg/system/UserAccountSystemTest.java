@@ -16,12 +16,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Sistema de pruebas para gestiÃ³n de cuentas de usuario.
- * Verifica:
- * - VinculaciÃ³n de cuenta de League of Legends
- * - DesvinculaciÃ³n de cuenta
- * - ObtenciÃ³n de informaciÃ³n de cuenta vinculada
- * - Subida y gestiÃ³n de avatares
+ * Comprehensive system tests for user account functionalities, including profile management and summoner linking.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserAccountSystemTest {
@@ -45,10 +40,9 @@ class UserAccountSystemTest {
 
     @BeforeEach
     void authenticate() {
-        // Clear any existing test user
+
         userRepository.findByName("testuser").ifPresent(u -> userRepository.delete(u));
 
-        // Create test user with known password
         UserModel user = new UserModel("testuser", passwordEncoder.encode("user123"), "USER");
         user.setEmail("testuser@example.com");
         user.setActive(true);
@@ -114,12 +108,12 @@ class UserAccountSystemTest {
                 .when()
                 .post("/api/v1/users/link-summoner")
                 .then()
-                .statusCode(anyOf(is(200), is(404), is(400))); // 404 if summoner doesn't exist
+                .statusCode(anyOf(is(200), is(404), is(400)));
     }
 
     @Test
     void testLinkSummonerInvalidData() {
-        // Empty Summoner Name
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -135,7 +129,6 @@ class UserAccountSystemTest {
                 .then()
                 .statusCode(400);
 
-        // Invalid Region
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -166,7 +159,7 @@ class UserAccountSystemTest {
 
     @Test
     void testEndpointsUnauthorizedAccess() {
-        // Link Summoner
+
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -181,7 +174,6 @@ class UserAccountSystemTest {
                 .then()
                 .statusCode(401);
 
-        // Get Linked Summoner
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -217,7 +209,7 @@ class UserAccountSystemTest {
                 .when()
                 .post("/api/v1/users/avatar")
                 .then()
-                .statusCode(anyOf(is(400), is(500))); // 500 if multipart boundary is missing
+                .statusCode(anyOf(is(400), is(500)));
     }
 
     @Test
@@ -247,12 +239,12 @@ class UserAccountSystemTest {
                 .body("email", notNullValue())
                 .body("roles", notNullValue())
                 .body("active", notNullValue());
-        // linkedSummonerName can be null if not linked
+
     }
 
     @Test
     void testLinkSummonerTwoDifferentSummonersUpdatesLink() {
-        // First link
+
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)
@@ -268,7 +260,6 @@ class UserAccountSystemTest {
                 .then()
                 .statusCode(anyOf(is(200), is(404), is(400)));
 
-        // Second link (should replace first)
         given()
                 .port(port)
                 .header("Authorization", "Bearer " + authToken)

@@ -51,25 +51,22 @@ class UserControllerIntegrationTest {
     @MockitoBean
     private MinioStorageService storageService;
 
-    private UserModel testUser;
-    private UserModel inactiveUser;
-
     @BeforeEach
     void setUp() {
-        // Clean database before each test
+        private UserModel testUser;
+        private UserModel inactiveUser;
+
         userRepository.deleteAll();
 
-        // Create test user
         testUser = new UserModel(TEST_USER_NAME, TEST_PASSWORD, ROLE_USER);
         testUser.setEmail(TEST_USER_EMAIL);
         testUser.setActive(true);
-        testUser = userRepository.save(testUser);
+        userRepository.save(testUser);
 
-        // Create inactive user
         inactiveUser = new UserModel(INACTIVE_USER_NAME, TEST_PASSWORD, ROLE_USER);
         inactiveUser.setEmail("inactive@example.com");
         inactiveUser.setActive(false);
-        inactiveUser = userRepository.save(inactiveUser);
+        userRepository.save(inactiveUser);
     }
 
     @Test

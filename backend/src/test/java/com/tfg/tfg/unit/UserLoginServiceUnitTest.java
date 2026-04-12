@@ -64,7 +64,7 @@ class UserLoginServiceUnitTest {
 
     @Test
     void testLoginSuccess() {
-        // Given
+
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("testuser");
         loginRequest.setPassword("password");
@@ -75,10 +75,8 @@ class UserLoginServiceUnitTest {
         when(jwtTokenProvider.generateAccessToken(testUserDetails)).thenReturn("access-token-123");
         when(jwtTokenProvider.generateRefreshToken(testUserDetails)).thenReturn("refresh-token-456");
 
-        // When
         ResponseEntity<AuthResponse> response = userLoginService.login(loginRequest);
 
-        // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(AuthResponse.Status.SUCCESS, response.getBody().getStatus());
@@ -94,7 +92,7 @@ class UserLoginServiceUnitTest {
 
     @Test
     void testRefreshFailure() {
-        // Covers uncovered line: refresh token invalid → 401 UNAUTHORIZED response
+
         String invalidRefreshToken = "invalid-or-expired-token";
         when(jwtTokenProvider.validateToken(invalidRefreshToken))
                 .thenThrow(new RuntimeException("Token expired"));
@@ -110,12 +108,11 @@ class UserLoginServiceUnitTest {
 
     @Test
     void testLogout() {
-        // When
+
         String result = userLoginService.logout(httpServletResponse);
 
-        // Then
         assertEquals("logout successfully", result);
-        // Two cookies should be added (access + refresh removal)
+
         verify(httpServletResponse, times(2)).addCookie(any());
     }
 }

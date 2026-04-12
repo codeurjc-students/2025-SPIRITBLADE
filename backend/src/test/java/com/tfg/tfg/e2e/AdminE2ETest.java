@@ -24,9 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el panel de administraciÃƒÂ³n.
- * Verifica que los endpoints administrativos estÃƒÂ©n protegidos y
- * funcionen correctamente con la autenticaciÃƒÂ³n adecuada.
+ * End-to-end tests for the admin interface and API endpoints.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -75,18 +73,16 @@ class AdminE2ETest {
 
     @Test
     void testAdminPageRequiresAuthentication() {
-        // Access the Angular app root first
+
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-        // Then try to navigate to admin page
         driver.get(baseUrl + ADMIN_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         String currentUrl = driver.getCurrentUrl();
         String pageContent = driver.findElement(By.tagName("body")).getText();
 
-        // Angular should handle the redirect client-side or load the page
         boolean isProtected = currentUrl.contains("/login") ||
                 currentUrl.contains(ADMIN_PATH) ||
                 pageContent.contains("login") ||
@@ -96,13 +92,13 @@ class AdminE2ETest {
 
         assertTrue(isProtected, "Admin page should load through Angular");
 
-        log.info("Ã¢Å“â€œ Admin page authentication protection verified");
+        log.info("✓ Admin page authentication protection verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
     @Test
     void testAdminAPIEndpoints() {
-        // Test that admin API endpoints exist and require authentication
+
         driver.get(baseUrl + "/api/v1/users");
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -110,7 +106,6 @@ class AdminE2ETest {
         String responseContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(responseContent);
 
-        // Should return Unauthorized or require authentication
         assertTrue(
                 responseContent.contains("Unauthorized") ||
                         responseContent.contains("error") ||
@@ -119,9 +114,8 @@ class AdminE2ETest {
                         !responseContent.isEmpty(),
                 "Admin API should require authentication or return data");
 
-        System.out.println("✓ User management API endpoint is accessible and protected");
+        log.info("✓ User management API endpoint is accessible and protected");
 
-        // Test summoner API accessibility (migrated from SummonerE2ETest)
         driver.get(baseUrl + "/api/v1/summoners");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         String summonerContent = driver.findElement(By.tagName("body")).getText();
@@ -141,7 +135,7 @@ class AdminE2ETest {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         try {
-            // Check for basic page structure
+
             List<WebElement> tableElements = driver.findElements(By.tagName("table"));
             List<WebElement> buttonElements = driver.findElements(By.tagName("button"));
 
@@ -159,14 +153,13 @@ class AdminE2ETest {
 
     @Test
     void testDeleteUserAPIEndpoint() {
-        // Test that delete endpoint exists and requires authentication
+
         driver.get(baseUrl + "/api/v1/users/1");
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         String responseContent = driver.findElement(By.tagName("body")).getText();
 
-        // Should require authentication
         assertTrue(
                 responseContent.contains("Unauthorized") ||
                         responseContent.contains("error") ||
@@ -174,6 +167,6 @@ class AdminE2ETest {
                         !responseContent.isEmpty(),
                 "Delete user endpoint should respond");
 
-        System.out.println("Ã¢Å“â€œ Delete user API endpoint is accessible");
+        System.out.println("✓ Delete user API endpoint is accessible");
     }
 }

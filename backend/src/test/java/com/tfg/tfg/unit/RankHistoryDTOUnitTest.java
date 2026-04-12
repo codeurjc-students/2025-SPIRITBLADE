@@ -284,7 +284,7 @@ public class RankHistoryDTOUnitTest {
 
     @Test
     public void testComplexScenario() {
-        // Test a realistic scenario with all features
+
         LocalDateTime now = LocalDateTime.now();
         RankHistoryDTO dto = new RankHistoryDTO();
         dto.setId(999L);
@@ -297,8 +297,7 @@ public class RankHistoryDTOUnitTest {
         dto.setLosses(45);
         dto.setQueueType("RANKED_FLEX_SR");
         dto.setLpChange(-18);
-        
-        // Verify all initial values
+
         assertEquals(999L, dto.getId());
         assertEquals("ComplexPlayer", dto.getSummonerName());
         assertEquals("EMERALD", dto.getTier());
@@ -311,8 +310,7 @@ public class RankHistoryDTOUnitTest {
         assertEquals("EMERALD III", dto.getFormattedRank());
         assertEquals(100, dto.getTotalGames());
         assertEquals(55.0, dto.getWinRate());
-        
-        // Modify and verify recalculations
+
         dto.setWins(60);
         assertEquals(105, dto.getTotalGames());
         assertEquals(57.142857142857146, dto.getWinRate(), 0.001);
@@ -320,8 +318,7 @@ public class RankHistoryDTOUnitTest {
         dto.setLosses(50);
         assertEquals(110, dto.getTotalGames());
         assertEquals(54.54545454545454, dto.getWinRate(), 0.001);
-        
-        // Change rank
+
         dto.setTier("DIAMOND");
         dto.setRank("IV");
         assertEquals("DIAMOND IV", dto.getFormattedRank());

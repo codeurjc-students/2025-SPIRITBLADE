@@ -24,9 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para la navegaciÃƒÂ³n general y la pÃƒÂ¡gina principal.
- * Verifica que la aplicaciÃƒÂ³n se cargue correctamente y que la navegaciÃƒÂ³n
- * funcione segÃƒÂºn lo esperado.
+ * End-to-end tests for the home navigation and main page.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -74,7 +72,7 @@ class HomeNavigationE2ETest {
 
     @Test
     void testHomePageLayoutAndResponsiveness() {
-        // Base viewport load
+
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -98,10 +96,9 @@ class HomeNavigationE2ETest {
             log.info("Note: Some structure elements may be dynamically loaded");
         }
 
-        // Test different viewport sizes in same session to check responsiveness
         int[][] viewportSizes = {
-                { 768, 1024 }, // Tablet
-                { 375, 667 } // Mobile
+                { 768, 1024 },
+                { 375, 667 }
         };
 
         for (int[] size : viewportSizes) {
@@ -116,7 +113,7 @@ class HomeNavigationE2ETest {
 
     @Test
     void testErrorPageHandling() {
-        // Test error page navigation
+
         driver.get(baseUrl + ERROR_PATH);
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
@@ -124,23 +121,21 @@ class HomeNavigationE2ETest {
         String pageContent = driver.findElement(By.tagName("body")).getText();
         assertNotNull(pageContent);
 
-        log.info("Ã¢Å“â€œ Error page is accessible");
+        log.info("✓ Error page is accessible");
         log.info("  URL: {}", driver.getCurrentUrl());
     }
 
     @Test
     void testInvalidRouteRedirect() {
-        // Access the Angular app root first
+
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-        // Test that invalid routes redirect to home
         driver.get(baseUrl + "/nonexistent-page-12345");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         String currentUrl = driver.getCurrentUrl();
 
-        // Angular wildcard route should handle this
         assertTrue(
                 currentUrl.equals(baseUrl + "/") ||
                         currentUrl.contains(ERROR_PATH) ||
@@ -148,13 +143,13 @@ class HomeNavigationE2ETest {
                         currentUrl.contains("/nonexistent-page-12345"),
                 "Invalid routes should be handled by Angular routing");
 
-        log.info("Ã¢Å“â€œ Invalid route handling verified");
+        log.info("✓ Invalid route handling verified");
         log.info("  Redirected to: {}", currentUrl);
     }
 
     @Test
     void testMultiplePageTransitions() {
-        // Test navigation between multiple pages
+
         String[] pages = { "/", "/login", "/", ERROR_PATH, "/" };
 
         for (String page : pages) {
@@ -165,7 +160,7 @@ class HomeNavigationE2ETest {
             assertNotNull(body);
         }
 
-        log.info("Ã¢Å“â€œ Multiple page transitions verified");
+        log.info("✓ Multiple page transitions verified");
         log.info("  Successfully navigated through {} pages", pages.length);
     }
 }

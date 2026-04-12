@@ -24,9 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas End-to-End para el dashboard del usuario.
- * Verifica que el dashboard requiera autenticaciÃ³n y que los endpoints
- * de datos del usuario funcionen correctamente.
+ * End-to-end tests for the dashboard interface and API endpoints.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -74,18 +72,16 @@ class DashboardE2ETest {
 
     @Test
     void testDashboardPageRequiresAuthentication() {
-        // Access the Angular app root first
+
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-        // Then try to navigate to dashboard
         driver.get(baseUrl + DASHBOARD_PATH);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         String currentUrl = driver.getCurrentUrl();
         String pageContent = driver.findElement(By.tagName("body")).getText();
 
-        // Angular should handle the redirect client-side or load the page
         boolean isProtected = currentUrl.contains("/login") ||
                 currentUrl.contains(DASHBOARD_PATH) ||
                 pageContent.contains("login") ||
@@ -95,13 +91,13 @@ class DashboardE2ETest {
 
         assertTrue(isProtected, "Dashboard should load through Angular");
 
-        log.info("âœ“ Dashboard authentication protection verified");
+        log.info("✓ Dashboard authentication protection verified");
         log.info("  Current URL: {}", currentUrl);
     }
 
     @Test
     void testRiotDataAPIEndpoints() {
-        // Test match history API endpoint
+
         driver.get(baseUrl + "/api/v1/riot/match-history/testUser");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         String matchResponse = driver.findElement(By.tagName("body")).getText();
@@ -109,7 +105,6 @@ class DashboardE2ETest {
         assertTrue(!matchResponse.isEmpty(), "Match history API should respond");
         log.info("✓ Match history API endpoint is accessible");
 
-        // Test champion mastery API endpoint using the same session
         driver.get(baseUrl + "/api/v1/riot/champion-mastery/testUser");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         String masteryResponse = driver.findElement(By.tagName("body")).getText();
@@ -124,42 +119,40 @@ class DashboardE2ETest {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         try {
-            // Check for basic dashboard structure
+
             List<WebElement> divElements = driver.findElements(By.tagName("div"));
             List<WebElement> chartElements = driver.findElements(By.tagName("canvas"));
 
-            log.info("âœ“ Dashboard page structure analysis");
+            log.info("✓ Dashboard page structure analysis");
             log.info("  Div elements found: {}", divElements.size());
             log.info("  Chart elements found: {}", chartElements.size());
 
             assertTrue(true, "Dashboard page structure verified");
 
         } catch (Exception e) {
-            log.info("Note: Dashboard elements may require authentication to load");
+            log.info("Dashboard elements may require authentication to load");
             assertTrue(true, "Test completed with expected authentication behavior");
         }
     }
 
     @Test
     void testProfileRedirectToDashboard() {
-        // Access the Angular app root first
+
         driver.get(baseUrl);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-        // Test that /profile redirects to /dashboard
         driver.get(baseUrl + "/profile");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
         String currentUrl = driver.getCurrentUrl();
 
-        // Should redirect to dashboard or login through Angular routing
         assertTrue(
                 currentUrl.contains(DASHBOARD_PATH) ||
                         currentUrl.contains("/login") ||
                         currentUrl.contains("/profile"),
                 "Profile should be handled by Angular routing");
 
-        log.info("âœ“ Profile redirect verified");
+        log.info("✓ Profile redirect verified");
         log.info("  Redirected to: {}", currentUrl);
     }
 }

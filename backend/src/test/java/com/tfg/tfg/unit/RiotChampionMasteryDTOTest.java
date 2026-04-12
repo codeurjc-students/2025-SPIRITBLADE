@@ -14,8 +14,7 @@ class RiotChampionMasteryDTOTest {
     @Test
     void testAllGettersAndSetters() {
         RiotChampionMasteryDTO dto = new RiotChampionMasteryDTO();
-        
-        // Set all fields
+
         dto.setPuuid("test-puuid-123");
         dto.setChampionId(157L);
         dto.setChampionLevel(7);
@@ -27,8 +26,7 @@ class RiotChampionMasteryDTOTest {
         dto.setTokensEarned(3);
         dto.setChampionName("Yasuo");
         dto.setChampionIconUrl("https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/Yasuo.png");
-        
-        // Assert all getters
+
         assertEquals("test-puuid-123", dto.getPuuid());
         assertEquals(157L, dto.getChampionId());
         assertEquals(7, dto.getChampionLevel());

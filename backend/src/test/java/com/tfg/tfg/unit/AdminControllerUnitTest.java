@@ -40,7 +40,7 @@ class AdminControllerUnitTest {
 
     @Test
     void testListUsersSuccess() {
-        // Given
+
         UserModel user1 = new UserModel("user1", "pass1", "USER");
         user1.setId(1L);
         UserModel user2 = new UserModel("user2", "pass2", "ADMIN");
@@ -50,11 +50,9 @@ class AdminControllerUnitTest {
         Page<UserModel> page = new PageImpl<>(List.of(user1, user2), pageable, 2);
         
         when(userService.findAll(pageable)).thenReturn(page);
-        
-        // When
+
         ResponseEntity<Page<UserDTO>> response = adminController.listUsers(0, 20, null, null, null);
-        
-        // Then
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().getContent().size());
@@ -63,7 +61,7 @@ class AdminControllerUnitTest {
 
     @Test
     void testToggleUserActiveSuccess() {
-        // Given
+
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
         user.setId(userId);
@@ -71,11 +69,9 @@ class AdminControllerUnitTest {
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(userService.toggleUserActive(userId)).thenReturn(Optional.of(user));
-        
-        // When
+
         ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
-        
-        // Then
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         verify(userService).getUserById(userId);
@@ -84,11 +80,10 @@ class AdminControllerUnitTest {
 
     @Test
     void testToggleUserActiveUserNotFound() {
-        // Given
+
         Long userId = 999L;
         when(userService.getUserById(userId)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
 
-        // Act & Assert: controller delegates exception handling to GlobalExceptionHandler; at unit level the exception will be thrown
         assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () ->
             adminController.toggleUserActive(userId));
         verify(userService).getUserById(userId);
@@ -97,7 +92,7 @@ class AdminControllerUnitTest {
 
     @Test
     void testToggleUserActiveDeactivateUser() {
-        // Given
+
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
         user.setId(userId);
@@ -105,11 +100,9 @@ class AdminControllerUnitTest {
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(userService.toggleUserActive(userId)).thenReturn(Optional.of(user));
-        
-        // When
+
         ResponseEntity<UserDTO> response = adminController.toggleUserActive(userId);
-        
-        // Then
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         verify(userService).getUserById(userId);
@@ -118,51 +111,46 @@ class AdminControllerUnitTest {
 
     @Test
     void testDeleteUserSuccess() {
-        // Given
+
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "password", "USER");
         user.setId(userId);
         
         when(userService.getUserById(userId)).thenReturn(user);
         doNothing().when(userService).deleteUserOrThrow(userId);
-        
-        // When
+
         ResponseEntity<Void> response = adminController.deleteUser(userId);
-        
-        // Then
+
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(userService).deleteUserOrThrow(userId);
     }
 
     @Test
     void testDeleteUserNotFound() {
-        // Given
+
         Long userId = 999L;
         when(userService.getUserById(userId)).thenThrow(new com.tfg.tfg.exception.UserNotFoundException("User not found"));
 
-        // Act & Assert
         assertThrows(com.tfg.tfg.exception.UserNotFoundException.class, () -> adminController.deleteUser(userId));
         verify(userService, never()).deleteUserOrThrow(anyLong());
     }
 
     @Test
     void testUpdateUserSuccess() {
-        // Given
+
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
         user.setId(userId);
         
         UserDTO userDTO = new UserDTO();
-        userDTO.setName("testuser"); // Same name
+        userDTO.setName("testuser");
         userDTO.setEmail("newemail@test.com");
         
         when(userService.getUserById(userId)).thenReturn(user);
         when(userService.updateUserOrThrow(userId, userDTO)).thenReturn(user);
-        
-        // When
+
         ResponseEntity<UserDTO> response = adminController.updateUser(userId, userDTO);
-        
-        // Then
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         verify(userService).getUserById(userId);
@@ -171,28 +159,25 @@ class AdminControllerUnitTest {
 
     @Test
     void testUpdateUserUsernameChangeForbidden() {
-        // Given
+
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
         user.setId(userId);
         
         UserDTO userDTO = new UserDTO();
-        userDTO.setName("newusername"); // Different name
+        userDTO.setName("newusername");
         
         when(userService.getUserById(userId)).thenReturn(user);
-        
-        // When
+
         ResponseEntity<UserDTO> response = adminController.updateUser(userId, userDTO);
-        
-        // Then
+
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(userService).getUserById(userId);
         verify(userService, never()).updateUserOrThrow(anyLong(), any());
     }
 
     @Test
-    void testUpdateUser_adminUserForbidden() {
-        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+    void testUpdateUseradminUserForbidden() {
         Long userId = 2L;
         UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
         adminUser.setId(userId);
@@ -205,8 +190,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testToggleUserActive_adminUserForbidden() {
-        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+    void testToggleUserActiveadminUserForbidden() {
         Long userId = 2L;
         UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
         adminUser.setId(userId);
@@ -219,8 +203,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testDeleteUser_adminUserForbidden() {
-        // Covers uncovered line: user.getRols().contains(ROLE_ADMIN) → 403
+    void testDeleteUseradminUserForbidden() {
         Long userId = 2L;
         UserModel adminUser = new UserModel("otheradmin", "pass", "ADMIN");
         adminUser.setId(userId);
@@ -233,7 +216,7 @@ class AdminControllerUnitTest {
     }
 
     @Test
-    void testToggleUserActive_returnsNotFound_whenServiceReturnsEmpty() {
+    void testToggleUserActivereturnsNotFoundwhenServiceReturnsEmpty() {
         Long userId = 1L;
         UserModel user = new UserModel("testuser", "pass", "USER");
         user.setId(userId);

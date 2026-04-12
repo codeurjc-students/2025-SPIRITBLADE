@@ -121,14 +121,13 @@ class MatchServiceUnitTest {
         List<MatchEntity> allMatches = Arrays.asList(recentMatch2, recentMatch1, oldMatch);
         when(matchRepository.findBySummonerOrderByTimestampDesc(testSummoner)).thenReturn(allMatches);
 
-        // Mock RankHistory existence
         when(rankHistoryService.getLpForMatch(2L)).thenReturn(java.util.Optional.of(50));
         when(rankHistoryService.getLpForMatch(3L)).thenReturn(java.util.Optional.of(55));
 
         List<MatchEntity> result = matchService.findRecentMatches(testSummoner, since);
 
         assertEquals(2, result.size());
-        assertEquals("RECENT1", result.get(0).getMatchId()); // Should be sorted oldest first
+        assertEquals("RECENT1", result.get(0).getMatchId());
         assertEquals("RECENT2", result.get(1).getMatchId());
     }
 
@@ -188,7 +187,7 @@ class MatchServiceUnitTest {
 
         List<MatchEntity> result = matchService.findRecentMatchesForRoleAnalysis(testSummoner, 2);
 
-        assertEquals(1, result.size()); // Only matchWithLane has non-empty lane
+        assertEquals(1, result.size());
         assertEquals("EUW1_125", result.get(0).getMatchId());
     }
 
