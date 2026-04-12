@@ -53,17 +53,14 @@ class UserControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        private UserModel testUser;
-        private UserModel inactiveUser;
-
         userRepository.deleteAll();
 
-        testUser = new UserModel(TEST_USER_NAME, TEST_PASSWORD, ROLE_USER);
+        UserModel testUser = new UserModel(TEST_USER_NAME, TEST_PASSWORD, ROLE_USER);
         testUser.setEmail(TEST_USER_EMAIL);
         testUser.setActive(true);
         userRepository.save(testUser);
 
-        inactiveUser = new UserModel(INACTIVE_USER_NAME, TEST_PASSWORD, ROLE_USER);
+        UserModel inactiveUser = new UserModel(INACTIVE_USER_NAME, TEST_PASSWORD, ROLE_USER);
         inactiveUser.setEmail("inactive@example.com");
         inactiveUser.setActive(false);
         userRepository.save(inactiveUser);
