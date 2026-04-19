@@ -25,7 +25,7 @@ class RiotChampionMasteryDTOTest {
         dto.setLastPlayTime(1699999999000L);
         dto.setTokensEarned(3);
         dto.setChampionName("Yasuo");
-        dto.setChampionIconUrl("https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/Yasuo.png");
+        dto.setChampionIconUrl("https://ddragon.leagueoflegends.com/cdn/16.8.1/img/champion/Yasuo.png");
 
         assertEquals("test-puuid-123", dto.getPuuid());
         assertEquals(157L, dto.getChampionId());
@@ -37,7 +37,7 @@ class RiotChampionMasteryDTOTest {
         assertEquals(1699999999000L, dto.getLastPlayTime());
         assertEquals(3, dto.getTokensEarned());
         assertEquals("Yasuo", dto.getChampionName());
-        assertEquals("https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/Yasuo.png", dto.getChampionIconUrl());
+        assertEquals("https://ddragon.leagueoflegends.com/cdn/16.8.1/img/champion/Yasuo.png", dto.getChampionIconUrl());
     }
 
     @Test

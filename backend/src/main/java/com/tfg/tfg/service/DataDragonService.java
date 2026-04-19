@@ -22,7 +22,7 @@ public class DataDragonService implements IDataDragonService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataDragonService.class);
 
-    private static final String DATA_DRAGON_VERSION = "15.24.1";
+    private static final String DATA_DRAGON_VERSION = "16.8.1";
     private static final String DATA_DRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
     private static final String CDN_BASE = DATA_DRAGON_BASE_URL + "/cdn/" + DATA_DRAGON_VERSION;
     private static final String CHAMPION_JSON_URL = CDN_BASE + "/data/en_US/champion.json";
@@ -87,7 +87,7 @@ public class DataDragonService implements IDataDragonService {
      */
     @Cacheable(value = "champions", key = "#championId")
     public String getChampionNameById(Long championId) {
-        if (championId == null) {
+        if (championId == null || championId == -1) {
             return "Unknown Champion";
         }
         return championRepository.findById(championId)
@@ -103,7 +103,7 @@ public class DataDragonService implements IDataDragonService {
      */
     @Cacheable(value = "champions", key = "'icon_' + #championId")
     public String getChampionIconUrl(Long championId) {
-        if (championId == null)
+        if (championId == null || championId == -1)
             return "";
 
         return championRepository.findById(championId)
