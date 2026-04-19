@@ -36,7 +36,7 @@ public class AiAnalysisService implements IAiAnalysisService {
     private final Gson gson;
     private final IRankHistoryService rankHistoryService;
 
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
     private static final String UNKNOWN = "Unknown";
     private static final String PARTS = "parts";
     private static final String CANDIDATES = "candidates";
