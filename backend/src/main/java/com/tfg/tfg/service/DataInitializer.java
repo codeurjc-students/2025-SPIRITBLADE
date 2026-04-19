@@ -101,6 +101,7 @@ public class DataInitializer {
         if (!userRepository.existsByName(ADMIN_USERNAME)) {
             UserModel admin = new UserModel(ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "ADMIN");
             admin.setEmail("admin@example.com");
+            admin.setActive(true);
             admin = userRepository.save(admin);
 
             try (java.io.InputStream is = getClass().getClassLoader()

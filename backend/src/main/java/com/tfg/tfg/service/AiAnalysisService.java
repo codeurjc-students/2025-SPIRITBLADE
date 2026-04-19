@@ -36,7 +36,7 @@ public class AiAnalysisService implements IAiAnalysisService {
     private final Gson gson;
     private final IRankHistoryService rankHistoryService;
 
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
     private static final String UNKNOWN = "Unknown";
     private static final String PARTS = "parts";
     private static final String CANDIDATES = "candidates";
@@ -249,7 +249,7 @@ public class AiAnalysisService implements IAiAnalysisService {
         generationConfig.addProperty("temperature", 0.7);
         generationConfig.addProperty("topK", 40);
         generationConfig.addProperty("topP", 0.95);
-        generationConfig.addProperty("maxOutputTokens", 2048);
+        generationConfig.addProperty("maxOutputTokens", 8192);
         requestBody.add("generationConfig", generationConfig);
 
         JsonArray safetySettings = new JsonArray();

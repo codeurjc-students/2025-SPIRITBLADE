@@ -138,7 +138,7 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should handle 401 authentication error', () => {
       // Arrange
-      const error = { status: 401 };
+      const error = { status: 401, error: { message: 'Invalid credentials. Please check your username/password.' } };
       mockAuthService.login.and.returnValue(throwError(() => error));
 
       // Act
@@ -153,7 +153,7 @@ describe('LoginComponent - Unit Tests', () => {
 
     it('should handle 403 forbidden error', () => {
       // Arrange
-      const error = { status: 403 };
+      const error = { status: 403, error: { message: 'Invalid credentials. Please check your username/password.' } };
       mockAuthService.login.and.returnValue(throwError(() => error));
 
       // Act
