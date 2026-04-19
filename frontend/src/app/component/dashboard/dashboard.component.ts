@@ -922,7 +922,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		}
 		// Remove spaces and apostrophes for Data Dragon URL format
 		const formattedName = championName.replace(/['\s]/g, '');
-		return `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${formattedName}.png`;
+		return `https://ddragon.leagueoflegends.com/cdn/16.8.1/img/champion/${formattedName}.png`;
 	}
 
 	getRankIcon(rank: string | null): string {
