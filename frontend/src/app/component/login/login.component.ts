@@ -77,8 +77,8 @@ export class LoginComponent {
         error: (err: any) => {
           // For debugging keep a non-intrusive debug log and show friendly UI message
           console.debug('Login failed', err);
-          if (err?.status === 401 || err?.status === 403) {
-            this.message = { type: 'error', text: 'Invalid credentials. Please check your username/password.' };
+          if (err?.error?.message) {
+            this.message = { type: 'error', text: err.error.message };
           } else if (err?.status === 0) {
             this.message = { type: 'error', text: 'Could not connect to the server. Please ensure the backend is running.' };
           } else {
