@@ -84,8 +84,8 @@ services:
     environment:
       # Database Configuration
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-spiritblade}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-      SPRING_DATASOURCE_USERNAME: "root"
-      SPRING_DATASOURCE_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      SPRING_DATASOURCE_USERNAME: "${MYSQL_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD}"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
       
       # Redis Configuration

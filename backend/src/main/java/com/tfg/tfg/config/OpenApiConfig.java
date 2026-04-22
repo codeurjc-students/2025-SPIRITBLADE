@@ -44,8 +44,6 @@ public class OpenApiConfig {
                         new Server()
                                 .url("https://localhost")
                                 .description("Local development server (HTTPS)")))
-                .addSecurityItem(new SecurityRequirement()
-                        .addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()
                                 .name(securitySchemeName)

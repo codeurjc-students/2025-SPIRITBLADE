@@ -24,8 +24,11 @@ import com.tfg.tfg.model.entity.UserModel;
 import com.tfg.tfg.model.mapper.UserMapper;
 import com.tfg.tfg.service.interfaces.IUserService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api/v1/admin")
+@SecurityRequirement(name = "bearerAuth")
 public class AdminController {
 
     private static final String ROLE_ADMIN = "ADMIN";
