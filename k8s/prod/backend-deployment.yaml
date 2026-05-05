@@ -21,13 +21,13 @@ spec:
       containers:
       - name: app
         # Multi-arch backend-only image supporting linux/amd64 and linux/arm64
-        image: jae9104/spiritblade-backend:latest
+        image: docker.io/jae9104/spiritblade-backend:latest
         ports:
         - containerPort: 443
         resources:
           requests:
             memory: "300Mi"
-            cpu: "250m"
+            cpu: "100m"
           limits:
             memory: "600Mi"
             cpu: "600m"

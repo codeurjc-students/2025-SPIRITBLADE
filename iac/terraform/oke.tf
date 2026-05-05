@@ -4,7 +4,7 @@
 
 resource "oci_containerengine_cluster" "k8s_cluster" {
   compartment_id     = var.compartment_ocid
-  kubernetes_version = "v1.31.1" # Versión soportada en eu-madrid-1
+  kubernetes_version = "v1.35.2" # Actualizado a la última
   name               = "${var.project_name}-cluster"
   vcn_id             = oci_core_vcn.main.id
 
@@ -33,7 +33,7 @@ resource "oci_containerengine_cluster" "k8s_cluster" {
 resource "oci_containerengine_node_pool" "node_pool" {
   cluster_id         = oci_containerengine_cluster.k8s_cluster.id
   compartment_id     = var.compartment_ocid
-  kubernetes_version = "v1.31.1"
+  kubernetes_version = "v1.35.2"
   name               = "${var.project_name}-node-pool"
   
   # VM.Standard.A1.Flex es ARM Ampere (Free Tier: 4 OCPUs y 24GB RAM total)
