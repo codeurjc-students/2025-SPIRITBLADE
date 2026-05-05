@@ -10,10 +10,10 @@ data "oci_containerengine_node_pool_option" "oke_options" {
 
 # Buscar imágenes OKE que soporten ARM64 y K8s v1.31.1
 locals {
-  # Filtrar imágenes OKE compatibles con ARM y v1.31.1
+  # Filtrar imágenes OKE compatibles con ARM y la versión del cluster
   oke_arm_images = [
     for source in data.oci_containerengine_node_pool_option.oke_options.sources :
-    source if can(regex("Oracle-Linux.*aarch64.*OKE-1\\.31\\.1", source.source_name))
+    source if can(regex(format("Oracle-Linux.*aarch64.*OKE-%s", replace(oci_containerengine_cluster.k8s_cluster.kubernetes_version, "v", "")), source.source_name))
   ]
   
   # Seleccionar la imagen más reciente

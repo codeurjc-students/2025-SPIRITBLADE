@@ -43,6 +43,7 @@ resource "oci_database_autonomous_database" "main" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = all
   }
 }
 
