@@ -4,7 +4,7 @@
 
 resource "oci_containerengine_cluster" "k8s_cluster" {
   compartment_id     = var.compartment_ocid
-  kubernetes_version = "v1.34.1" # Versión soportada en eu-madrid-1
+  kubernetes_version = "v1.35.2" # Actualizado a la última
   name               = "${var.project_name}-cluster"
   vcn_id             = oci_core_vcn.main.id
 
