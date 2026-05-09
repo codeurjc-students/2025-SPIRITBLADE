@@ -15,6 +15,7 @@ override.tf.json
 outputs.txt
 terraform-outputs.txt
 outputs.json
+outputs.json
 
 # Backup files
 *.backup
