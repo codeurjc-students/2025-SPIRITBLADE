@@ -20,7 +20,7 @@ import com.tfg.tfg.service.interfaces.IRiotService;
 import com.tfg.tfg.service.interfaces.ISummonerService;
 
 @RestController
-@RequestMapping("/summoners")
+@RequestMapping("/api/v1/summoners")
 public class SummonerController {
 
     private final ISummonerService summonerService;

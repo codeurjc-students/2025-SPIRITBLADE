@@ -27,7 +27,7 @@ import com.tfg.tfg.service.interfaces.IUserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/v1/admin")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminController {
 

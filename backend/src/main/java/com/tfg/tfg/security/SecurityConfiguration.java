@@ -92,7 +92,7 @@ public class SecurityConfiguration {
 				.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/summoners/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
-				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+				.requestMatchers("/api/v1/swagger-ui/**", "/api/v1/v3/api-docs/**", "/api/v1/swagger-ui.html").permitAll()
 
 				.requestMatchers("/api/v1/dashboard/**").authenticated()
 				.requestMatchers("/api/v1/users/**").authenticated()

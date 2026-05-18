@@ -31,7 +31,7 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
 

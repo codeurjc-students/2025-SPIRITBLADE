@@ -19,7 +19,7 @@ import java.util.Map;
  * Controller for file upload and download operations
  */
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/v1/files")
 @CrossOrigin(origins = "*", allowCredentials = "false")
 public class FileController {
 
