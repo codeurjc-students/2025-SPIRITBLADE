@@ -59,7 +59,7 @@ jobs:
         run: |
           mkdir -p $HOME/.kube
           oci ce cluster create-kubeconfig \
-            --cluster-id ocid1.cluster.oc1.eu-madrid-1.aaaaaaaadfwvronhw6nsklmf7usuhsvqcmmvve3m2memkc6gzclznp4semga \
+            --cluster-id ocid1.cluster.oc1.eu-madrid-1.aaaaaaaajcp36ecxxj6clvtiuab6grcwcsnif5i3wwi5ibqmscn4chwby23a \
             --file $HOME/.kube/config \
             --region eu-madrid-1 \
             --token-version 2.0.0 \

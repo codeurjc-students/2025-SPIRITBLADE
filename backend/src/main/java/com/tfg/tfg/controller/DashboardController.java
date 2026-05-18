@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
-@RequestMapping("/api/v1/dashboard")
+@RequestMapping("/dashboard")
 @SecurityRequirement(name = "bearerAuth")
 public class DashboardController {
 

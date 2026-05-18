@@ -966,7 +966,7 @@ ng serve --ssl
 
 7. Acceso:
 - Backend API: https://localhost (puerto 443)
-- Swagger UI: https://localhost/swagger-ui.html
+- Swagger UI: https://localhost/api/v1/swagger-ui.html
 - Frontend: https://localhost:4200
 
 ⚠️ Certificado SSL: Aceptar certificado autofirmado en el navegador la primera vez.
@@ -1030,7 +1030,7 @@ npm test -- --include='**/summoner.component.spec.ts'
 
 1. Iniciar la aplicación
 
-2. Abrir Swagger UI: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+2. Abrir Swagger UI: [https://localhost/api/v1/swagger-ui.html](https://localhost/api/v1/swagger-ui.html)
 
 ⚠️ Primera vez: aceptar certificado autofirmado en el navegador
 
@@ -1051,7 +1051,7 @@ Ver [SWAGGER-QUICKSTART.md](SWAGGER-QUICKSTART.md) para más detalles.
 
 Importar OpenAPI:
 1. Abrir Postman
-2. Import → Link → `https://localhost/v3/api-docs`
+2. Import → Link → `https://localhost/api/v1/v3/api-docs`
 3. Postman genera colección
 4. Establecer env variable `baseUrl` = `https://localhost`
 

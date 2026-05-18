@@ -35,8 +35,8 @@ Documentación interactiva: SPIRITBLADE incluye **Swagger UI** para exploración
 El **Swagger UI** ofrece una interfaz completa e interactiva para explorar y probar todos los endpoints de la API directamente desde el navegador.
 
 **URL de acceso**:
-- **Producción**: [https://spiritblade.dev/swagger-ui.html](https://spiritblade.dev/swagger-ui.html)
-- **Local**: [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html)
+- **Producción**: [https://spiritblade.dev/api/v1/swagger-ui.html](https://spiritblade.dev/api/v1/swagger-ui.html)
+- **Local**: [https://localhost/api/v1/swagger-ui.html](https://localhost/api/v1/swagger-ui.html)
 
 Nota: En local, tu navegador mostrará una advertencia de seguridad porque el certificado SSL está autofirmado. En producción el certificado es válido (Let's Encrypt).
 
@@ -51,8 +51,8 @@ Funciones:
 ### Especificación OpenAPI
 
 La especificación OpenAPI 3.0 en bruto está disponible en:
-- **JSON**: [https://localhost/v3/api-docs](https://localhost/v3/api-docs)
-- **YAML**: [https://localhost/v3/api-docs.yaml](https://localhost/v3/api-docs.yaml)
+- **JSON**: [https://localhost/api/v1/v3/api-docs](https://localhost/api/v1/v3/api-docs)
+- **YAML**: [https://localhost/api/v1/v3/api-docs.yaml](https://localhost/api/v1/v3/api-docs.yaml)
 
 ---
 
@@ -71,7 +71,7 @@ docker-compose up
 
 ### Paso 2: Abrir Swagger UI
 
-Navega a [https://localhost/swagger-ui.html](https://localhost/swagger-ui.html) en tu navegador.
+Navega a [https://localhost/api/v1/swagger-ui.html](https://localhost/api/v1/swagger-ui.html) en tu navegador.
 
 Acepta el certificado cuando se solicite (Avanzado → Continuar a localhost).
 
@@ -195,17 +195,17 @@ Para detalles completos, consulta Swagger UI que refleja el código en ejecució
 ### Herramientas de desarrollo
 
 Pruebas de la API:
-- Swagger UI (recomendado) - `https://localhost/swagger-ui.html`
-- Postman - importar especificación OpenAPI desde `https://localhost/v3/api-docs`
+- Swagger UI (recomendado) - `https://localhost/api/v1/swagger-ui.html`
+- Postman - importar especificación OpenAPI desde `https://localhost/api/v1/v3/api-docs`
 - curl - peticiones desde línea de comandos (usar `-k` para omitir verificación del certificado)
 
 Exportar la especificación:
 ```powershell
 # Formato JSON
-curl -k https://localhost/v3/api-docs > openapi.json
+curl -k https://localhost/api/v1/v3/api-docs > openapi.json
 
 # Formato YAML
-curl -k https://localhost/v3/api-docs.yaml > openapi.yaml
+curl -k https://localhost/api/v1/v3/api-docs.yaml > openapi.yaml
 ```
 
 Nota: la opción `-k` en curl omite la verificación SSL (necesario para certificados autofirmados en desarrollo).
@@ -233,9 +233,9 @@ Deshabilitar Swagger UI en producción: establece `springdoc.swagger-ui.enabled=
 Repositorio: https://github.com/JorgeAndresEcheverria/2025-SPIRITBLADE
 
 Swagger / OpenAPI (HTTPS):
-- Swagger UI: https://localhost/swagger-ui.html
-- OpenAPI JSON: https://localhost/v3/api-docs
-- OpenAPI YAML: https://localhost/v3/api-docs.yaml
+- Swagger UI: https://localhost/api/v1/swagger-ui.html
+- OpenAPI JSON: https://localhost/api/v1/v3/api-docs
+- OpenAPI YAML: https://localhost/api/v1/v3/api-docs.yaml
 
 ---
 

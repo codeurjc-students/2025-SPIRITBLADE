@@ -29,7 +29,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Authentication", description = "Authentication management endpoints")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class LoginRestController {
 
 	private final IUserService userService;
