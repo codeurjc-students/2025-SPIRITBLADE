@@ -50,7 +50,7 @@ spec:
               name: spiritblade-secrets
               key: adb-password
         - name: SPRING_DATA_REDIS_HOST
-          value: "redis-cluster-master" # Points to Redis Bitnami Master Service
+          value: "redis-master" # Points to Redis Bitnami Master Service
         - name: SPRING_DATA_REDIS_PORT
           value: "6379"
         # OCI Object Storage S3 Compatibility

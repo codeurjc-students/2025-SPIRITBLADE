@@ -139,12 +139,12 @@ resource "oci_core_network_security_group_security_rule" "node_icmp" {
   source_type               = "CIDR_BLOCK"
 }
 
-# Permitir NodePort range desde internet (para servicios expuestos)
+# Permitir NodePort range desde dentro de la VCN (Load Balancer)
 resource "oci_core_network_security_group_security_rule" "node_nodeport" {
   network_security_group_id = oci_core_network_security_group.node_nsg.id
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
-  source                    = "0.0.0.0/0"
+  source                    = var.vcn_cidr
   source_type               = "CIDR_BLOCK"
   
   tcp_options {
@@ -153,7 +153,7 @@ resource "oci_core_network_security_group_security_rule" "node_nodeport" {
       max = 32767
     }
   }
-  description = "Allow NodePort traffic from internet"
+  description = "Allow NodePort traffic from VCN"
 }
 
 # CRÍTICO: Permitir EGRESS a Internet para registro de nodos
