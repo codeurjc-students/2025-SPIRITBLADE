@@ -119,12 +119,15 @@ class DashboardServiceUnitTest {
         Object res = m.invoke(dashboardService, 10, true, "GOLD", "I");
         assertNotNull(res);
         Method lpMethod = res.getClass().getDeclaredMethod("lp");
+        lpMethod.setAccessible(true);
         int val = (Integer) lpMethod.invoke(res);
         assertTrue(val >= 0);
 
         Object res2 = m.invoke(dashboardService, 5, true, "MASTER", "I");
         assertNotNull(res2);
-        int val2 = (Integer) res2.getClass().getDeclaredMethod("lp").invoke(res2);
+        Method lpMethod2 = res2.getClass().getDeclaredMethod("lp");
+        lpMethod2.setAccessible(true);
+        int val2 = (Integer) lpMethod2.invoke(res2);
         assertEquals(0, val2);
     }
 
