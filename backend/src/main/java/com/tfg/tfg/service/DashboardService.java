@@ -299,6 +299,17 @@ public class DashboardService implements IDashboardService {
 
     private List<MatchHistoryDTO> fetchAndSaveFreshMatches(Summoner summoner, Integer queueId, int page, int size) {
         logger.info("Fetching fresh match data from Riot API for summoner {}", summoner.getName());
+
+        try {
+            // Refresh summoner data to ensure LP calculation starts with the correct current LP and Rank
+            com.tfg.tfg.model.dto.SummonerDTO updatedSummoner = riotService.getSummonerByName(summoner.getName());
+            summoner.setTier(updatedSummoner.getTier());
+            summoner.setRank(updatedSummoner.getRank());
+            summoner.setLp(updatedSummoner.getLp());
+        } catch (Exception e) {
+            logger.warn("Failed to refresh summoner data before fetching matches: {}", e.getMessage());
+        }
+
         List<MatchHistoryDTO> allMatches = riotService.getMatchHistory(summoner.getPuuid(), page * size, size);
         List<MatchHistoryDTO> rankedMatches = filterRankedMatches(allMatches, queueId, size);
         saveMatchesToDatabaseWithLP(summoner, rankedMatches);
@@ -473,12 +484,16 @@ public class DashboardService implements IDashboardService {
     private record LpCalculationResult(Map<String, Integer> lpByMatchId, List<MatchEntity> newMatches) {
     }
 
+    private record LpAndDivision(int lp, String division) {
+    }
+
     private LpCalculationResult buildLpMap(List<MatchHistoryDTO> sortedMatches,
             Map<String, MatchEntity> existingMatches, Summoner summoner,
             String currentTier, String currentDivision, int currentLP) {
         Map<String, Integer> lpByMatchId = new HashMap<>();
         List<MatchEntity> newMatches = new ArrayList<>();
         int lpTracker = currentLP;
+        String divisionTracker = currentDivision;
 
         for (int i = sortedMatches.size() - 1; i >= 0; i--) {
             MatchHistoryDTO matchDTO = sortedMatches.get(i);
@@ -494,7 +509,11 @@ public class DashboardService implements IDashboardService {
 
             int lpAtMatchStart = lpTracker;
             boolean won = matchDTO.getWin() != null && matchDTO.getWin();
-            lpTracker = calculateBackwardsLpChange(lpTracker, won, currentTier, currentDivision);
+            
+            LpAndDivision calcResult = calculateBackwardsLpChange(lpTracker, won, currentTier, divisionTracker);
+            lpTracker = calcResult.lp();
+            divisionTracker = calcResult.division();
+            
             lpByMatchId.put(matchDTO.getMatchId(), lpAtMatchStart);
             newMatches.add(MatchMapper.toEntity(existing, matchDTO, summoner));
         }
@@ -528,7 +547,7 @@ public class DashboardService implements IDashboardService {
     /**
      * Calculate LP change going backwards in time
      */
-    private int calculateBackwardsLpChange(int lpTracker, boolean won, String currentTier, String divisionTracker) {
+    private LpAndDivision calculateBackwardsLpChange(int lpTracker, boolean won, String currentTier, String divisionTracker) {
         int lpChange = won ? -20 : +15;
         int newLpTracker = lpTracker + lpChange;
 
@@ -537,11 +556,11 @@ public class DashboardService implements IDashboardService {
             newLpTracker += 100;
         }
 
-        if (newLpTracker < 0) {
+        if (newLpTracker < 0 && !canDemote(currentTier, divisionTracker)) {
             newLpTracker = 0;
         }
 
-        return newLpTracker;
+        return new LpAndDivision(newLpTracker, divisionTracker);
     }
 
     /**

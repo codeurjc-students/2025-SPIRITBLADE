@@ -117,13 +117,17 @@ class DashboardServiceUnitTest {
         m.setAccessible(true);
 
         Object res = m.invoke(dashboardService, 10, true, "GOLD", "I");
-        assertTrue(res instanceof Integer);
-        int val = (Integer) res;
+        assertNotNull(res);
+        Method lpMethod = res.getClass().getDeclaredMethod("lp");
+        lpMethod.setAccessible(true);
+        int val = (Integer) lpMethod.invoke(res);
         assertTrue(val >= 0);
 
         Object res2 = m.invoke(dashboardService, 5, true, "MASTER", "I");
-        assertTrue(res2 instanceof Integer);
-        int val2 = (Integer) res2;
+        assertNotNull(res2);
+        Method lpMethod2 = res2.getClass().getDeclaredMethod("lp");
+        lpMethod2.setAccessible(true);
+        int val2 = (Integer) lpMethod2.invoke(res2);
         assertEquals(0, val2);
     }
 
@@ -185,9 +189,16 @@ class DashboardServiceUnitTest {
         s.setPuuid("puuid123");
         s.setTier("GOLD");
         s.setRank("II");
-        s.setLp(50);
+        s.setLp(50); // Original LP
 
         when(matchService.findRankedMatchesBySummonerOrderByTimestampDesc(s)).thenReturn(List.of());
+
+        // Mock Riot API summoner refresh
+        com.tfg.tfg.model.dto.SummonerDTO updatedSummoner = new com.tfg.tfg.model.dto.SummonerDTO();
+        updatedSummoner.setTier("GOLD");
+        updatedSummoner.setRank("II");
+        updatedSummoner.setLp(70); // New LP after refresh
+        when(riotService.getSummonerByName("needsUpdate")).thenReturn(updatedSummoner);
 
         com.tfg.tfg.model.dto.MatchHistoryDTO apiMatch = new com.tfg.tfg.model.dto.MatchHistoryDTO();
         apiMatch.setMatchId("NEW_MATCH");
@@ -201,6 +212,7 @@ class DashboardServiceUnitTest {
         
         List<com.tfg.tfg.model.dto.MatchHistoryDTO> result = dashboardService.getRankedMatchesWithLP(s, null, 0, 10);
         assertNotNull(result);
+        assertEquals(70, s.getLp(), "Summoner LP should be updated from Riot API before processing matches");
     }
 
     @Test
