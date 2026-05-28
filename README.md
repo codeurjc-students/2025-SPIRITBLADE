@@ -87,7 +87,7 @@
 
 ## 🎥 Video Demostración
 
-> **[🎬 Ver video demostrativo](utils/demo/demo1-0.mp4)**
+> **[🎬 Ver video demostrativo](https://youtu.be/JmKdQhNpecU)**
 
 ### Contenido del video:
 El video demostrativo muestra las funcionalidades clave de SPIRITBLADE, incluyendo la búsqueda de invocadores, visualización de perfiles, historial de partidas y uso del panel de administración.
