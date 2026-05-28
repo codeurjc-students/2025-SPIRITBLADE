@@ -1,0 +1,51 @@
+config:
+  target: "https://spiritblade.dev"
+  tls:
+    rejectUnauthorized: false
+  plugins:
+    expect: {}
+
+  # FASES DEL TEST: DEMO EXPRESS
+  phases:
+    - name: "DDoS Controlado (Disparo rápido del HPA)"
+      duration: 30
+      arrivalRate: 80       # Alto para saturar tráfico.
+    - name: "Mantenimiento GORDO (Fuerza Cluster Autoscaler)"
+      duration: 180       # 3 minutos esperando el escalado físico
+      arrivalRate: 40
+
+scenarios:
+  - name: "Escalado Multi-Capa Seguro (Front + Back + Redis)"
+    weight: 1
+    flow:
+      # 1. ATACAR EL FRONTEND (Consumo de Nginx)
+      - loop:
+          - get:
+              url: "/" 
+          - get:
+              url: "/index.html"
+          - get:
+              url: "/styles.scss" # Usado en tu script original
+        count: 5
+
+      # 2. ATACAR BACKEND HTTP
+      - loop:
+          - get:
+              url: "/actuator/health"
+          - get:
+              url: "/api/v1/summoners/recent"
+        count: 3
+
+      # 3. ATACAR REDIS A FUERZA DE LECTURAS (Caché Hit Massive)
+      # Buscamos siempre a usuarios reales. Esto leerá a lo bestia de la memoria de Redis 
+      # evitando llamadas excesivas a Riot Games (previniendo Rate Limits/404s).
+      - loop:
+          - get:
+              url: "/api/v1/summoners/name/Faker"
+          - get:
+              url: "/api/v1/summoners/name/Caps"
+          - get:
+              url: "/api/v1/summoners/name/Uzi"
+          - get:
+              url: "/api/v1/summoners/name/Elyoya"
+        count: 3
