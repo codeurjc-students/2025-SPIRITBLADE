@@ -242,7 +242,8 @@ Oracle Cloud Infrastructure (Free Tier)
 - **Issues y Tareas**: [GitHub Projects](https://github.com/codeurjc-students/2025-SPIRITBLADE/projects)
 - **Memoria TFG1**: [Memoria](memorias/tfg1.pdf)
 - **Memoria TFG2**: [Memoria](memorias/tfg2.pdf)
-
+- **LaTeX TFG1**: [TFG 1](https://www.overleaf.com/read/ttgywbhrsrfp#5a6e02)
+- **LaTeX TFG2**: [TFG 2](https://www.overleaf.com/read/fzpgvbfsngvn#ec09f7)
 ---
 
 ## 👨‍💻 Autoría
