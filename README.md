@@ -240,6 +240,8 @@ Oracle Cloud Infrastructure (Free Tier)
 - **Docker Hub**: [Spiritblade Docker Hub](https://hub.docker.com/repository/docker/jae9104/spiritblade/general)
 - **Blog del proyecto**: [Medium - SPIRITBLADE](https://medium.com/@j.andres.2022/fase-1-tfg-5ecf33a800e3)
 - **Issues y Tareas**: [GitHub Projects](https://github.com/codeurjc-students/2025-SPIRITBLADE/projects)
+- **Memoria TFG1**: [Memoria](memorias/tfg1.pdf)
+- **Memoria TFG2**: [Memoria](memorias/tfg2.pdf)
 
 ---
 
