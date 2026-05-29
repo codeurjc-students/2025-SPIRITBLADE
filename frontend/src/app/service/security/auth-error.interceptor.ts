@@ -18,6 +18,12 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((err: any) => {
       if (err instanceof HttpErrorResponse) {
+        // Skip global interceptor for login/register to let the component handle wrong credentials
+        // Also skip /auth/me to avoid infinite redirect loops; AuthService will handle its own 401s silently.
+        if (req.url.includes('/auth/login') || req.url.includes('/auth/register') || req.url.includes('/auth/me')) {
+          return throwError(() => err);
+        }
+
         // 401 Unauthorized: User is not logged in - redirect to login
         if (err.status === 401) {
           console.warn('🔒 Not authenticated, redirecting to login...');
