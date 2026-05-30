@@ -15,7 +15,7 @@ if (-Not $MonitorOnly) {
     Start-Process powershell -ArgumentList "-NoProfile -NoExit -Command `"cd F:\ ; & '$runPath\watch-scaling.ps1' -MonitorOnly`""
     
     Write-Host "`n> Lanzando test de carga (Artillery)...`n" -ForegroundColor Yellow
-    cmd.exe /c "npx artillery run artillery-config.yaml"
+    cmd.exe /c "npx artillery run artillery-demo.yaml"
     exit
 }
 
@@ -43,7 +43,7 @@ while ($true) {
     $nodeCount = (kubectl get nodes --no-headers 2>$null | Measure-Object -Line).Lines
     Write-Host "`n  > Total nodos: $nodeCount / 4" -ForegroundColor $(if ($nodeCount -gt 2) { "Green" } else { "Gray" })
 
-    Write-Header "PODS prod (HPA: max=5)"
+    Write-Header "PODS prod"
     kubectl get pods -n prod --no-headers | ForEach-Object {
         $parts = $_ -split '\s+'
         if ($parts.Length -ge 5) {
@@ -56,7 +56,7 @@ while ($true) {
     }
 
     Write-Header "HPA ESTADO"
-    kubectl get hpa -n prod --no-headers | ForEach-Object {
+    kubectl get hpa -n prod --no-headers 2>$null | ForEach-Object {
         $parts = $_.Trim() -split '\s{2,}'
         if ($parts.Length -ge 6) {
             $name = $parts[0]; $targets = $parts[2]; $max = $parts[4]; $replicas = $parts[5]
@@ -65,16 +65,26 @@ while ($true) {
         }
     }
 
-    Write-Header "REDIS (VPA ESTADO)"
+    Write-Header "REDIS (ESTADO INTERNO CACHE)"
     try {
-        $memTarget = kubectl get vpa redis-vpa -n prod -o jsonpath="{.status.recommendation.containerRecommendations[0].target.memory}"
-        if ($memTarget) {
-            $color = if ($memTarget -match "512") { "Red" } elseif ($memTarget -match "256") { "Yellow" } else { "Cyan" }
-            Write-Host ("  redis-vpa          Recomendacion RAM target: {0,-8} " -f $memTarget) -ForegroundColor $color
+        $redisInfo = kubectl exec -n prod redis-master-0 -- redis-cli info 2>$null
+        if ($redisInfo) {
+            $memVal = "N/A"; $hits = "0"; $misses = "0"; $keys = "0"; $slaves = "0"
+            foreach ($line in $redisInfo) {
+                if ($line -match "^used_memory_human:(.*)") { $memVal = $matches[1].Trim() }
+                if ($line -match "^keyspace_hits:(\d+)") { $hits = $matches[1] }
+                if ($line -match "^keyspace_misses:(\d+)") { $misses = $matches[1] }
+                if ($line -match "^db0:keys=(\d+)") { $keys = $matches[1] }
+                if ($line -match "^connected_slaves:(\d+)") { $slaves = $matches[1] }
+            }
+            $color = if ($memVal -match "G") { "Red" } elseif ($memVal -match "M") { "Green" } else { "Cyan" }
+            Write-Host ("  redis-master       Mem usada: {0,-8} | Replicas: {1,-2} | Keys: {2,-5} | Hits: {3,-6} | Misses: {4}" -f $memVal, $slaves, $keys, $hits, $misses) -ForegroundColor $color
         } else {
-            Write-Host "  redis-vpa          Calculando recomendacion de memoria..." -ForegroundColor DarkGray
+            Write-Host "  redis-master       Esperando metricas internas..." -ForegroundColor DarkGray
         }
-    } catch { Write-Host "  (Obteniendo metricas de VPA...)" -ForegroundColor DarkGray }
+    } catch {
+        Write-Host "  (Obteniendo metricas cache...)" -ForegroundColor DarkGray
+    }
 
     Write-Header "USO ACTUAL CPU/RAM (metrics-server)"
     try {

@@ -41,11 +41,11 @@ scenarios:
       # evitando llamadas excesivas a Riot Games (previniendo Rate Limits/404s).
       - loop:
           - get:
-              url: "/api/v1/summoners/name/Faker"
+              url: "/api/v1/summoners/name/AkineFXZ%23XDD"
           - get:
-              url: "/api/v1/summoners/name/Caps"
+              url: "/api/v1/summoners/name/Cantabroperrero%23EUW"
           - get:
-              url: "/api/v1/summoners/name/Uzi"
+              url: "/api/v1/summoners/name/bypablo3112%23EUW"
           - get:
-              url: "/api/v1/summoners/name/Elyoya"
+              url: "/api/v1/summoners/name/jae9104%23EUW"
         count: 3

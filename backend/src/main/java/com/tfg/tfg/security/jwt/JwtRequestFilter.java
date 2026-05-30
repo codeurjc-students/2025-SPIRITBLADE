@@ -34,17 +34,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		try {
-			var claims = jwtTokenProvider.validateToken(request, false);
-			var userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
+		String header = request.getHeader("Authorization");
+		if (header != null && header.startsWith("Bearer ")) {
+			try {
+				var claims = jwtTokenProvider.validateToken(request, false);
+				var userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
 
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-					userDetails, null, userDetails.getAuthorities());
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+						userDetails, null, userDetails.getAuthorities());
 
-			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-		} catch (Exception ex) {
-			log.error("Exception processing JWT Token: ", ex);
+				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+			} catch (Exception ex) {
+				log.error("Exception processing JWT Token: {}", ex.getMessage());
+			}
 		}
 
 		filterChain.doFilter(request, response);
