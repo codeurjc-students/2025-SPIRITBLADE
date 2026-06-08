@@ -62,7 +62,7 @@ export class MarkdownToHtmlPipe implements PipeTransform {
       return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
     });
 
-    html = processedBlocks.filter(b => b.length > 0).join('\n');
+    html = processedBlocks.filter(b => b.length > 0).join('');
 
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
